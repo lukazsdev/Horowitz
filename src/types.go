@@ -1,5 +1,57 @@
 package main
 
+/*
+
+	Board representation:
+
+	e.g binary: ...000100010 = ... d1 c1 b1 a1 (a1 is least significant bit)
+
+	Bitboard:
+
+	a8 b8 c8 d8 e8 f8 g8 h8     56 57 58 59 60 61 62 63
+	a7 b7 c7 d7 e7 f7 g7 h7     56 57 58 59 60 61 62 63
+	a6 b6 c6 d6 e6 f6 g6 h6     48 49 50 51 52 53 54 55
+	a5 b5 c5 d5 e5 f5 g5 h5  =  32 33 34 35 36 37 38 39
+	a4 b4 c4 d4 e4 f4 g4 h4     24 25 26 27 28 29 30 31
+	a3 b3 c3 d3 e3 f3 g3 h3     16 17 18 19 20 21 22 23
+	a2 b2 c2 d2 e2 f2 g2 h2      8  9 10 11 12 13 14 15
+	a1 b1 c1 d1 e1 f1 g1 h1      0  1  2  3  4  5  6  7
+
+*/
+
+// define piece bitboards
+var BITBOARDS [12]uint64
+
+// occupancy bitboards
+var OCCUPANCIES [3]uint64
+
+// side to move
+var SIDE int = -1
+
+// enpassant square
+var ENPASSANT int = NO_SQ
+
+// castling rights
+var CASTLE int = 0
+
+// ASCII pieces
+var ascii_pieces = [12]byte{'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'k', 'b', 'r', 'q', 'k'}
+
+// convert ASCII pieces to encoded constants
+var char_pieces = []int{'P':P, 'N':N, 'B':B, 'R':R, 'Q':Q, 'K':K, 'p':p, 'n':n, 'b':b, 'r':r, 'q':q, 'k':k}
+
+var square_to_coordinates = []string{
+	"SQ_A1", "SQ_B1", "SQ_C1", "SQ_D1", "SQ_E1", "SQ_F1", "SQ_G1", "SQ_H1",
+	"SQ_A2", "SQ_B2", "SQ_C2", "SQ_D2", "SQ_E2", "SQ_F2", "SQ_G2", "SQ_H2",
+	"SQ_A3", "SQ_B3", "SQ_C3", "SQ_D3", "SQ_E3", "SQ_F3", "SQ_G3", "SQ_H3",
+	"SQ_A4", "SQ_B4", "SQ_C4", "SQ_D4", "SQ_E4", "SQ_F4", "SQ_G4", "SQ_H4",
+	"SQ_A5", "SQ_B5", "SQ_C5", "SQ_D5", "SQ_E5", "SQ_F5", "SQ_G5", "SQ_H5",
+	"SQ_A6", "SQ_B6", "SQ_C6", "SQ_D6", "SQ_E6", "SQ_F6", "SQ_G6", "SQ_H6",
+	"SQ_A7", "SQ_B7", "SQ_C7", "SQ_D7", "SQ_E7", "SQ_F7", "SQ_G7", "SQ_H7",
+	"SQ_A8", "SQ_B8", "SQ_C8", "SQ_D8", "SQ_E8", "SQ_F8", "SQ_G8", "SQ_H8",
+}
+
+
 const (
 	WHITE = 0
 	BLACK = 1

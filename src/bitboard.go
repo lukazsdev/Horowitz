@@ -3,41 +3,6 @@ package main
 import "fmt"
 
 
-/*
-
-	Board representation:
-
-	e.g binary: ...000100010 = ... d1 c1 b1 a1 (a1 is least significant bit)
-
-	Bitboard:
-
-	a8 b8 c8 d8 e8 f8 g8 h8     56 57 58 59 60 61 62 63
-	a7 b7 c7 d7 e7 f7 g7 h7     56 57 58 59 60 61 62 63
-	a6 b6 c6 d6 e6 f6 g6 h6     48 49 50 51 52 53 54 55
-	a5 b5 c5 d5 e5 f5 g5 h5  =  32 33 34 35 36 37 38 39
-	a4 b4 c4 d4 e4 f4 g4 h4     24 25 26 27 28 29 30 31
-	a3 b3 c3 d3 e3 f3 g3 h3     16 17 18 19 20 21 22 23
-	a2 b2 c2 d2 e2 f2 g2 h2      8  9 10 11 12 13 14 15
-	a1 b1 c1 d1 e1 f1 g1 h1      0  1  2  3  4  5  6  7
-
-*/
-
-// define piece bitboards
-var BITBOARDS [12]uint64
-
-// occupancy bitboards
-var OCCUPANCIES [3]uint64
-
-// side to move
-var SIDE int = -1
-
-// enpassant square
-var ENPASSANT int = NO_SQ
-
-// castling rights
-var CASTLE int = 0
-
-
 
 // file masks
 var MASK_FILE = [8]uint64{
@@ -154,4 +119,70 @@ func print_bitboard(bitboard uint64) {
 		fmt.Print("\n")
 	}
 	fmt.Print("    a b c d e f g h\n\n")
+}
+
+// print board
+func print_board() {
+	fmt.Print("\n")
+	for rank := 7; rank >= 0; rank-- {
+		for file := 0; file < 8; file++ {
+			square := rank*8 + file
+
+			if file == 0 {
+				fmt.Print(" ", rank + 1, " ")
+			}
+
+			var piece int = -1
+
+			for bb_piece := P; bb_piece <= k; bb_piece++ {
+				if get_bit(BITBOARDS[bb_piece], square) > 0 {
+					piece = bb_piece
+				}
+			}
+
+
+			if piece == -1 {
+				fmt.Print(" .")
+			} else {
+				fmt.Printf(" %c", ascii_pieces[piece])
+			}
+		}
+		fmt.Print("\n")
+	}
+	fmt.Print("    a b c d e f g h\n\n")
+
+	if SIDE == WHITE {
+		fmt.Print("   Side:    white\n")
+	} else {
+		fmt.Print("   Side:    black\n")
+	}
+
+	if ENPASSANT != NO_SQ {
+		fmt.Print("   Enpass:    ", square_to_coordinates[ENPASSANT], "\n")
+	} else {
+		fmt.Print("   Enpass:     no\n")
+	}
+
+	fmt.Print("   Castling:  ")
+	if (CASTLE & WK) > 0 {
+		fmt.Print("K")
+	} else {
+		fmt.Print("-")
+	}
+	if (CASTLE & WQ) > 0 {
+		fmt.Print("Q")
+	} else {
+		fmt.Print("-")
+	}
+	if (CASTLE & BK) > 0 {
+		fmt.Print("k")
+	} else {
+		fmt.Print("-")
+	}
+	if (CASTLE & BQ) > 0 {
+		fmt.Print("q")
+	} else {
+		fmt.Print("-")
+	}
+	fmt.Print("\n")
 }
