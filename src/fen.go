@@ -1,5 +1,6 @@
 package main
 
+//import "fmt"
 
 // FEN dedug positions
 const empty_board string = "8/8/8/8/8/8/8/8 b - - "
@@ -57,5 +58,38 @@ func parse_fen(fen string, ptr int) {
 				ptr = ptr + 1
 			}
 		}
+	}
+
+	ptr = ptr + 1
+	if fen[ptr] == 'w' {
+		SIDE = WHITE
+	} else {
+		SIDE = BLACK
+	}
+
+	ptr = ptr + 2
+
+	for fen[ptr] != ' ' {
+		switch (fen[ptr]) {
+		case 'K':
+			CASTLE = CASTLE | WK
+		case 'Q':
+			CASTLE = CASTLE | WQ
+		case 'k':
+			CASTLE = CASTLE | BK
+		case 'q':
+			CASTLE = CASTLE | BQ
+		}
+		ptr = ptr + 1
+	}
+
+	ptr = ptr + 1
+
+	if fen[ptr] != '-' {
+		file := int(fen[ptr]) - 97
+		rank := int(fen[ptr+1]) - 49
+		ENPASSANT = rank*8 + file
+	} else {
+		ENPASSANT = NO_SQ
 	}
 }
