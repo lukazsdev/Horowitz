@@ -101,6 +101,7 @@ func reverse(bb uint64) uint64 {
 
 // print bitboard
 func print_bitboard(bitboard uint64) {
+	fmt.Print("\n")
 	for rank := 7; rank >= 0; rank-- {
 		for file := 0; file < 8; file++ {
 			square := rank*8 + file
@@ -118,7 +119,7 @@ func print_bitboard(bitboard uint64) {
 		}
 		fmt.Print("\n")
 	}
-	fmt.Print("    a b c d e f g h\n\n")
+	fmt.Print("\n    a b c d e f g h\n\n")
 }
 
 // print board
@@ -149,7 +150,7 @@ func print_board() {
 		}
 		fmt.Print("\n")
 	}
-	fmt.Print("    a b c d e f g h\n\n")
+	fmt.Print("\n    a b c d e f g h\n\n")
 
 	if SIDE == WHITE {
 		fmt.Print("   Side:    white\n")

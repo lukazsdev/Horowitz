@@ -55,6 +55,7 @@ var square_to_coordinates = []string{
 const (
 	WHITE = 0
 	BLACK = 1
+	BOTH  = 2
 )
 
 const (

@@ -92,4 +92,13 @@ func parse_fen(fen string, ptr int) {
 	} else {
 		ENPASSANT = NO_SQ
 	}
+
+	for piece := P; piece <= K; piece++ {
+		OCCUPANCIES[WHITE] = OCCUPANCIES[WHITE] | BITBOARDS[piece]
+	}
+	for piece := p; piece <= k; piece++ {
+		OCCUPANCIES[BLACK] = OCCUPANCIES[BLACK] | BITBOARDS[piece]
+	}
+
+	OCCUPANCIES[BOTH] = OCCUPANCIES[WHITE] | OCCUPANCIES[BLACK]
 }
