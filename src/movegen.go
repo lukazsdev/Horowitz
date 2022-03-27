@@ -1,38 +1,6 @@
 package main
 
 
-// slider pseudo move generation (hyperbola quintessence)
-func hyp_quint(square int, occ uint64, mask uint64) uint64 {
-	return (((mask & occ) - SQUARE_BB[square] * 2) ^
-        reverse(reverse(mask & occ) - reverse(SQUARE_BB[square]) * 2)) & mask;
-}
-
-// returns rook attacks from given square and occupied bitboard
-func get_rook_attacks(square int, occ uint64) uint64 {
-	return hyp_quint(square, occ, MASK_FILE[file_of(square)]) |
-        hyp_quint(square, occ, MASK_RANK[rank_of(square)])
-}
-
-// returns bishop attacks from given square and occupied bitboard
-func get_bishop_attacks(square int, occ uint64) uint64 {
-	return hyp_quint(square, occ, MASK_DIAGONAL[diagonal_of(square)]) |
-        hyp_quint(square, occ, MASK_ANTI_DIAGONAL[anti_diagonal_of(square)])
-}
-
-// returns queen attacks from given square and occupied bitboard
-func get_queen_attacks(square int, occ uint64) uint64 {
-	return get_rook_attacks(square, occ) | get_bishop_attacks(square, occ)
-}
-
-func initialize_lookup_tables() {
-	// initialize pawn attacks lookup table
-	for square := 0; square < 64; square++ {
-		PAWN_ATTACKS_TABLE[WHITE][square] = WHITE_PAWN_ATTACKS[square]
-		PAWN_ATTACKS_TABLE[BLACK][square] = BLACK_PAWN_ATTACKS[square]
-	}
-}
-
-
 // lookup table for knight attacks
 var KNIGHT_ATTACKS_TABLE = [64]uint64 {
 	0x0000000000020400, 0x0000000000050800, 0x00000000000A1100, 0x0000000000142200,
@@ -115,3 +83,66 @@ var BLACK_PAWN_ATTACKS = [64]uint64 {
 
 // lookup table for pawn attacks
 var PAWN_ATTACKS_TABLE [2][64]uint64
+
+// slider pseudo move generation (hyperbola quintessence)
+func hyp_quint(square int, occ uint64, mask uint64) uint64 {
+	return (((mask & occ) - SQUARE_BB[square] * 2) ^
+        reverse(reverse(mask & occ) - reverse(SQUARE_BB[square]) * 2)) & mask;
+}
+
+// returns rook attacks from given square and occupied bitboard
+func get_rook_attacks(square int, occ uint64) uint64 {
+	return hyp_quint(square, occ, MASK_FILE[file_of(square)]) |
+        hyp_quint(square, occ, MASK_RANK[rank_of(square)])
+}
+
+// returns bishop attacks from given square and occupied bitboard
+func get_bishop_attacks(square int, occ uint64) uint64 {
+	return hyp_quint(square, occ, MASK_DIAGONAL[diagonal_of(square)]) |
+        hyp_quint(square, occ, MASK_ANTI_DIAGONAL[anti_diagonal_of(square)])
+}
+
+// returns queen attacks from given square and occupied bitboard
+func get_queen_attacks(square int, occ uint64) uint64 {
+	return get_rook_attacks(square, occ) | get_bishop_attacks(square, occ)
+}
+
+func initialize_lookup_tables() {
+	// initialize pawn attacks lookup table
+	for square := 0; square < 64; square++ {
+		PAWN_ATTACKS_TABLE[WHITE][square] = WHITE_PAWN_ATTACKS[square]
+		PAWN_ATTACKS_TABLE[BLACK][square] = BLACK_PAWN_ATTACKS[square]
+	}
+}
+
+// checks if square is attacked by the given side
+func is_square_attacked(square int, side int) bool {
+	var THEIR_KNIGHTS, THEIR_BISHOPS, THEIR_ROOKS, THEIR_QUEENS, THEIR_KING uint64
+
+	if side == WHITE {
+		THEIR_KNIGHTS = BITBOARDS[N]
+		THEIR_BISHOPS = BITBOARDS[B]
+		THEIR_ROOKS   = BITBOARDS[R]
+		THEIR_QUEENS  = BITBOARDS[Q]
+		THEIR_KING    = BITBOARDS[K]
+
+	} else {
+		THEIR_KNIGHTS = BITBOARDS[n]
+		THEIR_BISHOPS = BITBOARDS[b]
+		THEIR_ROOKS   = BITBOARDS[r]
+		THEIR_QUEENS  = BITBOARDS[q]
+		THEIR_KING    = BITBOARDS[k]
+	}
+
+	if side == WHITE && ((PAWN_ATTACKS_TABLE[BLACK][square] & BITBOARDS[P]) > 0) { return true }
+	if side == BLACK && ((PAWN_ATTACKS_TABLE[WHITE][square] & BITBOARDS[p]) > 0) { return true }
+	
+	if (KNIGHT_ATTACKS_TABLE[square] & THEIR_KNIGHTS) > 0 { return true }
+	if (KING_ATTACKS_TABLE[square]   & THEIR_KING)    > 0 { return true }
+
+	if (get_bishop_attacks(square, OCCUPANCIES[BOTH]) & THEIR_BISHOPS) > 0 { return true }
+	if (get_rook_attacks(square, OCCUPANCIES[BOTH])   & THEIR_ROOKS)   > 0 { return true }
+	if (get_queen_attacks(square, OCCUPANCIES[BOTH])  & THEIR_QUEENS)   > 0 { return true }
+
+	return false
+}
