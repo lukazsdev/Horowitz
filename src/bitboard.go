@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"math/bits"
+)
 
 
 
@@ -88,6 +91,24 @@ func pop_bit(bitboard uint64, square int) uint64 {
 	}
 	return bitboard
 }
+
+// count bits within bitboard
+func count_bits(bitboard uint64) int {
+	return bits.OnesCount64(bitboard)
+}
+
+// returns index of least significant bit (bit scan forward)
+func bsf(bitboard uint64) int {
+	return bits.TrailingZeros64(bitboard)
+}
+
+// returns index of least significant bit and removes that bit from bitboard
+func pop_lsb(bitboard *uint64) int {
+	lsb := bsf(*bitboard)
+	*bitboard &= *bitboard - 1;
+	return lsb
+}
+
 
 //returns reversed bitboard (rotate 180 degrees)
 func reverse(bb uint64) uint64 {

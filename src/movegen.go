@@ -19,6 +19,11 @@ func get_bishop_attacks(square int, occ uint64) uint64 {
         hyp_quint(square, occ, MASK_ANTI_DIAGONAL[anti_diagonal_of(square)])
 }
 
+// returns queen attacks from given square and occupied bitboard
+func get_queen_attacks(square int, occ uint64) uint64 {
+	return get_rook_attacks(square, occ) | get_bishop_attacks(square, occ)
+}
+
 func initialize_lookup_tables() {
 	// initialize pawn attacks lookup table
 	for square := 0; square < 64; square++ {
