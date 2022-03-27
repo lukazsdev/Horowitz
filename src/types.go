@@ -6,6 +6,28 @@ const (
 )
 
 const (
+	WK = 1
+	WQ = 2
+	BK = 4
+	BQ = 8
+)
+
+const (
+	P = 0
+	N = 1
+	B = 2
+	R = 3
+	Q = 4
+	K = 5
+	p = 6
+	n = 7
+	b = 8
+	r = 9
+	q = 10
+	k = 11
+)
+
+const (
 	FILE_A = 0
 	FILE_B = 1
 	FILE_C = 2
@@ -99,4 +121,5 @@ const (
 	SQ_F8 = 61
 	SQ_G8 = 62
 	SQ_H8 = 63
+	NO_SQ = 64
 )
