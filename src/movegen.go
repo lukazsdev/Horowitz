@@ -7,11 +7,13 @@ func hyp_quint(square int, occ uint64, mask uint64) uint64 {
         reverse(reverse(mask & occ) - reverse(SQUARE_BB[square]) * 2)) & mask;
 }
 
+// returns rook attacks from given square and occupied bitboard
 func get_rook_attacks(square int, occ uint64) uint64 {
 	return hyp_quint(square, occ, MASK_FILE[file_of(square)]) |
         hyp_quint(square, occ, MASK_RANK[rank_of(square)])
 }
 
+// returns bishop attacks from given square and occupied bitboard
 func get_bishop_attacks(square int, occ uint64) uint64 {
 	return hyp_quint(square, occ, MASK_DIAGONAL[diagonal_of(square)]) |
         hyp_quint(square, occ, MASK_ANTI_DIAGONAL[anti_diagonal_of(square)])
@@ -66,7 +68,7 @@ var KING_ATTACKS_TABLE = [64]uint64 {
     0x2838000000000000, 0x5070000000000000, 0xA0E0000000000000, 0x40C0000000000000,
 }
 
-//A lookup table for white pawn move bitboards
+// lookup table for white pawn attacks
 var WHITE_PAWN_ATTACKS = [64]uint64 {
 	0x200, 0x500, 0xa00, 0x1400,
 	0x2800, 0x5000, 0xa000, 0x4000,
@@ -86,7 +88,7 @@ var WHITE_PAWN_ATTACKS = [64]uint64 {
 	0x0, 0x0, 0x0, 0x0,
 }
 
-//A lookup table for black pawn move bitboards
+// lookup table for black pawn attacks
 var BLACK_PAWN_ATTACKS = [64]uint64 {
 	0x0, 0x0, 0x0, 0x0,
 	0x0, 0x0, 0x0, 0x0,
@@ -108,34 +110,3 @@ var BLACK_PAWN_ATTACKS = [64]uint64 {
 
 // lookup table for pawn attacks
 var PAWN_ATTACKS_TABLE [2][64]uint64
-
-/*
-
-// generate pawn attacks
-func mask_pawn_attacks(side int, square int) uint64 {
-	var attacks, bitboard uint64 = 0, 0
-	bitboard = set_bit(bitboard, square)
-
-	if side == WHITE {
-		attacks |= (bitboard << 7) & (^MASK_FILE[FILE_A])
-		attacks |= (bitboard << 9) & (^MASK_FILE[FILE_H])
-	} else {
-		attacks |= (bitboard >> 7) & (^MASK_FILE[FILE_H])
-		attacks |= (bitboard >> 9) & (^MASK_FILE[FILE_A])
-	}
-
-	return attacks
-}
-
-func initialize_pawn_lookup_tables() {
-	for square := 0; square < 64; square++ {
-		// initialize pawn attacks table
-		PAWN_ATTACKS_TABLE[WHITE][square] = mask_pawn_attacks(WHITE, square)
-		PAWN_ATTACKS_TABLE[BLACK][square] = mask_pawn_attacks(BLACK, square)
-	}
-}
-
-*/
-
-
-

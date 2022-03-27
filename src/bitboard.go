@@ -53,7 +53,6 @@ var SQUARE_BB = [64]uint64 {
 };
 
 // bitwise manipulation functions
-
 func rank_of(square int) int {
 	return square >> 3
 }
