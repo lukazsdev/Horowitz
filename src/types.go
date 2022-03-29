@@ -40,6 +40,9 @@ var ascii_pieces = [12]byte{'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q
 // convert ASCII pieces to encoded constants
 var char_pieces = []int{'P':P, 'N':N, 'B':B, 'R':R, 'Q':Q, 'K':K, 'p':p, 'n':n, 'b':b, 'r':r, 'q':q, 'k':k}
 
+// promoted pieces (for UCI purposes)
+var promoted_pieces = []int{Q:'q', R:'r', B:'b', N:'n', q:'q', r:'r', b:'b', n:'n'}
+
 var square_to_coordinates = []string{
 	"a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
 	"a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
