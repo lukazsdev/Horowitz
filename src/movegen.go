@@ -122,74 +122,72 @@ func generate_moves() {
 	// "from" square and "to" square for current move
 	var source_square, target_square int
 
+	// current side and opposite side
+	var US, THEM int = SIDE, other_side(SIDE)
+
 	// loop over all piece bitboards
 	for piece := P; piece <= k; piece++ {
 		// assign current piece to bitboard
 		bitboard = BITBOARDS[piece]
 
-		// generate white pawns and white king castling moves
-		if SIDE == WHITE {
-			// check if current piece is white pawn
-			if piece == P {
-				// loop over white pawns within bitboard
-				for bitboard > 0 {
-					// initialize source square and pop LSB
-					source_square = pop_lsb(&bitboard)
+		// generate pawns and king castling moves
+		if (SIDE == WHITE && piece == P) || (SIDE == BLACK && piece == p) {
+			// loop over pawns within bitboard
+			for bitboard > 0 {
+				source_square = pop_lsb(&bitboard)
 
-					// pawn promotion
+				// pawn promotion
 
-					// single push
+				// single push
 
-					// double push
+				// double push
 
-					// initialize attacks bitboard
-					attacks = PAWN_ATTACKS_TABLE[SIDE][source_square] & OCCUPANCIES[BLACK]
+				// initialize attacks bitboard
+				attacks = PAWN_ATTACKS_TABLE[US][source_square] & OCCUPANCIES[THEM]
 
-					// generate pawn captures
-					for attacks > 0 {
-						// initialize target square
-						target_square = pop_lsb(&attacks)
+				// generate pawn captures 
+				for attacks > 0 {
+					// initialize target square
+					target_square = pop_lsb(&attacks)
 
-						// pawn promotion capture
+					// pawn promotion capture
 
-						// normal capture
+					// normal capture
+				}
+
+				// generate enpassant captures
+				if ENPASSANT != NO_SQ {
+					var enpassant_attacks uint64 = PAWN_ATTACKS_TABLE[US][source_square] & SQUARE_BB[ENPASSANT]
+
+					// check if there is indeed enpassant capture
+					if enpassant_attacks > 0 {
+						// initialize enpassant capture target square
+						//var target_enpassant int = bsf(enpassant_attacks)
+						// add move
 					}
-
-					// generate enpassant captures
-					if ENPASSANT != NO_SQ {
-						var enpassant_attacks uint64 = PAWN_ATTACKS_TABLE[SIDE][source_square] & SQUARE_BB[ENPASSANT]
-
-						// check if there is indeed enpassant capture
-						if enpassant_attacks > 0 {
-							// initialize enpassant capture target square
-							var target_enpassant int = bsf(enpassant_attacks)
-						}
+				}
+			}
+		}
+		// castling moves for white
+		if SIDE == WHITE && piece == K {
+			// check if king side castling is available
+			if (CASTLE & WK) > 0 {
+				// check if squares between king and rook are empty
+				if (get_bit(OCCUPANCIES[BOTH], SQ_F1)==0) && (get_bit(OCCUPANCIES[BOTH], SQ_G1)==0) {
+					// check if king and f1 square are not under attack
+					if is_square_attacked(SQ_E1, BLACK)==false && is_square_attacked(SQ_F1, BLACK)==false {
+						// add move
 					}
-
 				}
 			}
 
-			// castling moves
-			if piece == K {
-				// check if king side castling is available
-				if (CASTLE & WK) > 0 {
-					// check if squares between king and rook are empty
-					if (get_bit(OCCUPANCIES[BOTH], SQ_F1)==0) && (get_bit(OCCUPANCIES[BOTH], SQ_G1)==0) {
-						// check if king and f1 square are not under attack
-						if is_square_attacked(SQ_E1, BLACK)==false && is_square_attacked(SQ_F1, BLACK)==false {
-
-						}
-					}
-				}
-
-				// check if queen side castling is available
-				if (CASTLE & WQ) > 0 {
-					// check if squares between king and rook are empty
-					if (get_bit(OCCUPANCIES[BOTH], SQ_D1)==0) && (get_bit(OCCUPANCIES[BOTH], SQ_C1))==0 && (get_bit(OCCUPANCIES[BOTH], SQ_B1)==0) {
-						// check if king and d1 square are not under attack
-						if is_square_attacked(SQ_E1, BLACK)==false && is_square_attacked(SQ_D1, BLACK)==false {
-							
-						}
+			// check if queen side castling is available
+			if (CASTLE & WQ) > 0 {
+				// check if squares between king and rook are empty
+				if (get_bit(OCCUPANCIES[BOTH], SQ_D1)==0) && (get_bit(OCCUPANCIES[BOTH], SQ_C1))==0 && (get_bit(OCCUPANCIES[BOTH], SQ_B1)==0) {
+					// check if king and d1 square are not under attack
+					if is_square_attacked(SQ_E1, BLACK)==false && is_square_attacked(SQ_D1, BLACK)==false {
+						// add move
 					}
 				}
 			}
@@ -198,57 +196,115 @@ func generate_moves() {
 		// generate black pawns and black king castling moves (else statement => SIDE == BLACK)
 
 		// generate leaper and slider moves
-		if SIDE == WHITE {
-			if piece == N {
-
-			}
-		} else if piece == n {
-
-		}
-
-		// generate knight moves
 		
 
-
+		// generate knight moves
+		if (SIDE == WHITE && piece == N) || (SIDE == BLACK && piece == n) {
+			for bitboard > 0 {
+				source_square = pop_lsb(&bitboard)
+				attacks = KNIGHT_ATTACKS_TABLE[source_square] & (^OCCUPANCIES[US])
+				for attacks > 0 {
+					// initialize target square and pop LSB
+					target_square = pop_lsb(&attacks)
+					// quiet move
+					if get_bit(OCCUPANCIES[THEM], target_square) == 0 {
+						// add move
+					// capture move
+					} else {
+						// add move
+					}
+				}
+			}
+		} 
 		// generate bishop moves
-
+		if (SIDE == WHITE && piece == B) || (SIDE == BLACK && piece == b) {
+			for bitboard > 0 {
+				source_square = pop_lsb(&bitboard)
+				attacks = get_bishop_attacks(source_square, OCCUPANCIES[BOTH]) & (^OCCUPANCIES[US])
+				for attacks > 0 {
+					// initialize target square and pop LSB
+					target_square = pop_lsb(&attacks)
+					// quiet move
+					if get_bit(OCCUPANCIES[THEM], target_square) == 0 {
+						// add move
+					// capture move
+					} else {
+						// add move
+					}
+				}
+			}
+		} 
 		// generate rook moves
-
+		if (SIDE == WHITE && piece == R) || (SIDE == BLACK && piece == r) {
+			for bitboard > 0 {
+				source_square = pop_lsb(&bitboard)
+				attacks = get_rook_attacks(source_square, OCCUPANCIES[BOTH]) & (^OCCUPANCIES[US])
+				for attacks > 0 {
+					// initialize target square and pop LSB
+					target_square = pop_lsb(&attacks)
+					// quiet move
+					if get_bit(OCCUPANCIES[THEM], target_square) == 0 {
+						// add move
+					// capture move
+					} else {
+						// add move
+					}
+				}
+			}
+		} 
 		// generate queen moves
-
+		if (SIDE == WHITE && piece == Q) || (SIDE == BLACK && piece == q) {
+			for bitboard > 0 {
+				source_square = pop_lsb(&bitboard)
+				attacks = get_queen_attacks(source_square, OCCUPANCIES[BOTH]) & (^OCCUPANCIES[US])
+				for attacks > 0 {
+					// initialize target square and pop LSB
+					target_square = pop_lsb(&attacks)
+					// quiet move
+					if get_bit(OCCUPANCIES[THEM], target_square) == 0 {
+						// add move
+					// capture move
+					} else {
+						// add move
+					}
+				}
+			}
+		} 
 		// generate king moves
+		if (SIDE == WHITE && piece == K) || (SIDE == BLACK && piece == k) {
+			for bitboard > 0 {
+				source_square = pop_lsb(&bitboard)
+				attacks = KING_ATTACKS_TABLE[source_square] & (^OCCUPANCIES[US])
+				for attacks > 0 {
+					// initialize target square and pop LSB
+					target_square = pop_lsb(&attacks)
+					// quiet move
+					if get_bit(OCCUPANCIES[THEM], target_square) == 0 {
+						// add move
+					// capture move
+					} else {
+						// add move
+					}
+				}
+			}
+		} 
 	}
 
 }
 
+
+
 // checks if square is attacked by the given side
 func is_square_attacked(square int, side int) bool {
-	var THEIR_KNIGHTS, THEIR_BISHOPS, THEIR_ROOKS, THEIR_QUEENS, THEIR_KING uint64
-
-	if side == WHITE {
-		THEIR_KNIGHTS = BITBOARDS[N]
-		THEIR_BISHOPS = BITBOARDS[B]
-		THEIR_ROOKS   = BITBOARDS[R]
-		THEIR_QUEENS  = BITBOARDS[Q]
-		THEIR_KING    = BITBOARDS[K]
-
-	} else {
-		THEIR_KNIGHTS = BITBOARDS[n]
-		THEIR_BISHOPS = BITBOARDS[b]
-		THEIR_ROOKS   = BITBOARDS[r]
-		THEIR_QUEENS  = BITBOARDS[q]
-		THEIR_KING    = BITBOARDS[k]
-	}
-
 	if side == WHITE && ((PAWN_ATTACKS_TABLE[BLACK][square] & BITBOARDS[P]) > 0) { return true }
 	if side == BLACK && ((PAWN_ATTACKS_TABLE[WHITE][square] & BITBOARDS[p]) > 0) { return true }
-	
-	if (KNIGHT_ATTACKS_TABLE[square] & THEIR_KNIGHTS) > 0 { return true }
-	if (KING_ATTACKS_TABLE[square]   & THEIR_KING)    > 0 { return true }
 
-	if (get_bishop_attacks(square, OCCUPANCIES[BOTH]) & THEIR_BISHOPS) > 0 { return true }
-	if (get_rook_attacks(square, OCCUPANCIES[BOTH])   & THEIR_ROOKS)   > 0 { return true }
-	if (get_queen_attacks(square, OCCUPANCIES[BOTH])  & THEIR_QUEENS)  > 0 { return true }
+	if (KNIGHT_ATTACKS_TABLE[square] & BITBOARDS[6 * side + N]) > 0 { return true }
+	if (KING_ATTACKS_TABLE[square] & BITBOARDS[6 * side + K])   > 0 { return true }
+
+	if (get_bishop_attacks(square, OCCUPANCIES[BOTH]) & BITBOARDS[6 * side + B]) > 0 { return true }
+	if (get_rook_attacks(square, OCCUPANCIES[BOTH])   & BITBOARDS[6 * side + R]) > 0 { return true }
+	if (get_queen_attacks(square, OCCUPANCIES[BOTH])  & BITBOARDS[6 * side + Q]) > 0 { return true }
 
 	return false
 }

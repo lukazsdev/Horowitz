@@ -109,6 +109,10 @@ func pop_lsb(bitboard *uint64) int {
 	return lsb
 }
 
+func other_side(side int) int {
+	return 1 ^ side
+}
+
 
 //returns reversed bitboard (rotate 180 degrees)
 func reverse(bb uint64) uint64 {

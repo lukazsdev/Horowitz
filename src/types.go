@@ -35,7 +35,7 @@ var ENPASSANT int = NO_SQ
 var CASTLE int = 0
 
 // ASCII pieces
-var ascii_pieces = [12]byte{'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'k', 'b', 'r', 'q', 'k'}
+var ascii_pieces = [12]byte{'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'}
 
 // convert ASCII pieces to encoded constants
 var char_pieces = []int{'P':P, 'N':N, 'B':B, 'R':R, 'Q':Q, 'K':K, 'p':p, 'n':n, 'b':b, 'r':r, 'q':q, 'k':k}
