@@ -84,6 +84,62 @@ var BLACK_PAWN_ATTACKS = [64]uint64 {
 // lookup table for pawn attacks
 var PAWN_ATTACKS_TABLE [2][64]uint64
 
+// function for encoding a move
+func encode_move(source, target, piece, promoted, capture, double, enpassant, castling int) int {
+	return ((source)         |          
+		   (target << 6)     |     
+		   (piece << 12)     |     
+		   (promoted << 16)  |  
+		   (capture << 20)   |   
+		   (double << 21)    |    
+		   (enpassant << 22) | 
+		   (castling << 23))
+}
+
+// extract source square
+func get_move_source(move int) int {
+	return move & 0x3f
+}
+
+// extract target square
+func get_move_target(move int) int {
+	return (move & 0xfc0) >> 6
+}
+
+// extract piece 
+func get_move_piece(move int) int {
+	return (move & 0xf000) >> 12
+}
+
+// extract promoted piece
+func get_move_promoted(move int) int {
+	return (move & 0xf0000) >> 16
+} 
+
+// extract capture flag
+func get_move_capture(move int) int {
+	return move & 0x100000
+}
+
+// extract double pawn push flag
+func get_move_double(move int) int {
+	return move & 0x200000
+}
+
+// extract enpassant flag
+func get_move_enpassant(move int) int {
+	return move & 0x400000
+}
+
+// extract castling flag
+func get_move_castling(move int) int {
+	return move & 0x800000
+}
+
+// move representation
+
+
+
 // slider pseudo move generation (hyperbola quintessence)
 func hyp_quint(square int, occ uint64, mask uint64) uint64 {
 	return (((mask & occ) - SQUARE_BB[square] * 2) ^
