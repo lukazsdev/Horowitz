@@ -11,14 +11,14 @@ type Moves struct {
 
 // function for encoding a move
 func encode_move(source, target, piece, promoted, capture, double, enpassant, castling int) int {
-	return ((source)       |          
-		   (target << 6)     |     
-		   (piece << 12)     |     
-		   (promoted << 16)  |  
-		   (capture << 20)   |   
-		   (double << 21)    |    
-		   (enpassant << 22) | 
-		   (castling << 23))
+	return ((source)          |          
+	        (target << 6)     |     
+	        (piece << 12)     |     
+	        (promoted << 16)  |  
+	        (capture << 20)   |   
+	        (double << 21)    |    
+	        (enpassant << 22) | 
+	        (castling << 23))
 }
 
 // extract source square
