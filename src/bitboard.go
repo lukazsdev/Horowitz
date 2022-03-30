@@ -1,11 +1,81 @@
 package main
 
+// bitwise manipulation functions
 import (
 	"fmt"
 	"math/bits"
 )
 
+// returns file of given square
+func rank_of(square int) int {
+	return square >> 3
+}
 
+// returns file of given square
+func file_of(square int) int {
+	return square & 7
+}
+
+// returns diagonal of given square
+func diagonal_of(square int) int {
+	return 7 + rank_of(square) - file_of(square)
+}
+
+// returns anti diagonal of given square
+func anti_diagonal_of(square int) int {
+	return rank_of(square) + file_of(square)
+}
+
+// set_bit at given square to 1
+func set_bit(bitboard uint64, square int) uint64 {
+	return bitboard | (1 << square)
+}
+
+// return bit at given square
+func get_bit(bitboard uint64, square int) uint64 {
+	return bitboard & (1 << square)
+}
+
+// pop bit at given square (set to 0)
+func pop_bit(bitboard uint64, square int) uint64 {
+	if get_bit(bitboard, square) > 0 {
+		return bitboard ^ (1 << square)
+	}
+	return bitboard
+}
+
+// count bits within bitboard
+func count_bits(bitboard uint64) int {
+	return bits.OnesCount64(bitboard)
+}
+
+// returns index of least significant bit (bit scan forward)
+func bsf(bitboard uint64) int {
+	return bits.TrailingZeros64(bitboard)
+}
+
+// returns index of least significant bit and removes that bit from bitboard
+func pop_lsb(bitboard *uint64) int {
+	lsb := bsf(*bitboard)
+	*bitboard &= *bitboard - 1;
+	return lsb
+}
+
+// returns other side (e.g f(white) => black)
+func other_side(side int) int {
+	return 1 ^ side
+}
+
+
+//returns reversed bitboard (rotate 180 degrees)
+func reverse(bb uint64) uint64 {
+	bb = (bb & 0x5555555555555555) << 1 | ((bb >> 1) & 0x5555555555555555)
+	bb = (bb & 0x3333333333333333) << 2 | ((bb >> 2) & 0x3333333333333333)
+	bb = (bb & 0x0f0f0f0f0f0f0f0f) << 4 | ((bb >> 4) & 0x0f0f0f0f0f0f0f0f)
+	bb = (bb & 0x00ff00ff00ff00ff) << 8 | ((bb >> 8) & 0x00ff00ff00ff00ff)
+
+	return (bb << 48) | ((bb & 0xffff0000) << 16) | ((bb >> 16) & 0xffff0000) | (bb >> 48)
+}
 
 // file masks
 var MASK_FILE = [8]uint64{
@@ -57,74 +127,7 @@ var SQUARE_BB = [64]uint64 {
 	0x1000000000000000, 0x2000000000000000, 0x4000000000000000, 0x8000000000000000,
 };
 
-// bitwise manipulation functions
-func rank_of(square int) int {
-	return square >> 3
-}
-
-func file_of(square int) int {
-	return square & 7
-}
-
-func diagonal_of(square int) int {
-	return 7 + rank_of(square) - file_of(square)
-}
-
-func anti_diagonal_of(square int) int {
-	return rank_of(square) + file_of(square)
-}
-
-// set_bit at given square to 1
-func set_bit(bitboard uint64, square int) uint64 {
-	return bitboard | (1 << square)
-}
-
-// return bit at given square
-func get_bit(bitboard uint64, square int) uint64 {
-	return bitboard & (1 << square)
-}
-
-// pop bit at given square (set to 0)
-func pop_bit(bitboard uint64, square int) uint64 {
-	if get_bit(bitboard, square) > 0 {
-		return bitboard ^ (1 << square)
-	}
-	return bitboard
-}
-
-// count bits within bitboard
-func count_bits(bitboard uint64) int {
-	return bits.OnesCount64(bitboard)
-}
-
-// returns index of least significant bit (bit scan forward)
-func bsf(bitboard uint64) int {
-	return bits.TrailingZeros64(bitboard)
-}
-
-// returns index of least significant bit and removes that bit from bitboard
-func pop_lsb(bitboard *uint64) int {
-	lsb := bsf(*bitboard)
-	*bitboard &= *bitboard - 1;
-	return lsb
-}
-
-func other_side(side int) int {
-	return 1 ^ side
-}
-
-
-//returns reversed bitboard (rotate 180 degrees)
-func reverse(bb uint64) uint64 {
-	bb = (bb & 0x5555555555555555) << 1 | ((bb >> 1) & 0x5555555555555555)
-	bb = (bb & 0x3333333333333333) << 2 | ((bb >> 2) & 0x3333333333333333)
-	bb = (bb & 0x0f0f0f0f0f0f0f0f) << 4 | ((bb >> 4) & 0x0f0f0f0f0f0f0f0f)
-	bb = (bb & 0x00ff00ff00ff00ff) << 8 | ((bb >> 8) & 0x00ff00ff00ff00ff)
-
-	return (bb << 48) | ((bb & 0xffff0000) << 16) | ((bb >> 16) & 0xffff0000) | (bb >> 48)
-}
-
-// print bitboard
+// print given bitboard
 func print_bitboard(bitboard uint64) {
 	fmt.Print("\n")
 	for rank := 7; rank >= 0; rank-- {
