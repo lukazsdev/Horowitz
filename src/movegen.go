@@ -86,6 +86,14 @@ var BLACK_PAWN_ATTACKS = [64]uint64 {
 // lookup table for pawn attacks
 var PAWN_ATTACKS_TABLE [2][64]uint64
 
+// initialize pawn attacks lookup table
+func initialize_lookup_tables() {
+	for square := 0; square < 64; square++ {
+		PAWN_ATTACKS_TABLE[WHITE][square] = WHITE_PAWN_ATTACKS[square]
+		PAWN_ATTACKS_TABLE[BLACK][square] = BLACK_PAWN_ATTACKS[square]
+	}
+}
+
 // slider pseudo move generation (hyperbola quintessence)
 func hyp_quint(square int, occ uint64, mask uint64) uint64 {
 	return (((mask & occ) - SQUARE_BB[square] * 2) ^
@@ -107,14 +115,6 @@ func get_bishop_attacks(square int, occ uint64) uint64 {
 // returns queen attacks from given square and occupied bitboard
 func get_queen_attacks(square int, occ uint64) uint64 {
 	return get_rook_attacks(square, occ) | get_bishop_attacks(square, occ)
-}
-
-func initialize_lookup_tables() {
-	// initialize pawn attacks lookup table
-	for square := 0; square < 64; square++ {
-		PAWN_ATTACKS_TABLE[WHITE][square] = WHITE_PAWN_ATTACKS[square]
-		PAWN_ATTACKS_TABLE[BLACK][square] = BLACK_PAWN_ATTACKS[square]
-	}
 }
 
 func generate_moves() {
