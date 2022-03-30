@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 // Move list structure
 type Moves struct {
 	// move list
@@ -86,6 +88,7 @@ func print_move(move int) {
 func print_move_list(move_list Moves) {
 	if move_list.count == 0 {
 		fmt.Print("\nNo moves in move list\n")
+		return
 	} else {
 		fmt.Print("\n     move    piece     capture   double    enpass    castling\n\n")
 		for move_count := 0; move_count < move_list.count; move_count++ {
@@ -98,7 +101,7 @@ func print_move_list(move_list Moves) {
 			if get_move_double(move) > 0 { fmt.Print("        1") } else { fmt.Print("        0") }
 			if get_move_enpassant(move) > 0 { fmt.Print("         1") } else { fmt.Print("         0") }
 			if get_move_castling(move) > 0 { fmt.Print("          1") } else { fmt.Print("          0") }
-
+			fmt.Print("\n")
 		}
 	}
 
