@@ -72,6 +72,22 @@ func add_move(move_list *Moves, move int) {
 	move_list.count++
 }
 
+func copy_board() {
+	BITBOARDS_COPY = BITBOARDS
+	OCCUPANCIES_COPY = OCCUPANCIES
+	SIDE_COPY = SIDE
+	ENPASSANT_COPY = ENPASSANT
+	CASTLE_COPY = CASTLE
+}
+
+func take_back() {
+	BITBOARDS = BITBOARDS_COPY
+	OCCUPANCIES = OCCUPANCIES_COPY
+	SIDE = SIDE_COPY
+	ENPASSANT = ENPASSANT_COPY
+	CASTLE = CASTLE_COPY
+}
+
 // print move (for UCI purposes)
 func print_move(move int) {
 	if get_move_promoted(move) > 0 {

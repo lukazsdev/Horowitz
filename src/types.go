@@ -34,6 +34,16 @@ var ENPASSANT int = NO_SQ
 // castling rights
 var CASTLE int = 0
 
+// for preserving piece bitboards state
+var BITBOARDS_COPY [12]uint64 
+
+// for preserving  occupancy bitboards state
+var OCCUPANCIES_COPY [3]uint64
+
+// for preserving board state variables
+var SIDE_COPY, ENPASSANT_COPY, CASTLE_COPY int
+
+
 // ASCII pieces
 var ascii_pieces = [12]byte{'P', 'N', 'B', 'R', 'Q', 'K', 'p', 'n', 'b', 'r', 'q', 'k'}
 
