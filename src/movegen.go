@@ -149,9 +149,9 @@ func generate_moves(move_list *Moves) {
 						// pawn promotion
 						if (source_square>=SQ_A7) && (source_square <= SQ_H7) {
 							add_move(move_list, encode_move(source_square, target_square, piece, Q, 0, 0, 0, 0))
-                            add_move(move_list, encode_move(source_square, target_square, piece, R, 0, 0, 0, 0))
-                            add_move(move_list, encode_move(source_square, target_square, piece, B, 0, 0, 0, 0))
-                            add_move(move_list, encode_move(source_square, target_square, piece, N, 0, 0, 0, 0))
+						        add_move(move_list, encode_move(source_square, target_square, piece, R, 0, 0, 0, 0))
+						        add_move(move_list, encode_move(source_square, target_square, piece, B, 0, 0, 0, 0))
+						        add_move(move_list, encode_move(source_square, target_square, piece, N, 0, 0, 0, 0))
 						} else {
 							// single push
 							add_move(move_list, encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
@@ -173,9 +173,9 @@ func generate_moves(move_list *Moves) {
 						// pawn promotion
 						if (source_square>=SQ_A7) && (source_square <= SQ_H7) {
 							add_move(move_list, encode_move(source_square, target_square, piece, Q, 1, 0, 0, 0))
-                            add_move(move_list, encode_move(source_square, target_square, piece, R, 1, 0, 0, 0))
-                            add_move(move_list, encode_move(source_square, target_square, piece, B, 1, 0, 0, 0))
-                            add_move(move_list, encode_move(source_square, target_square, piece, N, 1, 0, 0, 0))
+						        add_move(move_list, encode_move(source_square, target_square, piece, R, 1, 0, 0, 0))
+						        add_move(move_list, encode_move(source_square, target_square, piece, B, 1, 0, 0, 0))
+						        add_move(move_list, encode_move(source_square, target_square, piece, N, 1, 0, 0, 0))
 						} else {
 							// normal capture
 							add_move(move_list, encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
@@ -203,9 +203,9 @@ func generate_moves(move_list *Moves) {
 						// pawn promotion
 						if (source_square>=SQ_A2) && (source_square <= SQ_H2) {
 							add_move(move_list, encode_move(source_square, target_square, piece, q, 0, 0, 0, 0))
-                            add_move(move_list, encode_move(source_square, target_square, piece, r, 0, 0, 0, 0))
-                            add_move(move_list, encode_move(source_square, target_square, piece, b, 0, 0, 0, 0))
-                            add_move(move_list, encode_move(source_square, target_square, piece, n, 0, 0, 0, 0))
+						        add_move(move_list, encode_move(source_square, target_square, piece, r, 0, 0, 0, 0))
+						        add_move(move_list, encode_move(source_square, target_square, piece, b, 0, 0, 0, 0))
+						        add_move(move_list, encode_move(source_square, target_square, piece, n, 0, 0, 0, 0))
 						} else {
 							// single push
 							add_move(move_list, encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
@@ -227,9 +227,9 @@ func generate_moves(move_list *Moves) {
 						// pawn promotion
 						if (source_square>=SQ_A2) && (source_square <= SQ_H2) {
 							add_move(move_list, encode_move(source_square, target_square, piece, q, 1, 0, 0, 0))
-                            add_move(move_list, encode_move(source_square, target_square, piece, r, 1, 0, 0, 0))
-                            add_move(move_list, encode_move(source_square, target_square, piece, b, 1, 0, 0, 0))
-                            add_move(move_list, encode_move(source_square, target_square, piece, n, 1, 0, 0, 0))
+						        add_move(move_list, encode_move(source_square, target_square, piece, r, 1, 0, 0, 0))
+						        add_move(move_list, encode_move(source_square, target_square, piece, b, 1, 0, 0, 0))
+						        add_move(move_list, encode_move(source_square, target_square, piece, n, 1, 0, 0, 0))
 						} else {
 							// normal capture
 							add_move(move_list, encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
