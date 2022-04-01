@@ -1,14 +1,6 @@
 package main
 
 const (
-	// FEN dedug positions
-	empty_board     string = "8/8/8/8/8/8/8/8 b - - "
-	start_position  string = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 "
-	tricky_position string = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 "
-	killer_position string = "rnbqkb1r/pp1p1pPp/8/2p1pP2/1P1P4/3P3P/P1P1P3/RNBQKBNR w KQkq e6 0 1"
-	cmk_position    string = "r2q1rk1/ppp2ppp/2n1bn2/2b1p3/3pP3/3P1NPP/PPP1NPB1/R1BQ1RK1 b - - 0 9 "
-	repetitions     string = "2r3k1/R7/8/1R6/8/8/P4KPP/8 w - - 0 40 "
-
 	// pieces
 	white_pawn   uint8 = 0
 	white_knight uint8 = 1
@@ -96,7 +88,7 @@ var promoted_pieces map[uint8]byte = map[uint8]byte{
 	black_knight: 'n',
 }
 
-var square_to_coordinates = []string{
+var move_to_uci = []string{
 	"a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",
 	"a2", "b2", "c2", "d2", "e2", "f2", "g2", "h2",
 	"a3", "b3", "c3", "d3", "e3", "f3", "g3", "h3",

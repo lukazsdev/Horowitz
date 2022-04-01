@@ -25,12 +25,12 @@ func anti_diagonal_of(square int) int {
 // print move (for UCI purposes)
 func print_move(move Move) {
 	if move.get_move_promoted() > 0 {
-	fmt.Print(square_to_coordinates[move.get_move_source()],
-			  square_to_coordinates[move.get_move_target()])
+	fmt.Print(move_to_uci[move.get_move_source()],
+			  move_to_uci[move.get_move_target()])
 	fmt.Printf("%c", promoted_pieces[move.get_move_promoted()])
 	} else {
-		fmt.Print(square_to_coordinates[move.get_move_source()],
-				  square_to_coordinates[move.get_move_target()])
+		fmt.Print(move_to_uci[move.get_move_source()],
+				  move_to_uci[move.get_move_target()])
 	}
 	fmt.Print("\n")
 }
@@ -45,7 +45,7 @@ func print_move_list(moves MoveList) {
 		for move_count := 0; move_count < moves.count; move_count++ {
 			move := moves.list[move_count]
 
-			fmt.Print("     ", square_to_coordinates[move.get_move_source()], square_to_coordinates[move.get_move_target()])
+			fmt.Print("     ", move_to_uci[move.get_move_source()], move_to_uci[move.get_move_target()])
 			if move.get_move_promoted() > 0 { fmt.Printf("%c", promoted_pieces[move.get_move_promoted()]) } else { fmt.Print(" ") }
 			fmt.Printf("     %c", piece_to_char[move.get_move_piece()])
 			if move.get_move_capture() > 0 { fmt.Print("          1") } else { fmt.Print("          0") }
@@ -119,7 +119,7 @@ func print_board(pos Position) {
 	}
 
 	if pos.enpassant_square != NO_SQ {
-		fmt.Print("   Enpass:    ", square_to_coordinates[pos.enpassant_square], "\n")
+		fmt.Print("   Enpass:    ", move_to_uci[pos.enpassant_square], "\n")
 	} else {
 		fmt.Print("   Enpass:     no\n")
 	}

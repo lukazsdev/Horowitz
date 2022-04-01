@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"time"
 )
 
 func main() {
@@ -16,13 +15,12 @@ func main() {
 		enpassant_square: NO_SQ,
 	}
 
-	pos.parse_fen(start_position, 0)
+	pos.parse_fen(p6, 0)
 	print_board(pos)
 
-	start := time.Now()
-
-	//perft_driver(pos, 6)
-
-	fmt.Println("Nodes: ", nodes)
-	fmt.Println("Time: ", time.Since(start).Milliseconds(), "ms")
+	perft_test(pos, 1)
+	perft_test(pos, 2)
+	perft_test(pos, 3)
+	perft_test(pos, 4)
+	perft_test(pos, 5)
 }
