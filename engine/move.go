@@ -24,13 +24,13 @@ type Move uint32
 
 func encode_move(source, target int, piece, promoted, capture, double, enpassant, castling uint8) Move {
 	return Move(uint32(source)          |          
-			    uint32(target) << 6     |     
-		        uint32(piece) << 12     |     
-		        uint32(promoted) << 16  |  
-		        uint32(capture) << 20   |   
-		        uint32(double) << 21    |    
-		        uint32(enpassant) << 22 | 
-		        uint32(castling) << 23)
+	            uint32(target) << 6     |     
+		    uint32(piece) << 12     |     
+		    uint32(promoted) << 16  |  
+		    uint32(capture) << 20   |   
+		    uint32(double) << 21    |    
+		    uint32(enpassant) << 22 | 
+		    uint32(castling) << 23)
 }
 
 // extract source square
