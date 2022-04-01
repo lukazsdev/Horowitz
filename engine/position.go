@@ -1,6 +1,6 @@
 package main
 
-// structure for representing chess position
+// struct for representing chess position
 type Position struct {
 	// piece and occupied bitboards
 	bitboards [12]Bitboard
@@ -9,13 +9,49 @@ type Position struct {
 	// main info of position
 	side_to_move     uint8
 	castling_rights  uint8
-	enpassant_square int
+	enpassant_square   int
+
+	// store previous state
+	store_info       State
+}
+
+// struct for copying/storing previous states
+type State struct {
+	bitboards_copy [12]Bitboard
+	occupied_copy   [3]Bitboard
+
+	side_to_move_copy     uint8
+	castling_rights_copy  uint8
+	enpassant_square_copy   int
 }
 
 // make move
 
 
-// parse fen
+// copy board
+func (pos *Position) copy_board() {
+	pos.store_info = State{
+		bitboards_copy: pos.bitboards,
+		occupied_copy:  pos.occupied,
+
+		side_to_move_copy:     pos.side_to_move,
+		castling_rights_copy:  pos.castling_rights,
+		enpassant_square_copy: pos.enpassant_square,
+	}
+}
+
+// take back
+func (pos *Position) take_back() {
+	*pos = Position{
+		bitboards: pos.store_info.bitboards_copy,
+		occupied:  pos.store_info.occupied_copy,
+
+		side_to_move:     pos.store_info.side_to_move_copy,
+		castling_rights:  pos.store_info.castling_rights_copy,
+		enpassant_square: pos.store_info.enpassant_square_copy,
+	}
+}
+
 // parse FEN string
 func (pos *Position) parse_fen(fen string, ptr int) {
 	// reset bitboards
