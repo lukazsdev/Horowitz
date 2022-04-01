@@ -50,6 +50,9 @@ const (
 	// files and ranks indexes
 	FILE_A, FILE_B, FILE_C, FILE_D, FILE_E, FILE_F, FILE_G, FILE_H = 0, 1, 2, 3, 4, 5, 6, 7 
 	RANK_1, RANK_2, RANK_3, RANK_4, RANK_5, RANK_6, RANK_7, RANK_8 = 0, 1, 2, 3, 4, 5, 6, 7
+
+	all_moves     uint8 = 0
+	only_captures uint8 = 1
 )
 
 var char_to_piece map[byte]uint8 = map[byte]uint8{
@@ -103,4 +106,16 @@ var square_to_coordinates = []string{
 	"a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
 	"a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
 }
+
+// castling rights update constants
+var square_to_castling_rights = [64]uint8 {
+   13, 15, 15, 15, 12, 15, 15, 14,
+   15, 15, 15, 15, 15, 15, 15, 15,
+   15, 15, 15, 15, 15, 15, 15, 15,
+   15, 15, 15, 15, 15, 15, 15, 15,
+   15, 15, 15, 15, 15, 15, 15, 15,
+   15, 15, 15, 15, 15, 15, 15, 15,
+   15, 15, 15, 15, 15, 15, 15, 15,
+    7, 15, 15, 15,  3, 15, 15, 11,
+};
 

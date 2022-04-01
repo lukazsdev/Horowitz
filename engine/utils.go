@@ -26,8 +26,8 @@ func anti_diagonal_of(square int) int {
 func print_move(move Move) {
 	if move.get_move_promoted() > 0 {
 	fmt.Print(square_to_coordinates[move.get_move_source()],
-			  square_to_coordinates[move.get_move_target()],
-		      promoted_pieces[move.get_move_promoted()])
+			  square_to_coordinates[move.get_move_target()])
+	fmt.Printf("%c", promoted_pieces[move.get_move_promoted()])
 	} else {
 		fmt.Print(square_to_coordinates[move.get_move_source()],
 				  square_to_coordinates[move.get_move_target()])

@@ -1,5 +1,7 @@
 package main
 
+//import "fmt"
+
 // struct for representing chess position
 type Position struct {
 	// piece and occupied bitboards
@@ -26,6 +28,150 @@ type State struct {
 }
 
 // make move
+func (pos *Position) make_move(move Move, move_flag uint8) bool {
+	// all moves
+	if move_flag == all_moves {
+		// preserve board state
+		pos.copy_board()
+
+		// extract info from move
+		source_square  := move.get_move_source()
+		target_square  := move.get_move_target()
+		piece          := move.get_move_piece()
+		promoted_piece := move.get_move_promoted()
+		capture        := move.get_move_capture()
+		double_push    := move.get_move_double()
+		enpass         := move.get_move_enpassant()
+		castling       := move.get_move_castling()
+		
+		// make the move
+		pos.bitboards[piece].pop_bit(source_square)
+		pos.bitboards[piece].set_bit(target_square)
+
+		// extract sides from position
+		var our_side, their_side uint8 = pos.side_to_move, other_side(pos.side_to_move)
+
+		// handle captures
+		if capture > 0 {
+			// loop over bitboards of the opposite side
+			for bb_piece := 6 * their_side; bb_piece <= 6 * their_side + white_king; bb_piece++ {
+				// check if there is a piece on the target square
+				if pos.bitboards[bb_piece].get_bit(target_square) > 0 {
+					// remove the piece from target square
+					pos.bitboards[bb_piece].pop_bit(target_square)
+					break
+				}
+			}
+		}
+
+		// handle promotions
+		if promoted_piece > 0 {
+			// remove pawn from target square
+			pos.bitboards[6 * our_side + white_pawn].pop_bit(target_square)
+
+			// place promoted piece
+			pos.bitboards[promoted_piece].set_bit(target_square)
+		}
+
+		// handle enpassant captures
+		if enpass > 0 {
+			if our_side == white {
+				// erase pawn that made double push
+				pos.bitboards[black_pawn].pop_bit(target_square - 8)
+			} else {
+				// erase pawn that made double push
+				pos.bitboards[white_pawn].pop_bit(target_square + 8)
+			}
+		}
+
+		// reset enpassant square
+		pos.enpassant_square = NO_SQ
+
+		// handle double pawn push and set enpassant squares
+		if double_push > 0 {
+			if our_side == white {
+				pos.enpassant_square = target_square - 8
+			} else {
+				pos.enpassant_square = target_square + 8
+			}
+		}
+
+		// handle castling
+		if castling > 0 {
+			switch target_square {
+			// white kingside castle
+			case SQ_G1:
+				pos.bitboards[white_rook].pop_bit(SQ_H1)
+				pos.bitboards[white_rook].set_bit(SQ_F1)
+				break
+			
+			// white queenside castle
+			case SQ_C1:
+				pos.bitboards[white_rook].pop_bit(SQ_A1)
+				pos.bitboards[white_rook].set_bit(SQ_D1)
+				break
+			
+			// black kingside castle
+			case SQ_G8:
+				pos.bitboards[black_rook].pop_bit(SQ_H8)
+				pos.bitboards[black_rook].set_bit(SQ_F8)
+				break
+			
+			// black queenside castle
+			case SQ_C8:
+				pos.bitboards[black_rook].pop_bit(SQ_A8)
+				pos.bitboards[black_rook].set_bit(SQ_D8)
+				break
+			}
+		}
+
+		// update castling rights
+		pos.castling_rights &= square_to_castling_rights[source_square]
+		pos.castling_rights &= square_to_castling_rights[target_square]
+
+		// reset occupancies
+		for i := range pos.occupied { pos.occupied[i] = 0 }
+
+		for bb_piece := white_pawn; bb_piece <= white_king; bb_piece++ {
+			pos.occupied[white] |= pos.bitboards[bb_piece]
+		}
+		for bb_piece := black_pawn; bb_piece <= black_king; bb_piece++ {
+			pos.occupied[black] |= pos.bitboards[bb_piece]
+		}
+
+		pos.occupied[both] |= pos.occupied[white] | pos.occupied[black]
+
+		// switch side
+		pos.side_to_move = their_side
+
+		// bug with bsf() => returns 64 when empty board
+
+		// make sure king has not been exposed to a check
+		if is_square_attacked(pos.bitboards[6 * our_side + white_king].bsf(), their_side, *pos) {
+			// go back to original board state
+			pos.take_back()
+
+			// return ilegal move
+			return false
+		} else {
+			// return legal move
+			return true
+		}
+
+	// capture moves
+	} else {
+
+		if move.get_move_capture() > 0 {
+			pos.make_move(move, all_moves)
+
+		} else {
+			return false
+		}
+	}
+
+	return true
+
+}
 
 
 // copy board
@@ -55,12 +201,8 @@ func (pos *Position) take_back() {
 // parse FEN string
 func (pos *Position) parse_fen(fen string, ptr int) {
 	// reset bitboards
-	for i := range pos.bitboards {
-		pos.bitboards[i] = 0
-	}
-	for i := range pos.occupied {
-		pos.occupied[i] = 0
-	}
+	for i := range pos.bitboards { pos.bitboards[i] = 0 }
+	for i := range pos.occupied { pos.occupied[i] = 0 }
 
 	// reset position info
 	pos.side_to_move = 0

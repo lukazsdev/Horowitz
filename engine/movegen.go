@@ -411,15 +411,17 @@ func (pos *Position) generate_moves(move_list *Moves) {
 
 // checks if square is attacked by the given side
 func is_square_attacked(square int, side uint8, pos Position) bool {
-	if side == white && ((PAWN_ATTACKS_TABLE[black][square] & pos.bitboards[white_pawn]) > 0) { return true }
-	if side == black && ((PAWN_ATTACKS_TABLE[white][square] & pos.bitboards[black_pawn]) > 0) { return true }
+	if square != NO_SQ {
+		if side == white && ((PAWN_ATTACKS_TABLE[black][square] & pos.bitboards[white_pawn]) > 0) { return true }
+		if side == black && ((PAWN_ATTACKS_TABLE[white][square] & pos.bitboards[black_pawn]) > 0) { return true }
 
-	if (KNIGHT_ATTACKS_TABLE[square] & pos.bitboards[6 * side + white_knight]) > 0 { return true }
-	if (KING_ATTACKS_TABLE[square] & pos.bitboards[6 * side + white_king])     > 0 { return true }
+		if (KNIGHT_ATTACKS_TABLE[square] & pos.bitboards[6 * side + white_knight]) > 0 { return true }
+		if (KING_ATTACKS_TABLE[square] & pos.bitboards[6 * side + white_king])     > 0 { return true }
 
-	if (get_bishop_attacks(square, pos.occupied[both]) & pos.bitboards[6 * side + white_bishop]) > 0 { return true }
-	if (get_rook_attacks(square, pos.occupied[both])   & pos.bitboards[6 * side + white_rook])   > 0 { return true }
-	if (get_queen_attacks(square, pos.occupied[both])  & pos.bitboards[6 * side + white_queen])  > 0 { return true }
+		if (get_bishop_attacks(square, pos.occupied[both]) & pos.bitboards[6 * side + white_bishop]) > 0 { return true }
+		if (get_rook_attacks(square, pos.occupied[both])   & pos.bitboards[6 * side + white_rook])   > 0 { return true }
+		if (get_queen_attacks(square, pos.occupied[both])  & pos.bitboards[6 * side + white_queen])  > 0 { return true }
+	}
 
 	return false
 }
