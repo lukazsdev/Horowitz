@@ -3,17 +3,17 @@ package main
 //import "fmt"
 
 // Move list structure
-type Moves struct {
-	moves [256]Move
+type MoveList struct {
+	list [256]Move
 
 	count int
 }
 
 // add move to move list 
-func (move_list *Moves) add(move Move) {
-	move_list.moves[move_list.count] = move
+func (moves *MoveList) add(move Move) {
+	moves.list[moves.count] = move
 
-	move_list.count++
+	moves.count++
 }
 
 type Move uint32

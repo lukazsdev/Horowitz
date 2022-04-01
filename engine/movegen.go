@@ -120,7 +120,8 @@ func get_queen_attacks(square int, occ Bitboard) Bitboard {
 
 
 
-func (pos *Position) generate_moves(move_list *Moves) {
+func (pos *Position) generate_moves() MoveList {
+	var moves MoveList
 	// current piece bitboard, and its attacks
 	var bitboard, attacks Bitboard
 
@@ -151,16 +152,16 @@ func (pos *Position) generate_moves(move_list *Moves) {
 					if pos.occupied[both].get_bit(target_square) == 0 {
 						// pawn promotion
 						if (source_square>=SQ_A7) && (source_square <= SQ_H7) {
-							move_list.add(encode_move(source_square, target_square, piece, white_queen, 0, 0, 0, 0))
-						        move_list.add(encode_move(source_square, target_square, piece, white_rook, 0, 0, 0, 0))
-						        move_list.add(encode_move(source_square, target_square, piece, white_bishop, 0, 0, 0, 0))
-						        move_list.add(encode_move(source_square, target_square, piece, white_knight, 0, 0, 0, 0))
+							moves.add(encode_move(source_square, target_square, piece, white_queen, 0, 0, 0, 0))
+						        moves.add(encode_move(source_square, target_square, piece, white_rook, 0, 0, 0, 0))
+						        moves.add(encode_move(source_square, target_square, piece, white_bishop, 0, 0, 0, 0))
+						        moves.add(encode_move(source_square, target_square, piece, white_knight, 0, 0, 0, 0))
 						} else {
 							// single push
-							move_list.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
+							moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
 							// double push
 							if (source_square>=SQ_A2) && (source_square<=SQ_H2) && pos.occupied[both].get_bit(target_square + 8) == 0 {
-								move_list.add(encode_move(source_square, target_square + 8, piece, 0, 0, 1, 0, 0))
+								moves.add(encode_move(source_square, target_square + 8, piece, 0, 0, 1, 0, 0))
 							}
 						}
 					}
@@ -175,13 +176,13 @@ func (pos *Position) generate_moves(move_list *Moves) {
 
 						// pawn promotion
 						if (source_square>=SQ_A7) && (source_square <= SQ_H7) {
-							move_list.add(encode_move(source_square, target_square, piece, white_queen, 1, 0, 0, 0))
-						        move_list.add(encode_move(source_square, target_square, piece, white_rook, 1, 0, 0, 0))
-						        move_list.add(encode_move(source_square, target_square, piece, white_bishop, 1, 0, 0, 0))
-						        move_list.add(encode_move(source_square, target_square, piece, white_knight, 1, 0, 0, 0))
+							moves.add(encode_move(source_square, target_square, piece, white_queen, 1, 0, 0, 0))
+						        moves.add(encode_move(source_square, target_square, piece, white_rook, 1, 0, 0, 0))
+						        moves.add(encode_move(source_square, target_square, piece, white_bishop, 1, 0, 0, 0))
+						        moves.add(encode_move(source_square, target_square, piece, white_knight, 1, 0, 0, 0))
 						} else {
 							// normal capture
-							move_list.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
+							moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
 						}
 					}
 
@@ -193,7 +194,7 @@ func (pos *Position) generate_moves(move_list *Moves) {
 						if enpassant_capture > 0 {
 							// initialize enpassant target square
 							var target_enpassant int = enpassant_capture.bsf()
-							move_list.add(encode_move(source_square, target_enpassant, piece, 0, 1, 0, 1, 0))
+							moves.add(encode_move(source_square, target_enpassant, piece, 0, 1, 0, 1, 0))
 						}
 					}
 				// generate black pawn moves
@@ -205,16 +206,16 @@ func (pos *Position) generate_moves(move_list *Moves) {
 					if pos.occupied[both].get_bit(target_square) == 0 {
 						// pawn promotion
 						if (source_square>=SQ_A2) && (source_square <= SQ_H2) {
-							move_list.add(encode_move(source_square, target_square, piece, black_queen, 0, 0, 0, 0))
-						        move_list.add(encode_move(source_square, target_square, piece, black_rook, 0, 0, 0, 0))
-						        move_list.add(encode_move(source_square, target_square, piece, black_bishop, 0, 0, 0, 0))
-						        move_list.add(encode_move(source_square, target_square, piece, black_knight, 0, 0, 0, 0))
+							moves.add(encode_move(source_square, target_square, piece, black_queen, 0, 0, 0, 0))
+						        moves.add(encode_move(source_square, target_square, piece, black_rook, 0, 0, 0, 0))
+						        moves.add(encode_move(source_square, target_square, piece, black_bishop, 0, 0, 0, 0))
+						        moves.add(encode_move(source_square, target_square, piece, black_knight, 0, 0, 0, 0))
 						} else {
 							// single push
-							move_list.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
+							moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
 							// double push
 							if (source_square>=SQ_A7) && (source_square<=SQ_H7) && pos.occupied[both].get_bit(target_square - 8) == 0 {
-								move_list.add(encode_move(source_square, target_square - 8, piece, 0, 0, 1, 0, 0))
+								moves.add(encode_move(source_square, target_square - 8, piece, 0, 0, 1, 0, 0))
 							}
 						}
 					}
@@ -229,13 +230,13 @@ func (pos *Position) generate_moves(move_list *Moves) {
 
 						// pawn promotion
 						if (source_square>=SQ_A2) && (source_square <= SQ_H2) {
-							move_list.add(encode_move(source_square, target_square, piece, black_queen, 1, 0, 0, 0))
-						        move_list.add(encode_move(source_square, target_square, piece, black_rook, 1, 0, 0, 0))
-						        move_list.add(encode_move(source_square, target_square, piece, black_bishop, 1, 0, 0, 0))
-						        move_list.add(encode_move(source_square, target_square, piece, black_knight, 1, 0, 0, 0))
+							moves.add(encode_move(source_square, target_square, piece, black_queen, 1, 0, 0, 0))
+						        moves.add(encode_move(source_square, target_square, piece, black_rook, 1, 0, 0, 0))
+						        moves.add(encode_move(source_square, target_square, piece, black_bishop, 1, 0, 0, 0))
+						        moves.add(encode_move(source_square, target_square, piece, black_knight, 1, 0, 0, 0))
 						} else {
 							// normal capture
-							move_list.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
+							moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
 						}
 					}
 
@@ -247,7 +248,7 @@ func (pos *Position) generate_moves(move_list *Moves) {
 						if enpassant_capture > 0 {
 							// initialize enpassant target square
 							var target_enpassant int = enpassant_capture.bsf()
-							move_list.add(encode_move(source_square, target_enpassant, piece, 0, 1, 0, 1, 0))
+							moves.add(encode_move(source_square, target_enpassant, piece, 0, 1, 0, 1, 0))
 						}
 					}
 				}
@@ -262,7 +263,7 @@ func (pos *Position) generate_moves(move_list *Moves) {
 				if (pos.occupied[both].get_bit(SQ_F1)==0) && (pos.occupied[both].get_bit(SQ_G1)==0) {
 					// check if king and f1 square are not under attack
 					if is_square_attacked(SQ_E1, black, *pos)==false && is_square_attacked(SQ_F1, black, *pos)==false {
-						move_list.add(encode_move(SQ_E1, SQ_G1, piece, 0, 0, 0, 0, 1))
+						moves.add(encode_move(SQ_E1, SQ_G1, piece, 0, 0, 0, 0, 1))
 					}
 				}
 			}
@@ -273,7 +274,7 @@ func (pos *Position) generate_moves(move_list *Moves) {
 				if (pos.occupied[both].get_bit(SQ_D1)==0) && (pos.occupied[both].get_bit(SQ_C1)==0) && (pos.occupied[both].get_bit(SQ_B1)==0) {
 					// check if king and d1 square are not under attack
 					if is_square_attacked(SQ_E1, black, *pos)==false && is_square_attacked(SQ_D1, black, *pos)==false {
-						move_list.add(encode_move(SQ_E1, SQ_C1, piece, 0, 0, 0, 0, 1))
+						moves.add(encode_move(SQ_E1, SQ_C1, piece, 0, 0, 0, 0, 1))
 					}
 				}
 			}
@@ -288,7 +289,7 @@ func (pos *Position) generate_moves(move_list *Moves) {
 					// check if king and f1 square are not under attack
 					if is_square_attacked(SQ_E8, white, *pos)==false && is_square_attacked(SQ_F8, white, *pos)==false {
 						
-						move_list.add(encode_move(SQ_E8, SQ_G8, piece, 0, 0, 0, 0, 1))
+						moves.add(encode_move(SQ_E8, SQ_G8, piece, 0, 0, 0, 0, 1))
 					}
 				}
 			}
@@ -299,7 +300,7 @@ func (pos *Position) generate_moves(move_list *Moves) {
 				if (pos.occupied[both].get_bit(SQ_D8)==0) && (pos.occupied[both].get_bit(SQ_C8)==0) && (pos.occupied[both].get_bit(SQ_B8)==0) {
 					// check if king and d1 square are not under attack
 					if is_square_attacked(SQ_E8, white, *pos)==false && is_square_attacked(SQ_D8, white, *pos)==false {
-						move_list.add(encode_move(SQ_E8, SQ_C8, piece, 0, 0, 0, 0, 1))
+						moves.add(encode_move(SQ_E8, SQ_C8, piece, 0, 0, 0, 0, 1))
 					}
 				}
 			}
@@ -316,11 +317,11 @@ func (pos *Position) generate_moves(move_list *Moves) {
 					target_square = attacks.pop_lsb()
 					// quiet move
 					if pos.occupied[their_side].get_bit(target_square) == 0 {
-						move_list.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
+						moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
 
 					// capture move
 					} else {
-						move_list.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
+						moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
 					}
 				}
 			}
@@ -336,11 +337,11 @@ func (pos *Position) generate_moves(move_list *Moves) {
 					target_square = attacks.pop_lsb()
 					// quiet move
 					if pos.occupied[their_side].get_bit(target_square) == 0 {
-						move_list.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
+						moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
 
 					// capture move
 					} else {
-						move_list.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
+						moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
 					}
 				}
 			}
@@ -355,11 +356,11 @@ func (pos *Position) generate_moves(move_list *Moves) {
 					target_square = attacks.pop_lsb()
 					// quiet move
 					if pos.occupied[their_side].get_bit(target_square) == 0 {
-						move_list.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
+						moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
 
 					// capture move
 					} else {
-						move_list.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
+						moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
 					}
 				}
 			}
@@ -374,11 +375,11 @@ func (pos *Position) generate_moves(move_list *Moves) {
 					target_square = attacks.pop_lsb()
 					// quiet move
 					if pos.occupied[their_side].get_bit(target_square) == 0 {
-						move_list.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
+						moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
 
 					// capture move
 					} else {
-						move_list.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
+						moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
 					}
 				}
 			}
@@ -393,16 +394,18 @@ func (pos *Position) generate_moves(move_list *Moves) {
 					target_square = attacks.pop_lsb()
 					// quiet move
 					if pos.occupied[their_side].get_bit(target_square) == 0 {
-						move_list.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
+						moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
 
 					// capture move
 					} else {
-						move_list.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
+						moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
 					}
 				}
 			}
 		}
 	}
+
+	return moves
 }
 
 

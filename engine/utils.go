@@ -36,14 +36,14 @@ func print_move(move Move) {
 }
 
 // print move list (for debuggin purposes)
-func print_move_list(move_list Moves) {
-	if move_list.count == 0 {
+func print_move_list(moves MoveList) {
+	if moves.count == 0 {
 		fmt.Print("\nNo moves in move list\n")
 		return
 	} else {
 		fmt.Print("\n     move    piece     capture   double    enpass    castling\n\n")
-		for move_count := 0; move_count < move_list.count; move_count++ {
-			move := move_list.moves[move_count]
+		for move_count := 0; move_count < moves.count; move_count++ {
+			move := moves.list[move_count]
 
 			fmt.Print("     ", square_to_coordinates[move.get_move_source()], square_to_coordinates[move.get_move_target()])
 			if move.get_move_promoted() > 0 { fmt.Printf("%c", promoted_pieces[move.get_move_promoted()]) } else { fmt.Print(" ") }
@@ -56,7 +56,7 @@ func print_move_list(move_list Moves) {
 		}
 	}
 
-	fmt.Print("\n\n     Total number of moves: ", move_list.count, "\n\n")
+	fmt.Print("\n\n     Total number of moves: ", moves.count, "\n\n")
 }
 
 // print given bitboard

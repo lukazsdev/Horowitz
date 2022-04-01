@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
 
 func main() {
@@ -15,12 +16,13 @@ func main() {
 		enpassant_square: NO_SQ,
 	}
 
-	pos.parse_fen(tricky_position, 0)
+	pos.parse_fen(start_position, 0)
 	print_board(pos)
 
-	var move_list Moves
+	start := time.Now()
 
-	pos.generate_moves(&move_list)
+	//perft_driver(pos, 6)
 
-	print_move_list(move_list)
+	fmt.Println("Nodes: ", nodes)
+	fmt.Println("Time: ", time.Since(start).Milliseconds(), "ms")
 }
