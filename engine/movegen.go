@@ -151,7 +151,7 @@ func (pos *Position) generate_moves(move_list *Moves) {
 					if pos.occupied[both].get_bit(target_square) == 0 {
 						// pawn promotion
 						if (source_square>=SQ_A7) && (source_square <= SQ_H7) {
-								move_list.add_move(encode_move(source_square, target_square, piece, white_queen, 0, 0, 0, 0))
+							move_list.add_move(encode_move(source_square, target_square, piece, white_queen, 0, 0, 0, 0))
 						        move_list.add_move(encode_move(source_square, target_square, piece, white_rook, 0, 0, 0, 0))
 						        move_list.add_move(encode_move(source_square, target_square, piece, white_bishop, 0, 0, 0, 0))
 						        move_list.add_move(encode_move(source_square, target_square, piece, white_knight, 0, 0, 0, 0))
@@ -175,7 +175,7 @@ func (pos *Position) generate_moves(move_list *Moves) {
 
 						// pawn promotion
 						if (source_square>=SQ_A7) && (source_square <= SQ_H7) {
-								move_list.add_move(encode_move(source_square, target_square, piece, white_queen, 1, 0, 0, 0))
+							move_list.add_move(encode_move(source_square, target_square, piece, white_queen, 1, 0, 0, 0))
 						        move_list.add_move(encode_move(source_square, target_square, piece, white_rook, 1, 0, 0, 0))
 						        move_list.add_move(encode_move(source_square, target_square, piece, white_bishop, 1, 0, 0, 0))
 						        move_list.add_move(encode_move(source_square, target_square, piece, white_knight, 1, 0, 0, 0))
@@ -205,7 +205,7 @@ func (pos *Position) generate_moves(move_list *Moves) {
 					if pos.occupied[both].get_bit(target_square) == 0 {
 						// pawn promotion
 						if (source_square>=SQ_A2) && (source_square <= SQ_H2) {
-								move_list.add_move(encode_move(source_square, target_square, piece, black_queen, 0, 0, 0, 0))
+							move_list.add_move(encode_move(source_square, target_square, piece, black_queen, 0, 0, 0, 0))
 						        move_list.add_move(encode_move(source_square, target_square, piece, black_rook, 0, 0, 0, 0))
 						        move_list.add_move(encode_move(source_square, target_square, piece, black_bishop, 0, 0, 0, 0))
 						        move_list.add_move(encode_move(source_square, target_square, piece, black_knight, 0, 0, 0, 0))
@@ -229,7 +229,7 @@ func (pos *Position) generate_moves(move_list *Moves) {
 
 						// pawn promotion
 						if (source_square>=SQ_A2) && (source_square <= SQ_H2) {
-								move_list.add_move(encode_move(source_square, target_square, piece, black_queen, 1, 0, 0, 0))
+							move_list.add_move(encode_move(source_square, target_square, piece, black_queen, 1, 0, 0, 0))
 						        move_list.add_move(encode_move(source_square, target_square, piece, black_rook, 1, 0, 0, 0))
 						        move_list.add_move(encode_move(source_square, target_square, piece, black_bishop, 1, 0, 0, 0))
 						        move_list.add_move(encode_move(source_square, target_square, piece, black_knight, 1, 0, 0, 0))
