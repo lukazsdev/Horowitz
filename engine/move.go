@@ -4,33 +4,30 @@ package main
 
 // Move list structure
 type Moves struct {
-	// move list
 	moves [256]Move
 
-	// pointer to current move
 	count int
 }
 
-// add move to move list
-func (move_list *Moves) add_move(move Move) {
-	// store move
+// add move to move list 
+func (move_list *Moves) add(move Move) {
 	move_list.moves[move_list.count] = move
 
-	// increment pointer
 	move_list.count++
 }
 
 type Move uint32
 
+// encodes move as 32-bit unsigned integer
 func encode_move(source, target int, piece, promoted, capture, double, enpassant, castling uint8) Move {
 	return Move(uint32(source)          |          
 	            uint32(target) << 6     |     
-		    uint32(piece) << 12     |     
-		    uint32(promoted) << 16  |  
-		    uint32(capture) << 20   |   
-		    uint32(double) << 21    |    
-		    uint32(enpassant) << 22 | 
-		    uint32(castling) << 23)
+				uint32(piece) << 12     |     
+				uint32(promoted) << 16  |  
+				uint32(capture) << 20   |   
+				uint32(double) << 21    |    
+				uint32(enpassant) << 22 | 
+				uint32(castling) << 23)
 }
 
 // extract source square
