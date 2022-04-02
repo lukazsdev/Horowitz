@@ -16,15 +16,15 @@ type UCIInterface struct {
 func (uci *UCIInterface) UCILoop() {
 	reader := bufio.NewReader(os.Stdin)
 
+	uci.print_engine_info()
+
 	// main loop
 	for {
 		command, _ := reader.ReadString('\n')
 		command = strings.Replace(command, "\r\n", "\n", -1)
 
 		if command == "uci\n" {
-			fmt.Print("id name go chess\n")
-            fmt.Print("id name OliveriQ\n")
-            fmt.Print("uciok\n")
+			uci.print_engine_info()
 
 		} else if command == "isready\n" {
 			fmt.Printf("readyok\n")
@@ -42,6 +42,12 @@ func (uci *UCIInterface) UCILoop() {
 			break
 		}
 	}
+}
+
+func (uci *UCIInterface) print_engine_info() {
+	fmt.Print("id name go chess\n")
+	fmt.Print("id name OliveriQ\n")
+	fmt.Print("uciok\n")
 }
 
 
@@ -138,7 +144,7 @@ func (uci *UCIInterface) parse_go(command string) {
 	command = strings.TrimPrefix(command, " ")
 	fields := strings.Fields(command)
 
-	depth := -1
+	depth := 4
 
 	for index, field := range fields {
 		if field == "depth" {
@@ -146,5 +152,5 @@ func (uci *UCIInterface) parse_go(command string) {
 		}
 	}
 
-	fmt.Println("Depth:", depth)
+	search_position(uci.pos, depth)
 }
