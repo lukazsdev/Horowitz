@@ -16,6 +16,14 @@ const (
 	black_king   uint8 = 11
 	no_piece     uint8 = 12
 
+	// piece types
+	Pawn   uint8 = 0
+	Knight uint8 = 1
+	Bishop uint8 = 2
+	Rook   uint8 = 3
+	Queen  uint8 = 4
+	King   uint8 = 5
+
 	// colors
 	white uint8 = 0
 	black uint8 = 1
@@ -109,5 +117,5 @@ var square_to_castling_rights = [64]uint8 {
    15, 15, 15, 15, 15, 15, 15, 15,
    15, 15, 15, 15, 15, 15, 15, 15,
     7, 15, 15, 15,  3, 15, 15, 11,
-};
+}
 

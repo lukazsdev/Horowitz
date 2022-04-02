@@ -151,6 +151,7 @@ func (uci *UCIInterface) parse_go(command string) {
 			depth, _ = strconv.Atoi(fields[index+1])
 		}
 	}
+	
 
 	search_position(uci.pos, depth)
 }

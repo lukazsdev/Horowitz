@@ -22,6 +22,18 @@ func anti_diagonal_of(square int) int {
 	return rank_of(square) + file_of(square)
 }
 
+func get_piece_type(piece_type uint8, side uint8) uint8 {
+	return side * 6 + piece_type
+}
+
+func perspective(score int, side uint8) int {
+	if side == white {
+		return score
+	} else {
+		return -score
+	}
+}
+
 // print move (for UCI purposes)
 func print_move(move Move) {
 	if move.get_move_promoted() > 0 {
