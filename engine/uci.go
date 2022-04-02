@@ -1,6 +1,7 @@
 package main
 
 import (
+	//"fmt"
 	"strings"
 )
 
@@ -8,6 +9,54 @@ import (
 type UCIInterface struct {
 	pos Position
 }
+
+
+// parse UCI "position" command (e.g position startpos e2e4)
+func (uci *UCIInterface) parse_position(command string) {
+	// skip to next token (after "position")
+	command = command[9:len(command)]
+
+	// general purpose pointer in command string
+	ptr := command
+
+	// parse UCI "startpos" command
+	if strings.Compare(command[0:8], "startpos") == 0 {
+		// initialize board to start position
+		uci.pos.parse_fen(start_position)
+
+	} else {
+		// go to "fen" token
+		fen_index := strings.Index(command, "fen")
+
+		// if "fen" is not a substr of command
+		if fen_index == -1 {
+			uci.pos.parse_fen(start_position)
+
+		} else {
+			ptr = command[fen_index+4:len(command)]
+			uci.pos.parse_fen(ptr[0:len(ptr)])
+		}
+	}
+
+	// go to "moves" token
+	moves_index := strings.Index(command, "moves")
+
+	// if "moves" is available
+	if moves_index != -1 {
+		moves := strings.Fields(command[moves_index+6:len(command)])
+		// loop over all moves
+		for i := 0; i < len(moves); i++ {
+			move := uci.parse_move(moves[i])
+
+			if move == 0 {
+				break
+			}
+
+			uci.pos.make_move(move, all_moves)
+		}
+	}
+}
+
 
 // parse move input from GUI 
 func (uci *UCIInterface) parse_move(move_string string) Move {
@@ -47,32 +96,4 @@ func (uci *UCIInterface) parse_move(move_string string) Move {
 
 	// return ilegal move
 	return 0
-}
-
-// parse UCI "position" command (e.g position startpos e2e4)
-func (uci *UCIInterface) parse_position(command string) {
-	// skip to next token (after "position")
-	command = command[9:len(command)]
-
-	// general purpose pointer in command string
-	ptr := command
-
-	// parse UCI "startpos" command
-	if strings.Compare(command[0:8], "startpos") == 0 {
-		// initialize board to start position
-		uci.pos.parse_fen(start_position)
-
-	} else {
-		// go to "fen" token
-		fen_index := strings.Index(ptr, "fen")
-
-		// if "fen" is not a substr of command
-		if fen_index == -1 {
-			uci.pos.parse_fen(start_position)
-
-		} else {
-			ptr = ptr[fen_index+4:len(ptr)]
-			uci.pos.parse_fen(ptr[0:len(ptr)])
-		}
-	}
 }
