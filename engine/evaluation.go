@@ -95,14 +95,12 @@ func evaluate(pos Position) int {
 	score := 0
 
 	score += pawn_eval(pos)
-	/*
+	
 	score += knight_eval(pos)
 	score += bishop_eval(pos)
 	score += rook_eval(pos)
 	score += queen_eval(pos)
 	score += king_eval(pos)
-	*/
-
 
 	// white => score, black => -score
 	return perspective(score, pos.side_to_move)
@@ -119,10 +117,10 @@ func pawn_eval(pos Position) int {
 	for bitboard > 0 {
 		square := bitboard.pop_lsb()
 		switch (pos.side_to_move) {
-			case white: 
-				score += PAWN_SQUARE_TABLE[square]
-			case black: 
-				score -= PAWN_SQUARE_TABLE[mirror[square]]
+		case white: 
+			score += PAWN_SQUARE_TABLE[square]
+		case black: 
+			score -= PAWN_SQUARE_TABLE[mirror[square]]
 		}
 	}
 
@@ -140,10 +138,10 @@ func knight_eval(pos Position) int {
 	for bitboard > 0 {
 		square := bitboard.pop_lsb()
 		switch (pos.side_to_move) {
-			case white: 
-				score += KNIGHT_SQUARE_TABLE[square]
-			case black: 
-				score -= KNIGHT_SQUARE_TABLE[mirror[square]]
+		case white: 
+			score += KNIGHT_SQUARE_TABLE[square]
+		case black: 
+			score -= KNIGHT_SQUARE_TABLE[mirror[square]]
 		}
 	}
 
@@ -161,12 +159,12 @@ func bishop_eval(pos Position) int {
 	for bitboard > 0 {
 		square := bitboard.pop_lsb()
 		switch (pos.side_to_move) {
-			case white: 
-				score += BISHOP_SQUARE_TABLE[square]
-				score += get_bishop_attacks(square, pos.occupied[both]).count_bits()
-			case black: 
-				score -= BISHOP_SQUARE_TABLE[mirror[square]]
-				score -= get_bishop_attacks(square, pos.occupied[both]).count_bits()
+		case white: 
+			score += BISHOP_SQUARE_TABLE[square]
+			score += get_bishop_attacks(square, pos.occupied[both]).count_bits()
+		case black: 
+			score -= BISHOP_SQUARE_TABLE[mirror[square]]
+			score -= get_bishop_attacks(square, pos.occupied[both]).count_bits()
 		}
 	}
 
@@ -184,10 +182,10 @@ func rook_eval(pos Position) int {
 	for bitboard > 0 {
 		square := bitboard.pop_lsb()
 		switch (pos.side_to_move) {
-			case white: 
-				score += ROOK_SQUARE_TABLE[square]
-			case black: 
-				score -= ROOK_SQUARE_TABLE[mirror[square]]
+		case white: 
+			score += ROOK_SQUARE_TABLE[square]
+		case black: 
+			score -= ROOK_SQUARE_TABLE[mirror[square]]
 		}
 	}
 
@@ -204,10 +202,10 @@ func queen_eval(pos Position) int {
 	for bitboard > 0 {
 		square := bitboard.pop_lsb()
 		switch (pos.side_to_move) {
-			case white:
-				score += get_queen_attacks(square, pos.occupied[both]).count_bits()
-			case black:
-				score -= get_queen_attacks(square, pos.occupied[both]).count_bits()
+		case white:
+			score += get_queen_attacks(square, pos.occupied[both]).count_bits()
+		case black:
+			score -= get_queen_attacks(square, pos.occupied[both]).count_bits()
 		}
 	}
 
@@ -225,10 +223,10 @@ func king_eval(pos Position) int {
 	for bitboard > 0 {
 		square := bitboard.pop_lsb()
 		switch (pos.side_to_move) {
-			case white: 
-				score += KING_SQUARE_TABLE[square]
-			case black: 
-				score -= KING_SQUARE_TABLE[mirror[square]]
+		case white: 
+			score += KING_SQUARE_TABLE[square]
+		case black: 
+			score -= KING_SQUARE_TABLE[mirror[square]]
 		}
 	}
 
