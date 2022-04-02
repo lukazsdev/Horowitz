@@ -199,7 +199,10 @@ func (pos *Position) take_back() {
 }
 
 // parse FEN string
-func (pos *Position) parse_fen(fen string, ptr int) {
+func (pos *Position) parse_fen(fen string) {
+	// general purpose pointer to FEN string
+	var ptr int = 0
+
 	// reset bitboards
 	for i := range pos.bitboards { pos.bitboards[i] = 0 }
 	for i := range pos.occupied { pos.occupied[i] = 0 }

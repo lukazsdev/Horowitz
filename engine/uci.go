@@ -1,6 +1,8 @@
 package main
 
-//import "fmt"
+import (
+	"strings"
+)
 
 // struct for UCI protocol
 type UCIInterface struct {
@@ -47,3 +49,30 @@ func (uci *UCIInterface) parse_move(move_string string) Move {
 	return 0
 }
 
+// parse UCI "position" command (e.g position startpos e2e4)
+func (uci *UCIInterface) parse_position(command string) {
+	// skip to next token (after "position")
+	command = command[9:len(command)]
+
+	// general purpose pointer in command string
+	ptr := command
+
+	// parse UCI "startpos" command
+	if strings.Compare(command[0:8], "startpos") == 0 {
+		// initialize board to start position
+		uci.pos.parse_fen(start_position)
+
+	} else {
+		// go to "fen" token
+		fen_index := strings.Index(ptr, "fen")
+
+		// if "fen" is not a substr of command
+		if fen_index == -1 {
+			uci.pos.parse_fen(start_position)
+
+		} else {
+			ptr = ptr[fen_index+4:len(ptr)]
+			uci.pos.parse_fen(ptr[0:len(ptr)])
+		}
+	}
+}
