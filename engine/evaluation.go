@@ -94,29 +94,35 @@ var mirror = [64]int {
 func evaluate(pos Position) int {
 	score := 0
 
-	score += pawn_eval(pos)
-	
-	score += knight_eval(pos)
-	score += bishop_eval(pos)
-	score += rook_eval(pos)
-	score += queen_eval(pos)
-	score += king_eval(pos)
+	score += pawns_eval(pos, white)
+	score += knights_eval(pos, white)
+	score += bishops_eval(pos, white)
+	score += rooks_eval(pos, white)
+	score += queens_eval(pos, white)
+	score += king_eval(pos, white)
+
+	score += pawns_eval(pos, black)
+	score += knights_eval(pos, black)
+	score += bishops_eval(pos, black)
+	score += rooks_eval(pos, black)
+	score += queens_eval(pos, black)
+	score += king_eval(pos, black)
 
 	// white => score, black => -score
 	return perspective(score, pos.side_to_move)
 }
 
 // pawns evaluation
-func pawn_eval(pos Position) int {
+func pawns_eval(pos Position, side uint8) int {
 
-	piece := get_piece_type(Pawn, pos.side_to_move)
+	piece := get_piece_type(Pawn, side)
 	score := material_score[piece]
 
 	
 	bitboard := pos.bitboards[piece]
 	for bitboard > 0 {
 		square := bitboard.pop_lsb()
-		switch (pos.side_to_move) {
+		switch (side) {
 		case white: 
 			score += PAWN_SQUARE_TABLE[square]
 		case black: 
@@ -128,16 +134,16 @@ func pawn_eval(pos Position) int {
 }
 
 // knights evaluation
-func knight_eval(pos Position) int {
+func knights_eval(pos Position, side uint8) int {
 	
-	piece := get_piece_type(Knight, pos.side_to_move)
+	piece := get_piece_type(Knight, side)
 	score := material_score[piece]
 
 	
 	bitboard := pos.bitboards[piece]
 	for bitboard > 0 {
 		square := bitboard.pop_lsb()
-		switch (pos.side_to_move) {
+		switch (side) {
 		case white: 
 			score += KNIGHT_SQUARE_TABLE[square]
 		case black: 
@@ -149,16 +155,16 @@ func knight_eval(pos Position) int {
 }
 
 // bishops evaluation
-func bishop_eval(pos Position) int {
+func bishops_eval(pos Position, side uint8) int {
 	
-	piece := get_piece_type(Bishop, pos.side_to_move)
+	piece := get_piece_type(Bishop, side)
 	score := material_score[piece]
 
 	
 	bitboard := pos.bitboards[piece]
 	for bitboard > 0 {
 		square := bitboard.pop_lsb()
-		switch (pos.side_to_move) {
+		switch (side) {
 		case white: 
 			score += BISHOP_SQUARE_TABLE[square]
 			score += get_bishop_attacks(square, pos.occupied[both]).count_bits()
@@ -172,16 +178,16 @@ func bishop_eval(pos Position) int {
 }
 
 // rooks evaluation
-func rook_eval(pos Position) int {
+func rooks_eval(pos Position, side uint8) int {
 	
-	piece := get_piece_type(Rook, pos.side_to_move)
+	piece := get_piece_type(Rook, side)
 	score := material_score[piece]
 
 	
 	bitboard := pos.bitboards[piece]
 	for bitboard > 0 {
 		square := bitboard.pop_lsb()
-		switch (pos.side_to_move) {
+		switch (side) {
 		case white: 
 			score += ROOK_SQUARE_TABLE[square]
 		case black: 
@@ -193,15 +199,15 @@ func rook_eval(pos Position) int {
 }
 
 // queens evaluation
-func queen_eval(pos Position) int {
+func queens_eval(pos Position, side uint8) int {
 	
-	piece := get_piece_type(Pawn, pos.side_to_move)
+	piece := get_piece_type(Pawn, side)
 	score := material_score[piece]
 
 	bitboard := pos.bitboards[piece]
 	for bitboard > 0 {
 		square := bitboard.pop_lsb()
-		switch (pos.side_to_move) {
+		switch (side) {
 		case white:
 			score += get_queen_attacks(square, pos.occupied[both]).count_bits()
 		case black:
@@ -213,16 +219,16 @@ func queen_eval(pos Position) int {
 }
 
 // king evaluation
-func king_eval(pos Position) int {
+func king_eval(pos Position, side uint8) int {
 	
-	piece := get_piece_type(King, pos.side_to_move)
+	piece := get_piece_type(King, side)
 	score := material_score[piece]
 
 	
 	bitboard := pos.bitboards[piece]
 	for bitboard > 0 {
 		square := bitboard.pop_lsb()
-		switch (pos.side_to_move) {
+		switch (side) {
 		case white: 
 			score += KING_SQUARE_TABLE[square]
 		case black: 
