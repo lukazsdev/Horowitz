@@ -9,18 +9,17 @@ func main() {
 
 	initialize_lookup_tables()
 
-	pos := Position{
-		side_to_move:         0,
-		castling_rights:      0,
-		enpassant_square: NO_SQ,
+	// UCI testing
+	var uci UCIInterface
+	uci.pos.parse_fen("r3k2r/pPppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 ", 0)
+
+	move := uci.parse_move("b7a8q")
+
+	print_move(move)
+	if move > 0 {
+		uci.pos.make_move(move, all_moves)
+		print_board(uci.pos)
+	} else {
+		fmt.Println("Ilegal move")
 	}
-
-	pos.parse_fen(p6, 0)
-	print_board(pos)
-
-	perft_test(pos, 1)
-	perft_test(pos, 2)
-	perft_test(pos, 3)
-	perft_test(pos, 4)
-	perft_test(pos, 5)
 }
