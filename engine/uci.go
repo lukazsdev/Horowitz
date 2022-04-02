@@ -1,13 +1,47 @@
 package main
 
 import (
-	//"fmt"
+	"fmt"
 	"strings"
+	"strconv"
+	"bufio"
+	"os"
 )
 
 // struct for UCI protocol
 type UCIInterface struct {
 	pos Position
+}
+
+func (uci *UCIInterface) UCILoop() {
+	reader := bufio.NewReader(os.Stdin)
+
+	// main loop
+	for {
+		command, _ := reader.ReadString('\n')
+		command = strings.Replace(command, "\r\n", "\n", -1)
+
+		if command == "uci\n" {
+			fmt.Print("id name go chess\n")
+            fmt.Print("id name OliveriQ\n")
+            fmt.Print("uciok\n")
+
+		} else if command == "isready\n" {
+			fmt.Printf("readyok\n")
+		} else if strings.HasPrefix(command, "setoption") {
+			// do stuff
+		} else if strings.HasPrefix(command, "ucinewgame") {
+			uci.parse_position("position startpos");
+		} else if strings.HasPrefix(command, "position") {
+			uci.parse_position(command)
+		} else if strings.HasPrefix(command, "go") {
+			uci.parse_go(command) 
+		} else if strings.HasPrefix(command, "board") {
+			print_board(uci.pos)
+		} else if command == "quit\n" {
+			break
+		}
+	}
 }
 
 
@@ -96,4 +130,21 @@ func (uci *UCIInterface) parse_move(move_string string) Move {
 
 	// return ilegal move
 	return 0
+}
+
+// parse UCI "go" command
+func (uci *UCIInterface) parse_go(command string) {
+	command = strings.TrimPrefix(command, "go")
+	command = strings.TrimPrefix(command, " ")
+	fields := strings.Fields(command)
+
+	depth := -1
+
+	for index, field := range fields {
+		if field == "depth" {
+			depth, _ = strconv.Atoi(fields[index+1])
+		}
+	}
+
+	fmt.Println("Depth:", depth)
 }
