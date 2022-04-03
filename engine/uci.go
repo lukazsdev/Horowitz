@@ -10,7 +10,8 @@ import (
 
 // struct for UCI protocol
 type UCIInterface struct {
-	pos Position
+	pos    Position
+	search Search
 }
 
 func (uci *UCIInterface) UCILoop() {
@@ -153,5 +154,5 @@ func (uci *UCIInterface) parse_go(command string) {
 	}
 	
 
-	search_position(uci.pos, depth)
+	uci.search.position(uci.pos, depth)
 }

@@ -177,8 +177,8 @@ func (pos *Position) make_move(move Move, move_flag uint8) bool {
 // copy board
 func (pos *Position) copy_board() {
 	pos.store_info = State{
-		bitboards_copy: pos.bitboards,
-		occupied_copy:  pos.occupied,
+		bitboards_copy:        pos.bitboards,
+		occupied_copy:         pos.occupied,
 
 		side_to_move_copy:     pos.side_to_move,
 		castling_rights_copy:  pos.castling_rights,
@@ -189,8 +189,8 @@ func (pos *Position) copy_board() {
 // take back
 func (pos *Position) take_back() {
 	*pos = Position{
-		bitboards: pos.store_info.bitboards_copy,
-		occupied:  pos.store_info.occupied_copy,
+		bitboards:        pos.store_info.bitboards_copy,
+		occupied:         pos.store_info.occupied_copy,
 
 		side_to_move:     pos.store_info.side_to_move_copy,
 		castling_rights:  pos.store_info.castling_rights_copy,

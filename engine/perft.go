@@ -21,13 +21,10 @@ const (
 	p6 = "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10 "
 )
 
-// number of positions reached during testing
-var nodes uint64
-
 // perft driver
-func perft_driver(pos Position, depth int) {
+func (search *Search) perft_driver(pos Position, depth int) {
 	if depth == 0 {
-		nodes++
+		search.nodes++
 		return
 	}
 
@@ -43,14 +40,14 @@ func perft_driver(pos Position, depth int) {
 		} 
 	     
 		// call perft recursively
-		perft_driver(pos, depth - 1)
+		search.perft_driver(pos, depth - 1)
 
 		// return to prev board state
 		pos.take_back()
 	}
 }
 
-func perft_test(pos Position, depth int) {
+func (search *Search) perft_test(pos Position, depth int) {
 	fmt.Print("\n")
 
 	start_timer := time.Now()
@@ -67,7 +64,7 @@ func perft_test(pos Position, depth int) {
 		} 
 	     
 		// call perft recursively
-		perft_driver(pos, depth - 1)
+		search.perft_driver(pos, depth - 1)
 
 		// return to prev board state
 		pos.take_back()
@@ -77,8 +74,8 @@ func perft_test(pos Position, depth int) {
 	}
 
 	fmt.Print("\n     Depth: ", depth)
-	fmt.Print("\n     Nodes: ", nodes)
+	fmt.Print("\n     Nodes: ", search.nodes)
 	fmt.Print("\n     Time: ", time.Since(start_timer))
 
-	nodes = 0
+	search.nodes = 0
 }

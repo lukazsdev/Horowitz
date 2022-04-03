@@ -2,6 +2,8 @@ package main
 
 //import "fmt"
 
+type Move uint32
+
 // Move list structure
 type MoveList struct {
 	list [256]Move
@@ -16,7 +18,6 @@ func (moves *MoveList) add(move Move) {
 	moves.count++
 }
 
-type Move uint32
 
 // encodes move as 32-bit unsigned integer
 func encode_move(source, target int, piece, promoted, capture, double, enpassant, castling uint8) Move {
