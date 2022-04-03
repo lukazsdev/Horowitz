@@ -165,6 +165,7 @@ func (pos *Position) make_move(move Move, move_flag uint8) bool {
 			pos.make_move(move, all_moves)
 
 		} else {
+			// bug does reach this part
 			return false
 		}
 	}

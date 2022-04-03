@@ -3,7 +3,7 @@ package main
 import "fmt"
 
 type Search struct {
-	ply   int
+	ply      int
 	nodes uint64
 
 	best_move Move
@@ -15,10 +15,70 @@ const (
 	mate_score int = 48000
 )
 
+func (search *Search) quiescence(pos Position, alpha, beta int) int {
+	// evaluation
+	evaluation := evaluate(pos)
+
+	// fail-hard beta cutoff
+	if evaluation >= beta {
+		// node (move) fails high
+		return beta 
+	}
+
+	// found better move
+	if evaluation > alpha {
+		// PV node (move)
+		alpha = evaluation
+	}
+
+	// move list
+	moves := pos.generate_moves()
+
+	for i := 0; i < moves.count; i++ {
+
+		// preserve board state
+		pos.copy_board()
+
+		// increment half move counter
+		search.ply++
+
+		// skip if move is ilegal
+		if !pos.make_move(moves.list[i], only_captures) {
+			search.ply--
+			continue
+		} 
+
+		// recursively call negamax
+		score := -search.quiescence(pos, -beta, -alpha)
+
+		// take back move
+		pos.take_back()
+
+		// decrement ply
+		search.ply--
+
+		// fail-hard beta cutoff
+		if score >= beta {
+			// node (move) fails high
+			return beta 
+		}
+
+		// found better move
+		if score > alpha {
+			// PV node (move)
+			alpha = score
+		}
+
+	}
+
+	// node fails low
+	return alpha
+}
+
 func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 	if depth == 0 {
-		eval := evaluate(pos)
-		return eval
+		// search only captures
+		return search.quiescence(pos, alpha, beta)
 	}
 
 	// current side to move and opposite side
@@ -111,8 +171,13 @@ func (search *Search) position(pos Position, depth int) {
 	search.ply = 0
 	search.nodes = 0
 
+	fmt.Println("init search")
+
 	score := search.negamax(pos, -infinity, infinity, depth)
 
+	fmt.Println("end the search")
+
+	print_move(search.best_move)
 	if search.best_move > 0 {
 		fmt.Println("info score cp", score, "depth", depth, "nodes", search.nodes)
 
