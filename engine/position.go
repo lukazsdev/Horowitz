@@ -144,8 +144,6 @@ func (pos *Position) make_move(move Move, move_flag uint8) bool {
 		// switch side
 		pos.side_to_move = their_side
 
-		// bug with bsf() => returns 64 when empty board
-
 		// make sure king has not been exposed to a check
 		if is_square_attacked(pos.bitboards[6 * our_side + white_king].bsf(), their_side, *pos) {
 			// go back to original board state
@@ -162,16 +160,12 @@ func (pos *Position) make_move(move Move, move_flag uint8) bool {
 	} else {
 
 		if move.get_move_capture() > 0 {
-			pos.make_move(move, all_moves)
+			return pos.make_move(move, all_moves)
 
 		} else {
-			// bug does reach this part
 			return false
 		}
 	}
-
-	return true
-
 }
 
 

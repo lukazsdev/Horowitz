@@ -13,7 +13,7 @@ const (
 	infinity   int = 50000
 	mate_value int = 49000
 	mate_score int = 48000
-	max_depth  int = 10
+	max_depth  int = 20
 )
 
 func (search *Search) quiescence(pos Position, alpha, beta, depth int) int {
@@ -33,10 +33,6 @@ func (search *Search) quiescence(pos Position, alpha, beta, depth int) int {
 	if evaluation > alpha {
 		// PV node (move)
 		alpha = evaluation
-	}
-
-	if depth == 0 {
-		return alpha
 	}
 
 	// move list
@@ -87,6 +83,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 	if depth == 0 {
 		// search only captures
 		return search.quiescence(pos, alpha, beta, max_depth)
+		//return evaluate(pos)
 	}
 
 	// current side to move and opposite side
