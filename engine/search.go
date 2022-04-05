@@ -10,7 +10,7 @@ type Search struct {
 }
 
 const (
-	infinity int   = 50000
+	infinity   int = 50000
 	mate_value int = 49000
 	mate_score int = 48000
 )
@@ -18,6 +18,9 @@ const (
 func (search *Search) quiescence(pos Position, alpha, beta int) int {
 	// evaluation
 	evaluation := evaluate(pos)
+
+	// increment nodes
+	search.nodes++
 
 	// fail-hard beta cutoff
 	if evaluation >= beta {
@@ -48,7 +51,7 @@ func (search *Search) quiescence(pos Position, alpha, beta int) int {
 			continue
 		} 
 
-		// recursively call negamax
+		// recursively call quiescence
 		score := -search.quiescence(pos, -beta, -alpha)
 
 		// take back move

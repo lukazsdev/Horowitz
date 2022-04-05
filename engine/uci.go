@@ -37,6 +37,8 @@ func (uci *UCIInterface) UCILoop() {
 			uci.parse_position(command)
 		} else if strings.HasPrefix(command, "go") {
 			uci.parse_go(command) 
+		} else if strings.HasPrefix(command, "perft") {
+			uci.parse_perft(command)
 		} else if strings.HasPrefix(command, "board") {
 			print_board(uci.pos)
 		} else if command == "quit\n" {
@@ -155,4 +157,26 @@ func (uci *UCIInterface) parse_go(command string) {
 	
 
 	uci.search.position(uci.pos, depth)
+}
+
+func (uci *UCIInterface) parse_perft(command string) {
+	command = strings.TrimPrefix(command, "perft")
+	command = strings.TrimPrefix(command, " ")
+	fields := strings.Fields(command)
+
+	depth := 1
+
+	for index, field := range fields {
+		if field == "depth" {
+			depth, _ = strconv.Atoi(fields[index+1])
+		}
+	}
+	
+
+	uci.perft_test(depth)
+}
+
+func (uci *UCIInterface) perft_test(depth int) {
+	var perft Perft 
+	perft.test(uci.pos, depth)
 }

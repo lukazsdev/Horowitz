@@ -21,10 +21,18 @@ const (
 	p6 = "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10 "
 )
 
+type Perft struct {
+	nodes      uint64
+	captures   uint64
+	promotions uint64
+	enpass     uint64
+	castles    uint64
+}
+
 // perft driver
-func (search *Search) perft_driver(pos Position, depth int) {
+func (perft *Perft) driver(pos Position, depth int) {
 	if depth == 0 {
-		search.nodes++
+		perft.nodes++
 		return
 	}
 
@@ -38,20 +46,32 @@ func (search *Search) perft_driver(pos Position, depth int) {
 		if !pos.make_move(moves.list[i], all_moves) {
 			continue
 		} 
+		
+		// increment perft flags
+		perft.update_flags(moves.list[i])
 	     
 		// call perft recursively
-		search.perft_driver(pos, depth - 1)
+		perft.driver(pos, depth - 1)
 
 		// return to prev board state
 		pos.take_back()
 	}
 }
 
-func (search *Search) perft_test(pos Position, depth int) {
+func (perft *Perft) test(pos Position, depth int) {
 	fmt.Print("\n")
 
+	// start timer
 	start_timer := time.Now()
 
+	// reset perft info
+	perft.nodes      = 0
+	perft.captures   = 0
+	perft.promotions = 0
+	perft.enpass      = 0
+	perft.castles    = 0
+
+	// generate peudo legal moves
 	moves := pos.generate_moves()
 
 	for i := 0; i < moves.count; i++ {
@@ -62,20 +82,38 @@ func (search *Search) perft_test(pos Position, depth int) {
 		if !pos.make_move(moves.list[i], all_moves) {
 			continue
 		} 
+
+		// increment perft flags
+		perft.update_flags(moves.list[i])
 	     
 		// call perft recursively
-		search.perft_driver(pos, depth - 1)
+		perft.driver(pos, depth - 1)
 
 		// return to prev board state
 		pos.take_back()
-
-		//fmt.Print("     move: ")
-		//print_move(moves.list[i])
 	}
 
 	fmt.Print("\n     Depth: ", depth)
-	fmt.Print("\n     Nodes: ", search.nodes)
+	fmt.Print("\n     Nodes: ", perft.nodes)
 	fmt.Print("\n     Time: ", time.Since(start_timer))
+	fmt.Print("\n\n     Captures:   ", perft.captures)
+	fmt.Print("\n     Promotions: ", perft.promotions)
+	fmt.Print("\n     Enpassants: ", perft.enpass)
+	fmt.Print("\n     Castles:    ", perft.castles)
+	fmt.Print("\n")
+}
 
-	search.nodes = 0
+func (perft *Perft) update_flags(move Move) {
+	if move.get_move_capture() > 0 {
+		perft.captures++
+	}
+	if move.get_move_promoted() > 0 {
+		perft.promotions++
+	}
+	if move.get_move_enpassant() > 0 {
+		perft.enpass++
+	}
+	if move.get_move_castling() > 0 {
+		perft.castles++
+	}
 }
