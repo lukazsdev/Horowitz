@@ -13,9 +13,10 @@ const (
 	infinity   int = 50000
 	mate_value int = 49000
 	mate_score int = 48000
+	max_depth  int = 10
 )
 
-func (search *Search) quiescence(pos Position, alpha, beta int) int {
+func (search *Search) quiescence(pos Position, alpha, beta, depth int) int {
 	// evaluation
 	evaluation := evaluate(pos)
 
@@ -32,6 +33,10 @@ func (search *Search) quiescence(pos Position, alpha, beta int) int {
 	if evaluation > alpha {
 		// PV node (move)
 		alpha = evaluation
+	}
+
+	if depth == 0 {
+		return alpha
 	}
 
 	// move list
@@ -52,7 +57,7 @@ func (search *Search) quiescence(pos Position, alpha, beta int) int {
 		} 
 
 		// recursively call quiescence
-		score := -search.quiescence(pos, -beta, -alpha)
+		score := -search.quiescence(pos, -beta, -alpha, depth - 1)
 
 		// take back move
 		pos.take_back()
@@ -81,7 +86,7 @@ func (search *Search) quiescence(pos Position, alpha, beta int) int {
 func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 	if depth == 0 {
 		// search only captures
-		return search.quiescence(pos, alpha, beta)
+		return search.quiescence(pos, alpha, beta, max_depth)
 	}
 
 	// current side to move and opposite side
@@ -174,13 +179,8 @@ func (search *Search) position(pos Position, depth int) {
 	search.ply = 0
 	search.nodes = 0
 
-	fmt.Println("init search")
-
 	score := search.negamax(pos, -infinity, infinity, depth)
 
-	fmt.Println("end the search")
-
-	print_move(search.best_move)
 	if search.best_move > 0 {
 		fmt.Println("info score cp", score, "depth", depth, "nodes", search.nodes)
 
