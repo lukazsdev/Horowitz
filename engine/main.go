@@ -11,8 +11,13 @@ func main() {
 
 
 	// Debugging
-	//var pos Position
-	//pos.parse_fen(start_position)
-	//print_board(pos)
+	/*
+	var pos Position
+	pos.parse_fen("8/8/8/8/8/8/5PpP/6KR b - - 0 1")
+	print_board(pos)
+
+	moves := pos.generate_moves()
+	print_move_list(moves)
+	*/
 }
 

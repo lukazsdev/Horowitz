@@ -125,26 +125,22 @@ func (pos *Position) make_move(move Move, move_flag uint8) bool {
 			switch target_square {
 			// white kingside castle
 			case SQ_G1:
-				pos.bitboards[white_rook].pop_bit(SQ_H1)
-				pos.bitboards[white_rook].set_bit(SQ_F1)
+				pos.move_piece(white_rook, SQ_H1, SQ_F1)
 				break
 			
 			// white queenside castle
 			case SQ_C1:
-				pos.bitboards[white_rook].pop_bit(SQ_A1)
-				pos.bitboards[white_rook].set_bit(SQ_D1)
+				pos.move_piece(white_rook, SQ_A1, SQ_D1)
 				break
 			
 			// black kingside castle
 			case SQ_G8:
-				pos.bitboards[black_rook].pop_bit(SQ_H8)
-				pos.bitboards[black_rook].set_bit(SQ_F8)
+				pos.move_piece(black_rook, SQ_H8, SQ_F8)
 				break
 			
 			// black queenside castle
 			case SQ_C8:
-				pos.bitboards[black_rook].pop_bit(SQ_A8)
-				pos.bitboards[black_rook].set_bit(SQ_D8)
+				pos.move_piece(black_rook, SQ_A8, SQ_D8)
 				break
 			}
 		}

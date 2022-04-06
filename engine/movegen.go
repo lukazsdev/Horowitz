@@ -206,7 +206,7 @@ func (pos *Position) generate_moves() MoveList {
 					if pos.occupied[both].get_bit(target_square) == 0 {
 						// pawn promotion
 						if (source_square>=SQ_A2) && (source_square <= SQ_H2) {
-							moves.add(encode_move(source_square, target_square, piece, black_queen, 0, 0, 0, 0))
+								moves.add(encode_move(source_square, target_square, piece, black_queen, 0, 0, 0, 0))
 						        moves.add(encode_move(source_square, target_square, piece, black_rook, 0, 0, 0, 0))
 						        moves.add(encode_move(source_square, target_square, piece, black_bishop, 0, 0, 0, 0))
 						        moves.add(encode_move(source_square, target_square, piece, black_knight, 0, 0, 0, 0))
@@ -231,9 +231,9 @@ func (pos *Position) generate_moves() MoveList {
 						// pawn promotion
 						if (source_square>=SQ_A2) && (source_square <= SQ_H2) {
 							moves.add(encode_move(source_square, target_square, piece, black_queen, 1, 0, 0, 0))
-						        moves.add(encode_move(source_square, target_square, piece, black_rook, 1, 0, 0, 0))
-						        moves.add(encode_move(source_square, target_square, piece, black_bishop, 1, 0, 0, 0))
-						        moves.add(encode_move(source_square, target_square, piece, black_knight, 1, 0, 0, 0))
+							moves.add(encode_move(source_square, target_square, piece, black_rook, 1, 0, 0, 0))
+							moves.add(encode_move(source_square, target_square, piece, black_bishop, 1, 0, 0, 0))
+							moves.add(encode_move(source_square, target_square, piece, black_knight, 1, 0, 0, 0))
 						} else {
 							// normal capture
 							moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))

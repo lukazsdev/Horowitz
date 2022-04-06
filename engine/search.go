@@ -38,6 +38,9 @@ func (search *Search) quiescence(pos Position, alpha, beta, depth int) int {
 	// move list
 	moves := pos.generate_moves()
 
+	// sort move list
+	moves.sort_moves(pos)
+
 	for i := 0; i < moves.count; i++ {
 
 		// preserve board state
@@ -86,6 +89,9 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 		//return evaluate(pos)
 	}
 
+	// increment nodes
+	search.nodes++
+
 	// current side to move and opposite side
 	var our_side, their_side = pos.side_to_move, other_side(pos.side_to_move)
 
@@ -93,8 +99,10 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 	king_square := pos.bitboards[get_piece_type(King, our_side)].bsf()
 	in_check := is_square_attacked(king_square, their_side, pos)
 
-	// increment nodes
-	search.nodes++
+	// increase depth if king in check
+	if in_check == true {
+		depth++
+	}
 
 	// old value of alpha
 	old_alpha := alpha
@@ -107,6 +115,9 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
 	// move list
 	moves := pos.generate_moves()
+
+	// sort move list
+	moves.sort_moves(pos)
 
 	for i := 0; i < moves.count; i++ {
 
