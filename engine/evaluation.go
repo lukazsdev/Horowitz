@@ -9,13 +9,11 @@ var material_score = map[uint8]int{
 	white_bishop: 350, 
 	white_rook: 500, 
 	white_queen: 1000, 
-	white_king: 10000, 
 	black_pawn: -100,
 	black_knight: -300,
 	black_bishop: -350,
 	black_rook: -500,
 	black_queen: -1000,
-	black_king: -10000,
 }
 
 // pawn piece square table
