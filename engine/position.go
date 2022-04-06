@@ -8,6 +8,9 @@ type Position struct {
 	bitboards [12]Bitboard
 	occupied   [3]Bitboard
 
+	// piece on given square
+	board     [64]uint8
+
 	// main info of position
 	side_to_move     uint8
 	castling_rights  uint8
@@ -22,9 +25,31 @@ type State struct {
 	bitboards_copy [12]Bitboard
 	occupied_copy   [3]Bitboard
 
+	// piece on given square
+	board_copy     [64]uint8
+
 	side_to_move_copy     uint8
 	castling_rights_copy  uint8
 	enpassant_square_copy   int
+}
+
+// puts a piece on a given square
+func (pos *Position) place_piece(piece uint8, square int) {
+	pos.board[square] = piece
+	pos.bitboards[piece] |= SQUARE_BB[square]
+}
+
+// remove a piece from given square
+func (pos *Position) remove_piece(piece uint8, square int) {
+	pos.board[square] = no_piece
+	pos.bitboards[piece] &= ^SQUARE_BB[square]; 
+}
+
+// move a piece from one square to another
+func (pos *Position) move_piece(piece uint8, source_square, target_square int) {
+	pos.bitboards[piece] ^= (SQUARE_BB[source_square] | SQUARE_BB[target_square])
+	pos.board[target_square] = pos.board[source_square]
+	pos.board[source_square] = no_piece
 }
 
 // make move
@@ -45,8 +70,7 @@ func (pos *Position) make_move(move Move, move_flag uint8) bool {
 		castling       := move.get_move_castling()
 		
 		// make the move
-		pos.bitboards[piece].pop_bit(source_square)
-		pos.bitboards[piece].set_bit(target_square)
+		pos.move_piece(piece, source_square, target_square)
 
 		// extract sides from position
 		var our_side, their_side uint8 = pos.side_to_move, other_side(pos.side_to_move)
@@ -174,6 +198,8 @@ func (pos *Position) copy_board() {
 	pos.store_info = State{
 		bitboards_copy:        pos.bitboards,
 		occupied_copy:         pos.occupied,
+		board_copy:            pos.board, 
+
 
 		side_to_move_copy:     pos.side_to_move,
 		castling_rights_copy:  pos.castling_rights,
@@ -186,6 +212,7 @@ func (pos *Position) take_back() {
 	*pos = Position{
 		bitboards:        pos.store_info.bitboards_copy,
 		occupied:         pos.store_info.occupied_copy,
+		board:            pos.store_info.board_copy,
 
 		side_to_move:     pos.store_info.side_to_move_copy,
 		castling_rights:  pos.store_info.castling_rights_copy,
@@ -202,6 +229,9 @@ func (pos *Position) parse_fen(fen string) {
 	for i := range pos.bitboards { pos.bitboards[i] = 0 }
 	for i := range pos.occupied { pos.occupied[i] = 0 }
 
+	// reset board
+	for i := range pos.board { pos.board[i] = no_piece }
+
 	// reset position info
 	pos.side_to_move = 0
 	pos.enpassant_square = NO_SQ
@@ -214,7 +244,7 @@ func (pos *Position) parse_fen(fen string) {
 
 			if (fen[ptr]>=97 && fen[ptr]<=122)||(fen[ptr]>=65 && fen[ptr]<=90) {
 				piece := char_to_piece[fen[ptr]]
-				pos.bitboards[piece].set_bit(square)
+				pos.place_piece(piece, square)
 				ptr++
 			}
 

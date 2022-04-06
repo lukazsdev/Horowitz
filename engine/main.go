@@ -9,4 +9,10 @@ func main() {
 	var uci UCIInterface
 	uci.UCILoop()
 
+
+	// Debugging
+	//var pos Position
+	//pos.parse_fen(start_position)
+	//print_board(pos)
 }
+

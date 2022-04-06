@@ -105,14 +105,7 @@ func print_board(pos Position) {
 				fmt.Print(" ", rank + 1, " ")
 			}
 
-			var piece uint8 = no_piece
-
-			for bb_piece := white_pawn; bb_piece <= black_king; bb_piece++ {
-				if pos.bitboards[bb_piece].get_bit(square) > 0 {
-					piece = bb_piece
-				}
-			}
-
+			var piece uint8 = pos.board[square]
 
 			if piece == no_piece {
 				fmt.Print(" .")

@@ -70,6 +70,7 @@ var char_to_piece map[byte]uint8 = map[byte]uint8{
 	'r': black_rook,
 	'q': black_queen,
 	'k': black_king,
+	'.': no_piece,
 }
 
 var piece_to_char map[byte]uint8 = map[byte]uint8{
@@ -85,6 +86,7 @@ var piece_to_char map[byte]uint8 = map[byte]uint8{
 	black_rook: 'r',
 	black_queen: 'q',
 	black_king: 'k',
+	no_piece: '.',
 }
 
 var promoted_pieces map[uint8]byte = map[uint8]byte{
