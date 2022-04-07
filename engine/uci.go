@@ -48,7 +48,7 @@ func (uci *UCIInterface) UCILoop() {
 }
 
 func (uci *UCIInterface) print_engine_info() {
-	fmt.Print("id name go chess\n")
+	fmt.Print("id name AlphaGo\n")
 	fmt.Print("id name OliveriQ\n")
 	fmt.Print("uciok\n")
 }
