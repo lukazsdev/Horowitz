@@ -210,6 +210,7 @@ func (search *Search) position(pos Position, depth int) {
 
 		fmt.Print("bestmove ")
 		print_move(search.best_move)
+		fmt.Print("\n")
 	}
 }
 
