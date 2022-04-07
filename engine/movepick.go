@@ -19,8 +19,9 @@ var MVV_LVA = [12][12]int {
 	{100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600},
 }
 
+
 // score move 
-func (move Move) score_move(pos Position) int {
+func (search *Search) score_move(pos Position, move Move) int {
 	// assign score to move
 	move_score := 0
 
@@ -30,25 +31,36 @@ func (move Move) score_move(pos Position) int {
 		// check if move is enpassant capture
 		if move.get_move_enpassant() > 0 {
 			attacker = get_piece_type(Pawn, pos.side_to_move)
-			victim = get_piece_type(Pawn, other_side(pos.side_to_move))
+			victim   = get_piece_type(Pawn, other_side(pos.side_to_move))
 		} else {
 			attacker = move.get_move_piece()
-			victim = pos.board[move.get_move_target()]
+			victim   = pos.board[move.get_move_target()]
 		}
 
-		move_score += MVV_LVA[attacker][victim] + 1000
+		move_score += MVV_LVA[attacker][victim] + 10000
+	} else {
+		// score first killer move
+		if search.killer_moves[0][search.ply] == move {
+			move_score += 9000
+		// score second killer move
+		} else if search.killer_moves[1][search.ply] == move {
+			move_score += 8000
+		// score history move
+		} else {
+			move_score += int(search.history_moves[move.get_move_piece()][move.get_move_target()])
+		}
 	}
 
 	return move_score
 }
 
-func (moves *MoveList) sort_moves(pos Position) {
+func (search *Search) sort_moves(pos Position, moves *MoveList) {
 	// move scores
 	move_scores := make([]int, moves.count)
 
 	// score all moves in move list
 	for count := 0; count < moves.count; count++ {
-		move_scores[count] = moves.list[count].score_move(pos)
+		move_scores[count] = search.score_move(pos, moves.list[count])
 	}
 
 	// sort moves based on score

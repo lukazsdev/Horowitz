@@ -44,7 +44,6 @@ func print_move(move Move) {
 		fmt.Print(move_to_uci[move.get_move_source()],
 				  move_to_uci[move.get_move_target()])
 	}
-	fmt.Print("\n")
 }
 
 // print move list (for debuggin purposes)
@@ -69,6 +68,18 @@ func print_move_list(moves MoveList) {
 	}
 
 	fmt.Print("\n\n     Total number of moves: ", moves.count, "\n\n")
+}
+
+// print move scores
+func print_move_scores(moves *MoveList, pos Position, search Search) {
+	fmt.Printf("     Move scores:\n\n")
+
+	// loop over moves within move list
+	for count := 0; count < moves.count; count++ {
+		fmt.Printf("     move: ")
+		print_move(moves.list[count])
+		fmt.Printf(" score: %d\n", search.score_move(pos, moves.list[count]))
+	}
 }
 
 // print given bitboard

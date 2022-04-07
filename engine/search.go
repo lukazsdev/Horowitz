@@ -3,8 +3,11 @@ package main
 import "fmt"
 
 type Search struct {
-	ply      int
 	nodes uint64
+	ply      int
+
+	killer_moves  [2][64]Move
+	history_moves  [12][64]Move
 
 	best_move Move
 }
@@ -39,9 +42,10 @@ func (search *Search) quiescence(pos Position, alpha, beta, depth int) int {
 	moves := pos.generate_moves()
 
 	// sort move list
-	moves.sort_moves(pos)
+	search.sort_moves(pos, &moves)
 
 	for i := 0; i < moves.count; i++ {
+		move := moves.list[i]
 
 		// preserve board state
 		pos.copy_board()
@@ -50,7 +54,7 @@ func (search *Search) quiescence(pos Position, alpha, beta, depth int) int {
 		search.ply++
 
 		// skip if move is ilegal
-		if !pos.make_move(moves.list[i], only_captures) {
+		if !pos.make_move(move, only_captures) {
 			search.ply--
 			continue
 		} 
@@ -117,9 +121,10 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 	moves := pos.generate_moves()
 
 	// sort move list
-	moves.sort_moves(pos)
+	search.sort_moves(pos, &moves)
 
 	for i := 0; i < moves.count; i++ {
+		move := moves.list[i]
 
 		// preserve board state
 		pos.copy_board()
@@ -129,7 +134,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
 		
 		// skip if move is ilegal
-		if !pos.make_move(moves.list[i], all_moves) {
+		if !pos.make_move(move, all_moves) {
 			search.ply--
 			continue
 		} 
@@ -148,18 +153,29 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
 		// fail-hard beta cutoff
 		if score >= beta {
+
+			// only quiet moves
+			if move.get_move_capture() == 0 {
+				// store killer moves
+				search.killer_moves[1][search.ply] = search.killer_moves[0][search.ply]
+				search.killer_moves[0][search.ply] = move
+			}
+
 			// node (move) fails high
 			return beta 
 		}
 
 		// found better move
 		if score > alpha {
+			// store history moves
+			search.history_moves[move.get_move_piece()][move.get_move_target()] += Move(depth)
+
 			// PV node (move)
 			alpha = score
 
 			// if root move
 			if search.ply == 0 {
-				best_so_far = moves.list[i]
+				best_so_far = move
 			}
 		}
 
@@ -184,8 +200,8 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 }
 
 func (search *Search) position(pos Position, depth int) {
-	search.ply = 0
-	search.nodes = 0
+	// reset search info
+	search.reset_info()
 
 	score := search.negamax(pos, -infinity, infinity, depth)
 
@@ -195,4 +211,25 @@ func (search *Search) position(pos Position, depth int) {
 		fmt.Print("bestmove ")
 		print_move(search.best_move)
 	}
+}
+
+func (search *Search) reset_info() {
+	// reset search info
+	search.ply = 0
+	search.nodes = 0
+
+	
+
+	for i := 0; i < 2; i++ {
+		for j := 0; j < 64; j++ {
+			search.killer_moves[i][j] = Move(0)
+		}
+	}
+
+	for i := 0; i < 12; i++ {
+		for j := 0; j < 64; j++ {
+			search.history_moves[i][j] = Move(0)
+		}
+	}
+	
 }

@@ -18,6 +18,7 @@ func (uci *UCIInterface) UCILoop() {
 	reader := bufio.NewReader(os.Stdin)
 
 	uci.print_engine_info()
+	initialize_lookup_tables()
 
 	// main loop
 	for {
