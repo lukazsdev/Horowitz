@@ -1,2 +1,2 @@
-# go-chess
+# Zetago
 UCI compatible chess engine.
