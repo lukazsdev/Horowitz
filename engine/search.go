@@ -6,17 +6,21 @@ type Search struct {
 	nodes uint64
 	ply      int
 
-	killers  [2][64]Move
-	history [12][64]Move
+	killers  [2][max_ply]Move
+	history      [12][64]Move
 
-	pv_length [64]int
-	pv_table  [64][64]Move
+	pv_length [max_ply]int
+	pv_table  [max_ply][max_ply]Move
 }
 
 const (
+	// constant values for search
 	infinity   int = 50000
 	mate_value int = 49000
 	mate_score int = 48000
+
+	// maximum ply
+	max_ply int = 64
 )
 
 func (search *Search) quiescence(pos Position, alpha, beta int) int {
@@ -93,6 +97,11 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 	if depth == 0 {
 		// search only captures
 		return search.quiescence(pos, alpha, beta)
+	}
+
+	// prevent index out of bounds of array
+	if search.ply > max_ply - 1 {
+		return evaluate(pos)
 	}
 
 	// increment nodes
@@ -205,18 +214,23 @@ func (search *Search) position(pos Position, depth int) {
 	// reset search info
 	search.reset_info()
 
-	score := search.negamax(pos, -infinity, infinity, depth)
+	// iterative deepening
+	for current_depth := 1; current_depth <= depth; current_depth++ {
+		search.nodes = 0
+		// find best move within position
+		score := search.negamax(pos, -infinity, infinity, current_depth)
 
-	fmt.Print("info score cp ", score, " depth ", depth, " nodes ", search.nodes, " pv ")
+		fmt.Print("info score cp ", score, " depth ", current_depth, " nodes ", search.nodes, " pv ")
 
-	// loop over moves within PV line
-	for count := 0; count < search.pv_length[0]; count++ {
-		// print PV move
-		print_move(search.pv_table[0][count])
-		fmt.Print(" ")
+		// loop over moves within PV line
+		for count := 0; count < search.pv_length[0]; count++ {
+			// print PV move
+			print_move(search.pv_table[0][count])
+			fmt.Print(" ")
+		}
+
+		fmt.Print("\n")
 	}
-
-	fmt.Print("\n")
 
 	fmt.Print("bestmove ")
 	print_move(search.pv_table[0][0])
@@ -228,17 +242,29 @@ func (search *Search) reset_info() {
 	search.ply = 0
 	search.nodes = 0
 
-	
-
+	// reset killers array
 	for i := 0; i < 2; i++ {
 		for j := 0; j < 64; j++ {
 			search.killers[i][j] = Move(0)
 		}
 	}
 
+	// reset history array
 	for i := 0; i < 12; i++ {
 		for j := 0; j < 64; j++ {
 			search.history[i][j] = Move(0)
+		}
+	}
+
+	// reset PV length array
+	for i := 0; i < 64; i++ {
+		search.pv_length[i] = 0
+	}
+
+	// reset PV table array
+	for i := 0; i < 64; i++ {
+		for j := 0; j < 64; j++ {
+			search.pv_table[i][j] = Move(0)
 		}
 	}
 	
