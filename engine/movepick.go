@@ -40,14 +40,14 @@ func (search *Search) score_move(pos Position, move Move) int {
 		move_score += MVV_LVA[attacker][victim] + 10000
 	} else {
 		// score first killer move
-		if search.killer_moves[0][search.ply] == move {
+		if search.killers[0][search.ply] == move {
 			move_score += 9000
 		// score second killer move
-		} else if search.killer_moves[1][search.ply] == move {
+		} else if search.killers[1][search.ply] == move {
 			move_score += 8000
 		// score history move
 		} else {
-			move_score += int(search.history_moves[move.get_move_piece()][move.get_move_target()])
+			move_score += int(search.history[move.get_move_piece()][move.get_move_target()])
 		}
 	}
 

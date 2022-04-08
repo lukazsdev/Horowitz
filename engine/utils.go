@@ -24,7 +24,7 @@ func anti_diagonal_of(square int) int {
 
 func get_piece_type(piece_type uint8, side uint8) uint8 {
 	return side * 6 + piece_type
-}go
+}
 
 func perspective(score int, side uint8) int {
 	if side == white {

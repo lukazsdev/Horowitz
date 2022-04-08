@@ -6,20 +6,20 @@ type Search struct {
 	nodes uint64
 	ply      int
 
-	killer_moves  [2][64]Move
-	history_moves  [12][64]Move
+	killers  [2][64]Move
+	history [12][64]Move
 
-	best_move Move
+	pv_length [64]int
+	pv_table  [64][64]Move
 }
 
 const (
 	infinity   int = 50000
 	mate_value int = 49000
 	mate_score int = 48000
-	max_depth  int = 20
 )
 
-func (search *Search) quiescence(pos Position, alpha, beta, depth int) int {
+func (search *Search) quiescence(pos Position, alpha, beta int) int {
 	// evaluation
 	evaluation := evaluate(pos)
 
@@ -60,7 +60,7 @@ func (search *Search) quiescence(pos Position, alpha, beta, depth int) int {
 		} 
 
 		// recursively call quiescence
-		score := -search.quiescence(pos, -beta, -alpha, depth - 1)
+		score := -search.quiescence(pos, -beta, -alpha)
 
 		// take back move
 		pos.take_back()
@@ -87,10 +87,12 @@ func (search *Search) quiescence(pos Position, alpha, beta, depth int) int {
 }
 
 func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
+	// initialize PV length
+	search.pv_length[search.ply] = search.ply
+	
 	if depth == 0 {
 		// search only captures
-		return search.quiescence(pos, alpha, beta, max_depth)
-		//return evaluate(pos)
+		return search.quiescence(pos, alpha, beta)
 	}
 
 	// increment nodes
@@ -107,12 +109,6 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 	if in_check == true {
 		depth++
 	}
-
-	// old value of alpha
-	old_alpha := alpha
-
-	// best move so far
-	var best_so_far Move
 
 	// legal moves counter
 	legal_moves := 0
@@ -157,8 +153,8 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 			// only quiet moves
 			if move.get_move_capture() == 0 {
 				// store killer moves
-				search.killer_moves[1][search.ply] = search.killer_moves[0][search.ply]
-				search.killer_moves[0][search.ply] = move
+				search.killers[1][search.ply] = search.killers[0][search.ply]
+				search.killers[0][search.ply] = move
 			}
 
 			// node (move) fails high
@@ -167,16 +163,26 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
 		// found better move
 		if score > alpha {
-			// store history moves
-			search.history_moves[move.get_move_piece()][move.get_move_target()] += Move(depth)
+			
+			// only quiet moves
+			if move.get_move_capture() == 0 {
+				// store history moves
+				search.history[move.get_move_piece()][move.get_move_target()] += Move(depth)
+			}
 
 			// PV node (move)
 			alpha = score
 
-			// if root move
-			if search.ply == 0 {
-				best_so_far = move
+			// write PV move to table
+			search.pv_table[search.ply][search.ply] = move
+
+			// copy move from deeper ply into current ply's line
+			for next_ply := search.ply + 1; next_ply < search.pv_length[search.ply + 1]; next_ply++ {
+				search.pv_table[search.ply][next_ply] = search.pv_table[search.ply + 1][next_ply]
 			}
+
+			// adjust PV length
+			search.pv_length[search.ply] = search.pv_length[search.ply + 1]
 		}
 
 	}
@@ -191,10 +197,6 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 		return 0
 	}
 
-	if old_alpha != alpha {
-		search.best_move = best_so_far
-	}
-
 	// node (move) fails low
 	return alpha
 }
@@ -205,13 +207,20 @@ func (search *Search) position(pos Position, depth int) {
 
 	score := search.negamax(pos, -infinity, infinity, depth)
 
-	if search.best_move > 0 {
-		fmt.Println("info score cp", score, "depth", depth, "nodes", search.nodes)
+	fmt.Print("info score cp ", score, " depth ", depth, " nodes ", search.nodes, " pv ")
 
-		fmt.Print("bestmove ")
-		print_move(search.best_move)
-		fmt.Print("\n")
+	// loop over moves within PV line
+	for count := 0; count < search.pv_length[0]; count++ {
+		// print PV move
+		print_move(search.pv_table[0][count])
+		fmt.Print(" ")
 	}
+
+	fmt.Print("\n")
+
+	fmt.Print("bestmove ")
+	print_move(search.pv_table[0][0])
+	fmt.Print("\n")
 }
 
 func (search *Search) reset_info() {
@@ -223,13 +232,13 @@ func (search *Search) reset_info() {
 
 	for i := 0; i < 2; i++ {
 		for j := 0; j < 64; j++ {
-			search.killer_moves[i][j] = Move(0)
+			search.killers[i][j] = Move(0)
 		}
 	}
 
 	for i := 0; i < 12; i++ {
 		for j := 0; j < 64; j++ {
-			search.history_moves[i][j] = Move(0)
+			search.history[i][j] = Move(0)
 		}
 	}
 	
