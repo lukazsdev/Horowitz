@@ -148,7 +148,7 @@ func (uci *UCIInterface) parse_go(command string) {
 	command = strings.TrimPrefix(command, " ")
 	fields := strings.Fields(command)
 
-	depth := 4
+	depth := 6
 
 	for index, field := range fields {
 		if field == "depth" {
