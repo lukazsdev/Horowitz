@@ -2,6 +2,7 @@ package main
 
 import "fmt"
 
+// structure for engine search
 type Search struct {
 	nodes uint64
 	ply      int
@@ -11,6 +12,8 @@ type Search struct {
 
 	pv_length [max_ply]int
 	pv_table  [max_ply][max_ply]Move
+
+	follow_pv, score_pv  uint8
 }
 
 const (
@@ -125,6 +128,12 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 	// move list
 	moves := pos.generate_moves()
 
+	// if we are following PV line
+	if search.follow_pv == 1 {
+		// enable PV move scoring
+		search.enable_pv_scoring(moves)
+	}
+
 	// sort move list
 	search.sort_moves(pos, &moves)
 
@@ -217,6 +226,10 @@ func (search *Search) position(pos Position, depth int) {
 	// iterative deepening
 	for current_depth := 1; current_depth <= depth; current_depth++ {
 		search.nodes = 0
+
+		// enable follow PV flag
+		search.follow_pv = 1
+
 		// find best move within position
 		score := search.negamax(pos, -infinity, infinity, current_depth)
 
@@ -235,12 +248,37 @@ func (search *Search) position(pos Position, depth int) {
 	fmt.Print("bestmove ")
 	print_move(search.pv_table[0][0])
 	fmt.Print("\n")
+
+	/*
+	// reset search info
+	search.reset_info()
+
+	// find best move within position
+	score := search.negamax(pos, -infinity, infinity, depth)
+
+	fmt.Print("info score cp ", score, " depth ", depth, " nodes ", search.nodes, " pv ")
+
+	// loop over moves within PV line
+	for count := 0; count < search.pv_length[0]; count++ {
+		// print PV move
+		print_move(search.pv_table[0][count])
+		fmt.Print(" ")
+	}
+
+	fmt.Print("\n")
+
+	fmt.Print("bestmove ")
+	print_move(search.pv_table[0][0])
+	fmt.Print("\n")
+	*/
 }
 
 func (search *Search) reset_info() {
 	// reset search info
 	search.ply = 0
 	search.nodes = 0
+	search.follow_pv = 0
+	search.score_pv = 0
 
 	// reset killers array
 	for i := 0; i < 2; i++ {

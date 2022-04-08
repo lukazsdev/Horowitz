@@ -25,6 +25,18 @@ func (search *Search) score_move(pos Position, move Move) int {
 	// assign score to move
 	move_score := 0
 
+	// if PV move scoring is allowed
+	if search.score_pv == 1 {
+		// make sure we are dealing with PV move
+		if search.pv_table[0][search.ply] == move {
+			// disable score PV flag
+            search.score_pv = 0;
+            
+            // give PV move the highest score to search it first
+            return 20000;
+		}
+	}
+
 	// check if move is a capture
 	if move.get_move_capture() > 0 {
 		var attacker, victim uint8
@@ -52,6 +64,24 @@ func (search *Search) score_move(pos Position, move Move) int {
 	}
 
 	return move_score
+}
+
+// enable PV move scoring
+func (search *Search) enable_pv_scoring(moves MoveList) {
+	// disable following PV
+	search.follow_pv = 0
+
+	// loop over moves within move list
+	for count := 0; count < moves.count; count++ {
+		// make sure we did PV move
+		if search.pv_table[0][search.ply] == moves.list[count] {
+			// enable move scoring
+			search.score_pv = 1
+
+			// enable following PV
+			search.follow_pv = 1
+		}
+	}
 }
 
 func (search *Search) sort_moves(pos Position, moves *MoveList) {
