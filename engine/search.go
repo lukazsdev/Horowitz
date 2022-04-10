@@ -17,13 +17,16 @@ type Search struct {
 }
 
 const (
+	// maximum ply
+	max_ply    int = 64
+
 	// constant values for search
 	infinity   int = 50000
 	mate_value int = 49000
 	mate_score int = 48000
 
-	// maximum ply
-	max_ply int = 64
+	full_depth_moves int = 4
+	reduction_limit  int = 3
 )
 
 func (search *Search) quiescence(pos Position, alpha, beta int) int {
@@ -94,10 +97,7 @@ func (search *Search) quiescence(pos Position, alpha, beta int) int {
 }
 
 func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
-	// found PV node
-	found_pv := false
-
-	// score of position
+	// score of current position
 	score := 0
 
 	// initialize PV length
@@ -143,6 +143,9 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 	// sort move list
 	search.sort_moves(pos, &moves)
 
+	// number of moves searched in move list
+	moves_searched := 0
+
 	for i := 0; i < moves.count; i++ {
 		move := moves.list[i]
 
@@ -162,31 +165,37 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 		// increment legal moves
 		legal_moves++
 
-		/*
-		if (fFoundPv) {
-            val = -AlphaBeta(depth - 1, -alpha - 1, -alpha);
-
-            if ((val > alpha) && (val < beta)) // Check for failure.
-
-                val = -AlphaBeta(depth - 1, -beta, -alpha);
-
-        } else
-		*/
-
-		// on PV node hit
-		if found_pv == true {
-			score = -search.negamax(pos, -alpha - 1, -alpha, depth - 1)
-			// check for failure
-			if (score > alpha) && (score < beta) {
-				score = -search.negamax(pos, -beta, -alpha, depth - 1)
-			}
-		} else {
+		// full depth search
+		if moves_searched == 0 {
 			// recursively call negamax normally
 			score = -search.negamax(pos, -beta, -alpha, depth - 1)
+		} else {
+			// condition to consider LMR
+			if moves_searched >= full_depth_moves && 
+				depth >= reduction_limit && in_check == false &&
+				 move.get_move_capture() == 0 && move.get_move_promoted() == 0 {
+				// search current move with reduced depth
+				score = -search.negamax(pos, -alpha - 1, -alpha, depth - 2)
+			} else {
+				// hack to ensure that full-depth search is done
+				score = alpha + 1
+			}
+
+			// PV search
+			if score > alpha {
+				score = -search.negamax(pos, -alpha - 1, -alpha, depth - 1)
+				// check for failure
+				if (score > alpha) && (score < beta) {
+					score = -search.negamax(pos, -beta, -alpha, depth - 1)
+				}
+			}
 		}
 
 		// take back move
 		pos.take_back()
+
+		// increment moves searched
+		moves_searched++
 
 		// decrement ply
 		search.ply--
@@ -216,9 +225,6 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
 			// PV node (move)
 			alpha = score
-
-			// enable found PV flag
-			found_pv = true
 
 			// write PV move to table
 			search.pv_table[search.ply][search.ply] = move
