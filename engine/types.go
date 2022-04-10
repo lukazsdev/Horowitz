@@ -55,8 +55,6 @@ const (
 	only_captures uint8 = 1
 )
 
-var null_move Move = encode_move(NO_SQ, NO_SQ, no_piece, 0, 0, 0, 0, 0)
-
 var char_to_piece map[byte]uint8 = map[byte]uint8{
 	'P': white_pawn,
 	'N': white_knight,

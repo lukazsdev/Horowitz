@@ -7,6 +7,8 @@ import (
 
 // structure for engine search
 type Search struct {
+	timer TimeManager
+
 	nodes uint64
 	ply      int
 
@@ -30,6 +32,8 @@ const (
 
 	full_depth_moves int = 4
 	reduction_limit  int = 3
+
+	null_move Move = 0
 )
 
 func (search *Search) quiescence(pos Position, alpha, beta int) int {
@@ -38,6 +42,16 @@ func (search *Search) quiescence(pos Position, alpha, beta int) int {
 
 	// increment nodes
 	search.nodes++
+
+	// every 2048 nodes, check if time is up
+	if (search.nodes & 2047) == 0 {
+		search.timer.check()
+	}
+
+	// stop search if time is up
+	if search.timer.stop == true {
+		return 0
+	}
 
 	// fail-hard beta cutoff
 	if evaluation >= beta {
@@ -105,6 +119,16 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
 	// initialize PV length
 	search.pv_length[search.ply] = search.ply
+
+	// every 2048 nodes, check if time is up
+	if (search.nodes & 2047) == 0 {
+		search.timer.check()
+	}
+
+	// stop search if time is up
+	if search.timer.stop == true {
+		return 0
+	}
 	
 	if depth == 0 {
 		// search only captures
@@ -157,15 +181,16 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
         // restore board state
         pos.take_back();
 
+		if search.timer.stop == true {
+			return 0
+		}
+
         // fail-hard beta cutoff
         if (score >= beta) {
             // node (position) fails high
             return beta;
 		}
 	}
-	
-	
-	
 
 	// move list
 	moves := pos.generate_moves()
@@ -291,8 +316,14 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 }
 
 func (search *Search) position(pos Position, depth int) {
+	// initialize best move to no move
+	best_move := null_move
+
+	// last iteration score
+	prev_score := 0
+
 	// start search timer
-	start_timer := time.Now()
+	search.timer.start()
 
 	// reset search info
 	search.reset_info()
@@ -306,8 +337,21 @@ func (search *Search) position(pos Position, depth int) {
 		// enable follow PV flag
 		search.follow_pv = 1
 
+		// start a search timer
+		start_time := time.Now()
+
 		// find best move within position
 		score := search.negamax(pos, alpha, beta, current_depth)
+
+		// end a search timer
+		end_time := time.Since(start_time)
+
+		if search.timer.stop == true {
+			if best_move == null_move && current_depth == 1 {
+				best_move = search.pv_table[0][0]
+			}
+			break
+		}
 
 		// adjust aspiration window technique
         if (score <= alpha) || (score >= beta) {
@@ -319,18 +363,28 @@ func (search *Search) position(pos Position, depth int) {
         alpha = score - 50;
         beta = score + 50;
 
+		// If the score between this current iteration and the last iteration drops,
+		// take more time on the current search to make sure we find the best move.
+		if current_depth > 1 && prev_score > score && prev_score-score >= 30 {
+			search.timer.set_soft_time_for_move(search.timer.soft_time_for_move * 13 / 10)
+		}
+
+		// save current best move
+		best_move = search.pv_table[0][0]
+
+
 		// if PV is available
 		if search.pv_length[0] > 0 {
 			// print search info
 			if score > -mate_value && score < -mate_score {
 				fmt.Print("info score mate ", -(score + mate_value) / 2 - 1, " depth ", current_depth)
-				fmt.Print(" nodes ", search.nodes, " time ", time.Since(start_timer), " pv ")
+				fmt.Print(" nodes ", search.nodes, " time ", end_time.Milliseconds(), " pv ")
 			} else if score > mate_score && score < mate_value {
 				fmt.Print("info score mate ", (mate_value - score) / 2 + 1, " depth ", current_depth)
-				fmt.Print(" nodes ", search.nodes, " time ", time.Since(start_timer), " pv ")
+				fmt.Print(" nodes ", search.nodes, " time ", end_time.Milliseconds(), " pv ")
 			} else {
 				fmt.Print("info score cp ", score, " depth ", current_depth)
-				fmt.Print(" nodes ", search.nodes, " time ", time.Since(start_timer).Milliseconds(), " pv ")
+				fmt.Print(" nodes ", search.nodes, " time ", end_time.Milliseconds(), " pv ")
 			}
 		}
 
@@ -342,10 +396,13 @@ func (search *Search) position(pos Position, depth int) {
 		}
 
 		fmt.Print("\n")
+
+		// set previous score to current score
+		prev_score = score
 	}
 
 	fmt.Print("bestmove ")
-	print_move(search.pv_table[0][0])
+	print_move(best_move)
 	fmt.Print("\n")
 }
 

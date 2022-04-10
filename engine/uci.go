@@ -37,11 +37,13 @@ func (uci *UCIInterface) UCILoop() {
 		} else if strings.HasPrefix(command, "position") {
 			uci.parse_position(command)
 		} else if strings.HasPrefix(command, "go") {
-			uci.parse_go(command) 
+			go uci.parse_go(command) 
 		} else if strings.HasPrefix(command, "perft") {
 			uci.parse_perft(command)
 		} else if strings.HasPrefix(command, "board") {
 			print_board(uci.pos)
+		} else if strings.HasPrefix(command, "stop") {
+			uci.search.timer.stop = true
 		} else if command == "quit\n" {
 			break
 		}
@@ -142,6 +144,7 @@ func (uci *UCIInterface) parse_move(move_string string) Move {
 	return 0
 }
 
+/*
 // parse UCI "go" command
 func (uci *UCIInterface) parse_go(command string) {
 	command = strings.TrimPrefix(command, "go")
@@ -158,6 +161,55 @@ func (uci *UCIInterface) parse_go(command string) {
 	
 
 	uci.search.position(uci.pos, depth)
+}
+*/
+
+// parse UCI "go" command
+func (uci *UCIInterface) parse_go(command string) {
+	command = strings.TrimPrefix(command, "go")
+	command = strings.TrimPrefix(command, " ")
+	fields := strings.Fields(command)
+
+	color_prefix := "b"
+	if uci.pos.side_to_move == white {
+		color_prefix = "w"
+	}
+
+	// Parse the time left, increment, and moves to go from the command parameters.
+	time_left, increment, moves_to_go := int(infinite_time), int(no_value), int(no_value)
+	search_time := uint64(no_value)
+	depth := uint64(max_ply)
+
+	for index, field := range fields {
+		if strings.HasPrefix(field, color_prefix) {
+			if strings.HasSuffix(field, "time") {
+				time_left, _ = strconv.Atoi(fields[index+1])
+			} else if strings.HasSuffix(field, "inc") {
+				increment, _ = strconv.Atoi(fields[index+1])
+			}
+		} else if field == "movestogo" {
+			moves_to_go, _ = strconv.Atoi(fields[index+1])
+		} else if field == "depth" {
+			depth, _ = strconv.ParseUint(fields[index+1], 10, 8)
+		} else if field == "movetime" {
+			search_time, _ = strconv.ParseUint(fields[index+1], 10, 64)
+		}
+	}
+
+	// Set the time_left to NoValue if we're already given a move time
+	// to use via movetime.
+	if search_time != uint64(no_value) {
+		time_left = int(no_value)
+	}
+
+	// Setup the timer with the go command time control information.
+	uci.search.timer.set_hard_time_for_move(int64(search_time))
+	uci.search.timer.time_left = int64(time_left)
+	uci.search.timer.increment = int64(increment)
+	uci.search.timer.moves_to_go = int64(moves_to_go)
+
+	// Report the best move found by the engine to the GUI.
+	uci.search.position(uci.pos, int(depth))
 }
 
 func (uci *UCIInterface) parse_perft(command string) {
