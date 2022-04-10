@@ -94,6 +94,12 @@ func (search *Search) quiescence(pos Position, alpha, beta int) int {
 }
 
 func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
+	// found PV node
+	found_pv := false
+
+	// score of position
+	score := 0
+
 	// initialize PV length
 	search.pv_length[search.ply] = search.ply
 	
@@ -156,8 +162,28 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 		// increment legal moves
 		legal_moves++
 
-		// recursively call negamax
-		score := -search.negamax(pos, -beta, -alpha, depth - 1)
+		/*
+		if (fFoundPv) {
+            val = -AlphaBeta(depth - 1, -alpha - 1, -alpha);
+
+            if ((val > alpha) && (val < beta)) // Check for failure.
+
+                val = -AlphaBeta(depth - 1, -beta, -alpha);
+
+        } else
+		*/
+
+		// on PV node hit
+		if found_pv == true {
+			score = -search.negamax(pos, -alpha - 1, -alpha, depth - 1)
+			// check for failure
+			if (score > alpha) && (score < beta) {
+				score = -search.negamax(pos, -beta, -alpha, depth - 1)
+			}
+		} else {
+			// recursively call negamax normally
+			score = -search.negamax(pos, -beta, -alpha, depth - 1)
+		}
 
 		// take back move
 		pos.take_back()
@@ -182,7 +208,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 		// found better move
 		if score > alpha {
 			
-			// only quiet moves
+			// only quiet movesgo
 			if move.get_move_capture() == 0 {
 				// store history moves
 				search.history[move.get_move_piece()][move.get_move_target()] += Move(depth)
@@ -190,6 +216,9 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
 			// PV node (move)
 			alpha = score
+
+			// enable found PV flag
+			found_pv = true
 
 			// write PV move to table
 			search.pv_table[search.ply][search.ply] = move
@@ -225,8 +254,6 @@ func (search *Search) position(pos Position, depth int) {
 
 	// iterative deepening
 	for current_depth := 1; current_depth <= depth; current_depth++ {
-		search.nodes = 0
-
 		// enable follow PV flag
 		search.follow_pv = 1
 
@@ -248,37 +275,14 @@ func (search *Search) position(pos Position, depth int) {
 	fmt.Print("bestmove ")
 	print_move(search.pv_table[0][0])
 	fmt.Print("\n")
-
-	/*
-	// reset search info
-	search.reset_info()
-
-	// find best move within position
-	score := search.negamax(pos, -infinity, infinity, depth)
-
-	fmt.Print("info score cp ", score, " depth ", depth, " nodes ", search.nodes, " pv ")
-
-	// loop over moves within PV line
-	for count := 0; count < search.pv_length[0]; count++ {
-		// print PV move
-		print_move(search.pv_table[0][count])
-		fmt.Print(" ")
-	}
-
-	fmt.Print("\n")
-
-	fmt.Print("bestmove ")
-	print_move(search.pv_table[0][0])
-	fmt.Print("\n")
-	*/
 }
 
 func (search *Search) reset_info() {
 	// reset search info
-	search.ply = 0
-	search.nodes = 0
+	search.ply       = 0
+	search.nodes     = 0
 	search.follow_pv = 0
-	search.score_pv = 0
+	search.score_pv  = 0
 
 	// reset killers array
 	for i := 0; i < 2; i++ {

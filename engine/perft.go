@@ -68,7 +68,7 @@ func (perft *Perft) test(pos Position, depth int) {
 	perft.nodes      = 0
 	perft.captures   = 0
 	perft.promotions = 0
-	perft.enpass      = 0
+	perft.enpass     = 0
 	perft.castles    = 0
 
 	// generate peudo legal moves
