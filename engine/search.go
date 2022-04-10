@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 // structure for engine search
 type Search struct {
@@ -288,8 +291,15 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 }
 
 func (search *Search) position(pos Position, depth int) {
+	// start search timer
+	start_timer := time.Now()
+
 	// reset search info
 	search.reset_info()
+
+	// initial alpha, beta bounds
+	alpha := -infinity
+	beta  :=  infinity
 
 	// iterative deepening
 	for current_depth := 1; current_depth <= depth; current_depth++ {
@@ -297,9 +307,32 @@ func (search *Search) position(pos Position, depth int) {
 		search.follow_pv = 1
 
 		// find best move within position
-		score := search.negamax(pos, -infinity, infinity, current_depth)
+		score := search.negamax(pos, alpha, beta, current_depth)
 
-		fmt.Print("info score cp ", score, " depth ", current_depth, " nodes ", search.nodes, " pv ")
+		// adjust aspiration window technique
+        if (score <= alpha) || (score >= beta) {
+            alpha = -infinity;    
+            beta  = infinity;      
+            continue;
+        }
+
+        alpha = score - 50;
+        beta = score + 50;
+
+		// if PV is available
+		if search.pv_length[0] > 0 {
+			// print search info
+			if score > -mate_value && score < -mate_score {
+				fmt.Print("info score mate ", -(score + mate_value) / 2 - 1, " depth ", current_depth)
+				fmt.Print(" nodes ", search.nodes, " time ", time.Since(start_timer), " pv ")
+			} else if score > mate_score && score < mate_value {
+				fmt.Print("info score mate ", (mate_value - score) / 2 + 1, " depth ", current_depth)
+				fmt.Print(" nodes ", search.nodes, " time ", time.Since(start_timer), " pv ")
+			} else {
+				fmt.Print("info score cp ", score, " depth ", current_depth)
+				fmt.Print(" nodes ", search.nodes, " time ", time.Since(start_timer).Milliseconds(), " pv ")
+			}
+		}
 
 		// loop over moves within PV line
 		for count := 0; count < search.pv_length[0]; count++ {
