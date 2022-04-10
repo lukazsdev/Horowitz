@@ -131,6 +131,39 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 	// legal moves counter
 	legal_moves := 0
 
+	// null move pruning
+	if depth >= 3 && in_check == false && search.ply > 0 {
+		// preserve board state
+		pos.copy_board()
+
+		// increment ply
+        search.ply++;
+
+		// switch the side (give opponent extra move)
+		pos.side_to_move = other_side(pos.side_to_move)
+
+		// reset enpassant square
+		pos.enpassant_square = NO_SQ
+
+		// search moves with reduced depth to find beta cutoffs 
+		score = -search.negamax(pos, -beta, -beta + 1, depth - 1 - 2);
+
+		// decrement ply
+        search.ply--;
+            
+        // restore board state
+        pos.take_back();
+
+        // fail-hard beta cutoff
+        if (score >= beta) {
+            // node (position) fails high
+            return beta;
+		}
+	}
+	
+	
+	
+
 	// move list
 	moves := pos.generate_moves()
 
@@ -147,6 +180,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 	moves_searched := 0
 
 	for i := 0; i < moves.count; i++ {
+		// get current move in move list
 		move := moves.list[i]
 
 		// preserve board state
@@ -154,7 +188,6 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
 		// increment half move counter
 		search.ply++
-
 		
 		// skip if move is ilegal
 		if !pos.make_move(move, all_moves) {
