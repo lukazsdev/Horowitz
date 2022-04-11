@@ -14,7 +14,7 @@ type Zobrist struct {
 }
 
 // generate almost unique hash for given position
-func (Zob *Zobrist) generate_hash_key(pos *Position) {
+func (Zob *Zobrist) generate_hash_key(pos Position) uint64 {
 	// final hash key
 	var final_key uint64
 
@@ -50,8 +50,8 @@ func (Zob *Zobrist) generate_hash_key(pos *Position) {
 		final_key ^= Zob.side_key
 	}
 	
-	// set position hash key to final key
-	pos.hash_key = final_key
+	// return final hash key
+	return final_key
 }
 
 // initialize random keys

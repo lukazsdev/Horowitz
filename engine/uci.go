@@ -149,26 +149,6 @@ func (uci *UCIInterface) parse_move(move_string string) Move {
 	return 0
 }
 
-/*
-// parse UCI "go" command
-func (uci *UCIInterface) parse_go(command string) {
-	command = strings.TrimPrefix(command, "go")
-	command = strings.TrimPrefix(command, " ")
-	fields := strings.Fields(command)
-
-	depth := 6
-
-	for index, field := range fields {
-		if field == "depth" {
-			depth, _ = strconv.Atoi(fields[index+1])
-		}
-	}
-	
-
-	uci.search.position(uci.pos, depth)
-}
-*/
-
 // parse UCI "go" command
 func (uci *UCIInterface) parse_go(command string) {
 	command = strings.TrimPrefix(command, "go")
