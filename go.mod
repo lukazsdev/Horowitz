@@ -1,3 +1,3 @@
-module github.com/alphago
+module golpher
 
 go 1.18
