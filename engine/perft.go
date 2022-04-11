@@ -59,8 +59,6 @@ func (perft *Perft) driver(pos Position, depth int) {
 }
 
 func (perft *Perft) test(pos Position, depth int) {
-	fmt.Print("\n")
-
 	// start timer
 	start_timer := time.Now()
 
@@ -93,7 +91,7 @@ func (perft *Perft) test(pos Position, depth int) {
 		pos.take_back()
 	}
 
-	fmt.Print("\n     Depth: ", depth)
+	fmt.Print("     Depth: ", depth)
 	fmt.Print("\n     Nodes: ", perft.nodes)
 	fmt.Print("\n     Time: ", time.Since(start_timer))
 	fmt.Print("\n\n     Captures:   ", perft.captures)
