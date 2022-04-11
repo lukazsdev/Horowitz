@@ -30,7 +30,6 @@ type State struct {
     bitboards_copy [12]Bitboard
     occupied_copy   [3]Bitboard
 
-    // piece on given square
     board_copy     [64]uint8
 
     side_to_move_copy     uint8
