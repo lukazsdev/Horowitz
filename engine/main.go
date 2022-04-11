@@ -5,12 +5,14 @@ package main
 func main() {
 	// UCI testing
 	var uci UCIInterface
-	uci.UCILoop()
+	//uci.UCILoop()
 
 	// Debugging
-	//var pos Position
-	//var search Search
-	//pos.parse_fen(tricky_position)
-	//print_board(pos)
+	uci.boot_engine()
+	var pos Position
+	//var perft Perft
+	// var search Search
+	pos.parse_fen(tricky_position)
+	print_board(pos)
 }
 

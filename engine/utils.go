@@ -161,6 +161,7 @@ func print_board(pos Position) {
 	} else {
 		fmt.Print("-")
 	}
+	fmt.Println(fmt.Sprintf("\n   Hash Key: 0x%x", pos.hash_key))
 	fmt.Print("\n")
 }
 

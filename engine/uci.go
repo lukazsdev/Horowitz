@@ -17,8 +17,8 @@ type UCIInterface struct {
 func (uci *UCIInterface) UCILoop() {
 	reader := bufio.NewReader(os.Stdin)
 
+	uci.boot_engine()
 	uci.print_engine_info()
-	initialize_lookup_tables()
 
 	// main loop
 	for {
@@ -54,6 +54,11 @@ func (uci *UCIInterface) print_engine_info() {
 	fmt.Print("id name Golpher\n")
 	fmt.Print("id author OliveriQ\n")
 	fmt.Print("uciok\n")
+}
+
+func (uci *UCIInterface) boot_engine() {
+	initialize_lookup_tables()
+	Zob.init_random_keys()
 }
 
 

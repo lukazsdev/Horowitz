@@ -4,6 +4,9 @@ package main
 
 // struct for representing chess position
 type Position struct {
+	// zobrist hash of position
+	hash_key uint64
+
 	// piece and occupied bitboards
 	bitboards [12]Bitboard
 	occupied   [3]Bitboard
@@ -311,4 +314,7 @@ func (pos *Position) parse_fen(fen string) {
 	}
 
 	pos.occupied[both] = pos.occupied[white] | pos.occupied[black]
+
+	// initialize position hash key
+    Zob.generate_hash_key(pos)
 }
