@@ -78,7 +78,7 @@ func (pos *Position) make_move(move Move, move_flag uint8) bool {
 		pos.move_piece(piece, source_square, target_square)
 
 		// hash piece  
-		pos.hash_key ^= Zob.piece_keys[piece][source_square]
+	    pos.hash_key ^= Zob.piece_keys[piece][source_square]
         pos.hash_key ^= Zob.piece_keys[piece][target_square]
 
 		// extract sides from position
@@ -106,7 +106,7 @@ func (pos *Position) make_move(move Move, move_flag uint8) bool {
 			pos.bitboards[6 * our_side + white_pawn].pop_bit(target_square)
 
 			// remove promoted piece from hash key
-			pos.hash_key ^= Zob.piece_keys[6 * our_side + white_pawn][target_square]
+		    pos.hash_key ^= Zob.piece_keys[6 * our_side + white_pawn][target_square]
 
 			// place promoted piece
 			pos.bitboards[promoted_piece].set_bit(target_square)
@@ -135,7 +135,7 @@ func (pos *Position) make_move(move Move, move_flag uint8) bool {
 
 		// hash enpassant if available (remove enpassant square from hash key )
         if pos.enpassant_square != NO_SQ {
-			pos.hash_key ^= Zob.enpassant_keys[pos.enpassant_square]
+		    pos.hash_key ^= Zob.enpassant_keys[pos.enpassant_square]
 		}
 
 		// reset enpassant square
@@ -163,19 +163,19 @@ func (pos *Position) make_move(move Move, move_flag uint8) bool {
 			switch target_square {
 			// white kingside castle
 			case SQ_G1:
-				pos.move_piece(white_rook, SQ_H1, SQ_F1)
+			    pos.move_piece(white_rook, SQ_H1, SQ_F1)
 
 				// hash rook
-				pos.hash_key ^= Zob.piece_keys[white_rook][SQ_H1]
+			    pos.hash_key ^= Zob.piece_keys[white_rook][SQ_H1]
                 pos.hash_key ^= Zob.piece_keys[white_rook][SQ_F1]
 				break
 			
 			// white queenside castle
 			case SQ_C1:
-				pos.move_piece(white_rook, SQ_A1, SQ_D1)
+			    pos.move_piece(white_rook, SQ_A1, SQ_D1)
 
 				// hash rook
-				pos.hash_key ^= Zob.piece_keys[white_rook][SQ_A1]
+			    pos.hash_key ^= Zob.piece_keys[white_rook][SQ_A1]
                 pos.hash_key ^= Zob.piece_keys[white_rook][SQ_D1]
 				break
 			
@@ -184,7 +184,7 @@ func (pos *Position) make_move(move Move, move_flag uint8) bool {
 				pos.move_piece(black_rook, SQ_H8, SQ_F8)
 
 				// hash rook
-				pos.hash_key ^= Zob.piece_keys[black_rook][SQ_H8]
+			    pos.hash_key ^= Zob.piece_keys[black_rook][SQ_H8]
                 pos.hash_key ^= Zob.piece_keys[black_rook][SQ_F8]
 				break
 			
@@ -193,7 +193,7 @@ func (pos *Position) make_move(move Move, move_flag uint8) bool {
 				pos.move_piece(black_rook, SQ_A8, SQ_D8)
 
 				// hash rook
-				pos.hash_key ^= Zob.piece_keys[black_rook][SQ_A8]
+			    pos.hash_key ^= Zob.piece_keys[black_rook][SQ_A8]
                 pos.hash_key ^= Zob.piece_keys[black_rook][SQ_D8]
 				break
 			}
