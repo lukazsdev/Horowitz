@@ -172,6 +172,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 	// is king in check
 	king_square := pos.bitboards[get_piece_type(King, our_side)].bsf()
 	in_check := is_square_attacked(king_square, their_side, pos)
+	has_non_pawn_material := pos.non_pawn_material()
 
 	// increase depth if king in check
 	if in_check == true {
@@ -180,9 +181,9 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
 	// legal moves counter
 	legal_moves := 0
-
-	// null move pruning
-	if depth >= 3 && in_check == false && search.ply > 0 {
+	
+	// null move pruning (only done if we don't have non pawn material)
+	if depth >= 3 && in_check == false && search.ply > 0 && has_non_pawn_material == true {
 		// preserve board state
 		pos.copy_board()
 
@@ -223,6 +224,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
             return beta;
 		}
 	}
+	
 
 	// move list
 	moves := pos.generate_moves()

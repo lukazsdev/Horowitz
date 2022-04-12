@@ -280,6 +280,24 @@ func (pos *Position) take_back() {
     }
 }
 
+// tells us whether we have non pawn material on the board or not
+func (pos *Position) non_pawn_material() bool {
+        if (
+        pos.bitboards[white_knight] > 0 || 
+        pos.bitboards[white_bishop] > 0 || 
+        pos.bitboards[white_rook]   > 0 || 
+        pos.bitboards[white_queen]  > 0 ||
+        pos.bitboards[black_knight] > 0 || 
+        pos.bitboards[black_bishop] > 0 || 
+        pos.bitboards[black_rook]   > 0 || 
+        pos.bitboards[black_queen]  > 0 ) { 
+            return true 
+        }
+
+    return false
+}
+
+
 // parse FEN string
 func (pos *Position) parse_fen(fen string) {
     // general purpose pointer to FEN string
