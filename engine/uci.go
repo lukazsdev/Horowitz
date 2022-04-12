@@ -59,6 +59,7 @@ func (uci *UCIInterface) print_engine_info() {
 func (uci *UCIInterface) boot_engine() {
 	initialize_lookup_tables()
 	Zob.init_random_keys()
+	uci.search.TT.init()
 }
 
 

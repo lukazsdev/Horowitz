@@ -31,9 +31,11 @@ const (
 	mate_value int = 49000
 	mate_score int = 48000
 
+	// LMR constants
 	full_depth_moves int = 4
 	reduction_limit  int = 3
 
+	// no move (null move)
 	null_move Move = 0
 )
 
@@ -43,6 +45,11 @@ func (search *Search) quiescence(pos Position, alpha, beta int) int {
 
 	// increment nodes
 	search.nodes++
+
+	// prevent index out of bounds of array
+	if search.ply > max_ply - 1 {
+		return evaluation
+	}
 
 	// every 2048 nodes, check if time is up
 	if (search.nodes & 2047) == 0 {
@@ -118,8 +125,20 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 	// score of current position
 	score := 0
 
-	// initialize PV length
-	search.pv_length[search.ply] = search.ply
+	// define hash flag
+	hash_flag := hash_flag_alpha
+
+	// check if current node is PV node or not
+	is_pv_node := beta - alpha > 1
+
+	// read hash entry if we're not in a root ply and hash entry is available
+    // and current node is not a PV node
+	score = search.TT.read(pos.hash_key, alpha, beta, search.ply, uint8(depth))
+	if search.ply > 0 && score != no_hash_entry && is_pv_node == false {
+		// if the move has already been searched (hence has a value)
+        // we just return the score for this move without searching it
+		return score
+	}
 
 	// every 2048 nodes, check if time is up
 	if (search.nodes & 2047) == 0 {
@@ -130,6 +149,9 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 	if search.timer.stop == true {
 		return 0
 	}
+
+	// initialize PV length
+	search.pv_length[search.ply] = search.ply
 	
 	if depth == 0 {
 		// search only captures
@@ -167,11 +189,19 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 		// increment ply
         search.ply++;
 
+		// hash enpassant if available
+		if pos.enpassant_square != NO_SQ {
+			pos.hash_key ^= Zob.enpassant_keys[pos.enpassant_square]
+		}
+
+		 // reset enpassant square
+		pos.enpassant_square = NO_SQ
+
 		// switch the side (give opponent extra move)
 		pos.side_to_move = other_side(pos.side_to_move)
 
-		// reset enpassant square
-		pos.enpassant_square = NO_SQ
+		// hash the side
+		pos.hash_key ^= Zob.side_key
 
 		// search moves with reduced depth to find beta cutoffs 
 		score = -search.negamax(pos, -beta, -beta + 1, depth - 1 - 2);
@@ -182,6 +212,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
         // restore board state
         pos.take_back();
 
+		// stop search if time is up
 		if search.timer.stop == true {
 			return 0
 		}
@@ -264,6 +295,8 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
 		// fail-hard beta cutoff
 		if score >= beta {
+			// store hash entry with the score equal to beta
+			search.TT.store(pos.hash_key, uint8(depth), hash_flag_beta, beta, search.ply)
 
 			// only quiet moves
 			if move.get_move_capture() == 0 {
@@ -278,6 +311,9 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
 		// found better move
 		if score > alpha {
+			// switch hash flag from storing score for fail-low node
+            // to the one storing score for PV node
+            hash_flag = hash_flag_exact
 			
 			// only quiet movesgo
 			if move.get_move_capture() == 0 {
@@ -299,7 +335,6 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 			// adjust PV length
 			search.pv_length[search.ply] = search.pv_length[search.ply + 1]
 		}
-
 	}
 
 	// no legal moves in current position
@@ -311,6 +346,9 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 		// if not, then statelmate
 		return 0
 	}
+
+	// store hash entry with the score equal to alpha
+	search.TT.store(pos.hash_key, uint8(depth), hash_flag, alpha, search.ply)
 
 	// node (move) fails low
 	return alpha
@@ -334,7 +372,7 @@ func (search *Search) position(pos Position, depth int) {
 	beta  :=  infinity
 
 	// iterative deepening
-	for current_depth := 1; current_depth <= depth; current_depth++ {
+	for current_depth := 1; current_depth < depth; current_depth++ {
 		// enable follow PV flag
 		search.follow_pv = 1
 
@@ -413,6 +451,9 @@ func (search *Search) reset_info() {
 	search.nodes     = 0
 	search.follow_pv = 0
 	search.score_pv  = 0
+
+	// clear transposition table
+	search.TT.clear()
 
 	// reset killers array
 	for i := 0; i < 2; i++ {

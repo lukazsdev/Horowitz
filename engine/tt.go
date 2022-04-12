@@ -8,9 +8,9 @@ const (
 	no_hash_entry = 100000
 
 	// transposition table hash flags
-	hash_flag_exact = 0
-	hash_flag_alpha = 1
-	hash_flag_beta  = 2
+	hash_flag_exact uint8 = 0
+	hash_flag_alpha uint8 = 1
+	hash_flag_beta  uint8 = 2
 )
 
 // struct for a transposition table entry
