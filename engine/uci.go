@@ -17,8 +17,8 @@ type UCIInterface struct {
 func (uci *UCIInterface) UCILoop() {
 	reader := bufio.NewReader(os.Stdin)
 
+	// initialize/boot engine
 	uci.boot_engine()
-	uci.print_engine_info()
 
 	// main loop
 	for {
@@ -33,6 +33,7 @@ func (uci *UCIInterface) UCILoop() {
 		} else if strings.HasPrefix(command, "setoption") {
 			// do stuff
 		} else if strings.HasPrefix(command, "ucinewgame") {
+			uci.search.TT.clear()
 			uci.parse_position("position startpos");
 		} else if strings.HasPrefix(command, "position") {
 			uci.parse_position(command)
@@ -57,6 +58,8 @@ func (uci *UCIInterface) print_engine_info() {
 }
 
 func (uci *UCIInterface) boot_engine() {
+	fmt.Print("Golpher: UCI-Compatible chess engine written in Go\n")
+
 	initialize_lookup_tables()
 	Zob.init_random_keys()
 	uci.search.TT.init()

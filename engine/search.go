@@ -133,12 +133,14 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
 	// read hash entry if we're not in a root ply and hash entry is available
     // and current node is not a PV node
+	
 	score = search.TT.read(pos.hash_key, alpha, beta, search.ply, uint8(depth))
 	if search.ply > 0 && score != no_hash_entry && is_pv_node == false {
 		// if the move has already been searched (hence has a value)
         // we just return the score for this move without searching it
 		return score
 	}
+	
 
 	// every 2048 nodes, check if time is up
 	if (search.nodes & 2047) == 0 {
@@ -374,7 +376,7 @@ func (search *Search) position(pos Position, depth int) {
 	beta  :=  infinity
 
 	// iterative deepening
-	for current_depth := 1; current_depth < depth; current_depth++ {
+	for current_depth := 1; current_depth <= depth; current_depth++ {
 		// enable follow PV flag
 		search.follow_pv = 1
 
@@ -453,9 +455,6 @@ func (search *Search) reset_info() {
 	search.nodes     = 0
 	search.follow_pv = 0
 	search.score_pv  = 0
-
-	// clear transposition table
-	search.TT.clear()
 
 	// reset killers array
 	for i := 0; i < 2; i++ {
