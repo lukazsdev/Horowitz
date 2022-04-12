@@ -1,6 +1,6 @@
 package main
 
-//import "fmt"
+import "fmt"
 
 func main() {
 	// UCI testing
@@ -11,10 +11,17 @@ func main() {
 	uci.boot_engine()
 	var pos Position
 	//var perft Perft
-	// var search Search
-	pos.parse_fen("r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1 ")
+	var search Search
+	pos.parse_fen(start_position)
 	print_board(pos)
 
-	//perft.test(pos, 4)
+	// TT debugging
+	search.TT.init()
+
+	search.TT.store(pos.hash_key, 1, hash_flag_beta, 45, 0)
+
+	score := search.TT.read(pos.hash_key, 20, 30, 0, 1)
+
+	fmt.Println("score: ", score)
 }
 

@@ -1,11 +1,11 @@
 package main
 
 const (
+	// hash table size (~20MB)
+	hash_size = 800000
+
 	// no hash entry found constant
 	no_hash_entry = 100000
-
-	// transposition entry size
-	tt_entry_size = 18
 
 	// transposition table hash flags
 	hash_flag_exact = 0
@@ -28,11 +28,9 @@ type TranspositionTable struct {
 }
 
 // resize transposition table (allocate memory in MB)
-func (TT* TranspositionTable) resize(mb uint64) {
-	// initialize hash size
-	size := (mb * 1024 * 1024) / tt_entry_size
-	TT.entries = make([]TTEntry, size)
-	TT.size = size
+func (TT* TranspositionTable) init() {
+	TT.size = hash_size
+	TT.entries = make([]TTEntry, hash_size)
 }
 
 // clear the transposition table
@@ -72,7 +70,7 @@ func (TT* TranspositionTable) read(hash_key uint64, alpha, beta, ply int, depth 
 	// make sure we're dealing with exact position we need
 	if entry.hash_key == hash_key {
 		// make sure we're are dealing with the exact depth search is currently at
-		if entry.depth == depth {
+		if entry.depth >= depth {
 			// extract stored score from TT entry
 			score := int(entry.score)
 

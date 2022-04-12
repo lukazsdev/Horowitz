@@ -8,6 +8,7 @@ import (
 // structure for engine search
 type Search struct {
 	timer TimeManager
+	TT    TranspositionTable
 
 	nodes uint64
 	ply      int
