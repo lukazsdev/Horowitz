@@ -30,17 +30,21 @@ const (
     max_ply    int = 64
 
     // constant values for search
-    infinity   int = 50000
-    mate_value int = 49000
-    mate_score int = 48000
+    infinity   int = 10000
+    checkmate  int =  9000
 
-    // LMR constants
-    full_depth_moves int = 4
-    reduction_limit  int = 3
+    // search pruning parameters
+    //static_nmp_margin int = 120
+    full_depth_moves  int = 4
+    reduction_limit   int = 3
+    window_size       int = 50
 
     // no move (null move)
     null_move Move = 0
 )
+
+//var futility_margins = [9]int{0, 100, 160, 220, 280, 340, 400, 460, 520}
+//var late_move_pruning_margins = [4]int{0, 8, 12, 24}
 
 func (search *Search) quiescence(pos Position, alpha, beta int) int {
     // evaluation
@@ -171,6 +175,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
     // check if current node is PV node or not
     is_pv_node := beta - alpha > 1
+    //can_futility_prune := false
 
     // increase depth if king in check
     if in_check == true {
@@ -196,10 +201,22 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
         // we just return the score for this move without searching it
         return score
     }
-
-    // legal moves counter
-    legal_moves := 0
     
+    
+    /*
+    // static null move pruning
+    if in_check == false && is_pv_node == false && abs(beta) < checkmate {
+        // if current material - score margin is still good, prune branch
+        static_score := evaluate(pos)
+        score_margin := static_nmp_margin * depth
+
+        if static_score - score_margin >= beta {
+            return beta
+        }
+    }
+    */
+    
+
     // null move pruning (only done if we don't have non pawn material)
     if depth >= 3 && in_check == false && search.ply > 0 && has_non_pawn_material == true {
         // preserve board state
@@ -249,8 +266,21 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
             return beta
         }
     }
+
+    /*
+    // futility pruning
+    if depth <= 8 && is_pv_node == false && in_check == false && alpha < checkmate {
+		static_score := evaluate(pos)
+		if static_score + futility_margins[depth] <= alpha {
+			can_futility_prune = true
+		}
+	}
+    */
     
 
+    // legal moves counter
+    legal_moves := 0
+    
     // move list
     moves := pos.generate_moves()
 
@@ -289,6 +319,35 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
         // increment legal moves
         legal_moves++
+
+        
+        /*
+        // late move pruning
+        if depth <= 3 && !is_pv_node && !in_check && legal_moves > late_move_pruning_margins[depth] {
+			tactical := in_check || (move.get_move_promoted() > 0)
+			if !tactical {
+				pos.take_back()
+				search.repetitions_index--
+                search.ply--
+                continue
+			}
+		}
+        */
+        
+
+        /*
+        // futility pruning
+        if can_futility_prune && legal_moves > 1 {
+			tactical := in_check || (move.get_move_capture() > 0) || (move.get_move_promoted() > 0)
+			if !tactical {
+                pos.take_back()
+				search.repetitions_index--
+                search.ply--
+                continue
+			}
+		}
+        */
+        
 
         // full depth search
         if moves_searched == 0 {
@@ -376,7 +435,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
     if legal_moves == 0 {
         // king is in check
         if in_check == true {
-            return -mate_value + search.ply
+            return -checkmate + search.ply
         }
         // if not, then statelmate
         return 0
@@ -392,7 +451,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 func (search *Search) position(pos Position, depth int) {
     // start a search timer
     start_time := time.Now()
-    
+
     // initialize best move to no move
     best_move := null_move
 
@@ -429,13 +488,13 @@ func (search *Search) position(pos Position, depth int) {
 
         // adjust aspiration window technique
         if (score <= alpha) || (score >= beta) {
-            alpha = -infinity;    
-            beta  = infinity;      
+            alpha = -infinity    
+            beta  = infinity      
             continue;
         }
 
-        alpha = score - 50;
-        beta = score + 50;
+        alpha = score - window_size
+        beta = score + window_size
 
         // If the score between this current iteration and the last iteration drops,
         // take more time on the current search to make sure we find the best move.
@@ -450,11 +509,11 @@ func (search *Search) position(pos Position, depth int) {
         // if PV is available
         if search.pv_length[0] > 0 {
             // print search info
-            if score > -mate_value && score < -mate_score {
-                fmt.Print("info score mate ", -(score + mate_value) / 2 - 1, " depth ", current_depth)
+            if score > -checkmate && score < -(checkmate-100) {
+                fmt.Print("info score mate ", -(score + checkmate) / 2 - 1, " depth ", current_depth)
                 fmt.Print(" nodes ", search.nodes, " time ", end_time.Milliseconds(), " pv ")
-            } else if score > mate_score && score < mate_value {
-                fmt.Print("info score mate ", (mate_value - score) / 2 + 1, " depth ", current_depth)
+            } else if score > (checkmate-100) && score < checkmate {
+                fmt.Print("info score mate ", (checkmate - score) / 2 + 1, " depth ", current_depth)
                 fmt.Print(" nodes ", search.nodes, " time ", end_time.Milliseconds(), " pv ")
             } else {
                 fmt.Print("info score cp ", score, " depth ", current_depth)

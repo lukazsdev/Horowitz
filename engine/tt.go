@@ -5,7 +5,7 @@ const (
     hash_size = 800000
 
     // no hash entry found constant
-    no_hash_entry = 100000
+    no_hash_entry = 20000
 
     // transposition table hash flags
     hash_flag_exact uint8 = 0
@@ -51,11 +51,11 @@ func  (TT* TranspositionTable) store(hash_key uint64, depth, flag uint8, score, 
     // store score independent from the actual path
     // from root node (position) to current node (position)
 
-    if score < -mate_score {
+    if score < -checkmate {
         score -= ply
     }
 
-    if score > mate_score {
+    if score > checkmate {
         score += ply
     }
 
@@ -76,11 +76,11 @@ func (TT* TranspositionTable) read(hash_key uint64, alpha, beta, ply int, depth 
 
             // retrieve score independent from the actual path
             // from root node (position) to current node (position)
-            if score < -mate_score {
+            if score < -checkmate {
                 score += ply
             }
 
-            if score > mate_score {
+            if score > checkmate {
                 score -= ply
             }
 
