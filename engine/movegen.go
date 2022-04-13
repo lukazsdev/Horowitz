@@ -44,7 +44,7 @@ var KING_ATTACKS_TABLE = [64]Bitboard {
 }
 
 // lookup table for white pawn attacks
-var white_PAWN_ATTACKS = [64]Bitboard {
+var WHITE_PAWN_ATTACKS = [64]Bitboard {
 	0x200, 0x500, 0xa00, 0x1400,
 	0x2800, 0x5000, 0xa000, 0x4000,
 	0x20000, 0x50000, 0xa0000, 0x140000,
@@ -64,7 +64,7 @@ var white_PAWN_ATTACKS = [64]Bitboard {
 }
 
 // lookup table for black pawn attacks
-var black_PAWN_ATTACKS = [64]Bitboard {
+var BLACK_PAWN_ATTACKS = [64]Bitboard {
 	0x0, 0x0, 0x0, 0x0,
 	0x0, 0x0, 0x0, 0x0,
 	0x2, 0x5, 0xa, 0x14,
@@ -89,8 +89,8 @@ var PAWN_ATTACKS_TABLE [2][64]Bitboard
 // initialize pawn attacks lookup table
 func initialize_lookup_tables() {
 	for square := 0; square < 64; square++ {
-		PAWN_ATTACKS_TABLE[white][square] = white_PAWN_ATTACKS[square]
-		PAWN_ATTACKS_TABLE[black][square] = black_PAWN_ATTACKS[square]
+		PAWN_ATTACKS_TABLE[white][square] = WHITE_PAWN_ATTACKS[square]
+		PAWN_ATTACKS_TABLE[black][square] = BLACK_PAWN_ATTACKS[square]
 	}
 }
 
