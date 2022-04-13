@@ -134,32 +134,23 @@ func (search *Search) quiescence(pos Position, alpha, beta int) int {
 }
 
 func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
+    // increment nodes
+    search.nodes++
+
     // score of current position
     score := 0
+
+    // initialize PV length
+    search.pv_length[search.ply] = search.ply
 
     // define hash flag
     hash_flag := hash_flag_alpha
 
-    // if position repetition occurs
-    if search.ply > 0 && search.is_repetition(pos) {
-        // return draw score
-        return 0
-    }
-
-    // check if current node is PV node or not
-    is_pv_node := beta - alpha > 1
-
-    // read hash entry if we're not in a root ply and hash entry is available
-    // and current node is not a PV node
-    
-    score = search.TT.read(pos.hash_key, alpha, beta, search.ply, uint8(depth))
-    if search.ply > 0 && score != no_hash_entry && is_pv_node == false {
-        // if the move has already been searched (hence has a value)
-        // we just return the score for this move without searching it
-        return score
+    // prevent index out of bounds of array
+    if search.ply > max_ply - 1 {
+        return evaluate(pos)
     }
     
-
     // every 2048 nodes, check if time is up
     if (search.nodes & 2047) == 0 {
         search.timer.check()
@@ -170,21 +161,28 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
         return 0
     }
 
-    // initialize PV length
-    search.pv_length[search.ply] = search.ply
+    // check if current node is PV node or not
+    is_pv_node := beta - alpha > 1
+
+    // read hash entry if we're not in a root ply and hash entry is available
+    // and current node is not a PV node
+    score = search.TT.read(pos.hash_key, alpha, beta, search.ply, uint8(depth))
+    if search.ply > 0 && score != no_hash_entry && is_pv_node == false {
+        // if the move has already been searched (hence has a value)
+        // we just return the score for this move without searching it
+        return score
+    }
     
     if depth == 0 {
         // search only captures
         return search.quiescence(pos, alpha, beta)
     }
 
-    // prevent index out of bounds of array
-    if search.ply > max_ply - 1 {
-        return evaluate(pos)
+    // if position repetition occurs
+    if search.ply > 0 && search.is_repetition(pos) {
+        // return draw score
+        return 0
     }
-
-    // increment nodes
-    search.nodes++
 
     // current side to move and opposite side
     var our_side, their_side = pos.side_to_move, other_side(pos.side_to_move)
