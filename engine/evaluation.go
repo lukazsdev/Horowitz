@@ -13,10 +13,7 @@ const (
 
 // positional piece scores [game phase][piece][square]
 var positional_score = [2][6][64]int {
-    
-    // opening positional piece scores // 
     {
-
         // pawn
         {
         0,   0,   0,   0,   0,   0,  0,   0,
@@ -90,9 +87,7 @@ var positional_score = [2][6][64]int {
         },
     },
 
-    // Endgame positional piece scores //
     {
-
         //pawn
         {
         0,   0,   0,   0,   0,   0,   0,   0,
@@ -215,12 +210,6 @@ func evaluate(pos Position) int {
             // add positional piece scores
             switch piece {
 
-
-                            //=========================//
-                            // white pieces evaluation //
-                            //=========================//
-
-
             // evaluate white pawns
             case white_pawn:
                 // add opening and endgame positional scores
@@ -262,12 +251,6 @@ func evaluate(pos Position) int {
                 opening_score += positional_score[opening][King][mirror[square]]
                 endgame_score += positional_score[endgame][King][mirror[square]]
                 break
-
-
-                            //=========================//
-                            // black pieces evaluation //
-                            //=========================//
-
             
             // evaluate black pawns
             case black_pawn:
@@ -314,13 +297,6 @@ func evaluate(pos Position) int {
             }
         }
     }
-
-    //====================================================//
-    //           Formula for middlegame score:            //
-    // (opening_score * game_phase_score + endgame_score   //
-    // * (opening_phase_score - game_phase_score)) /    //
-    //               opening_phase_score                  //
-    //====================================================//
 
     // score for middlegame phase
     if game_phase == middlegame {
