@@ -273,11 +273,11 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
     
     // futility pruning
     if depth <= 8 && is_pv_node == false && in_check == false && alpha < checkmate {
-		static_score := evaluate(pos)
-		if static_score + futility_margins[depth] <= alpha {
-			can_futility_prune = true
-		}
-	}
+        static_score := evaluate(pos)
+        if static_score + futility_margins[depth] <= alpha {
+            can_futility_prune = true
+        }
+    }
     
     
 
@@ -327,28 +327,28 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
         
         // late move pruning
         if depth <= 3 && !is_pv_node && !in_check && legal_moves > late_move_pruning_margins[depth] {
-			tactical := in_check || (move.get_move_promoted() > 0)
-			if !tactical {
-				pos.take_back()
-				search.repetitions_index--
+            tactical := in_check || (move.get_move_promoted() > 0)
+            if !tactical {
+                pos.take_back()
+                search.repetitions_index--
                 search.ply--
                 continue
-			}
-		}
+            }
+        }
         
         
 
         
         // futility pruning
         if can_futility_prune && legal_moves > 1 {
-			tactical := in_check || (move.get_move_capture() > 0) || (move.get_move_promoted() > 0)
-			if !tactical {
+            tactical := in_check || (move.get_move_capture() > 0) || (move.get_move_promoted() > 0)
+            if !tactical {
                 pos.take_back()
-				search.repetitions_index--
+                search.repetitions_index--
                 search.ply--
                 continue
-			}
-		}
+            }
+        }
         
         
 
