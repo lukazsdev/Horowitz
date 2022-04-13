@@ -34,7 +34,7 @@ const (
     checkmate  int =  9000
 
     // search pruning parameters
-    //static_nmp_margin int = 120
+    static_nmp_margin int = 120
     full_depth_moves  int = 4
     reduction_limit   int = 3
     window_size       int = 50
@@ -43,9 +43,11 @@ const (
     null_move Move = 0
 )
 
-//var futility_margins = [9]int{0, 100, 160, 220, 280, 340, 400, 460, 520}
-//var late_move_pruning_margins = [4]int{0, 8, 12, 24}
+// margins for futility pruning and late move pruning
+var futility_margins = [9]int{0, 100, 160, 220, 280, 340, 400, 460, 520}
+var late_move_pruning_margins = [4]int{0, 8, 12, 24}
 
+// quiescence search (only search captures)
 func (search *Search) quiescence(pos Position, alpha, beta int) int {
     // evaluation
     evaluation := evaluate(pos)
@@ -119,16 +121,17 @@ func (search *Search) quiescence(pos Position, alpha, beta int) int {
         // take back move
         pos.take_back()
 
-        // fail-hard beta cutoff
-        if score >= beta {
-            // node (move) fails high
-            return beta 
-        }
-
         // found better move
         if score > alpha {
             // PV node (move)
             alpha = score
+
+            // fail-hard beta cutoff
+            if score >= beta {
+                // node (move) fails high
+                return beta 
+            }
+
         }
 
     }
@@ -175,7 +178,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
     // check if current node is PV node or not
     is_pv_node := beta - alpha > 1
-    //can_futility_prune := false
+    can_futility_prune := false
 
     // increase depth if king in check
     if in_check == true {
@@ -203,7 +206,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
     }
     
     
-    /*
+    
     // static null move pruning
     if in_check == false && is_pv_node == false && abs(beta) < checkmate {
         // if current material - score margin is still good, prune branch
@@ -214,7 +217,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
             return beta
         }
     }
-    */
+    
     
 
     // null move pruning (only done if we don't have non pawn material)
@@ -267,7 +270,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
         }
     }
 
-    /*
+    
     // futility pruning
     if depth <= 8 && is_pv_node == false && in_check == false && alpha < checkmate {
 		static_score := evaluate(pos)
@@ -275,7 +278,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 			can_futility_prune = true
 		}
 	}
-    */
+    
     
 
     // legal moves counter
@@ -321,7 +324,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
         legal_moves++
 
         
-        /*
+        
         // late move pruning
         if depth <= 3 && !is_pv_node && !in_check && legal_moves > late_move_pruning_margins[depth] {
 			tactical := in_check || (move.get_move_promoted() > 0)
@@ -332,10 +335,10 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
                 continue
 			}
 		}
-        */
+        
         
 
-        /*
+        
         // futility pruning
         if can_futility_prune && legal_moves > 1 {
 			tactical := in_check || (move.get_move_capture() > 0) || (move.get_move_promoted() > 0)
@@ -346,7 +349,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
                 continue
 			}
 		}
-        */
+        
         
 
         // full depth search
@@ -387,22 +390,6 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
         // increment moves searched
         moves_searched++
 
-        // fail-hard beta cutoff
-        if score >= beta {
-            // store hash entry with the score equal to beta
-            search.TT.store(pos.hash_key, uint8(depth), hash_flag_beta, beta, search.ply)
-
-            // only quiet moves
-            if move.get_move_capture() == 0 {
-                // store killer moves
-                search.killers[1][search.ply] = search.killers[0][search.ply]
-                search.killers[0][search.ply] = move
-            }
-
-            // node (move) fails high
-            return beta 
-        }
-
         // found better move
         if score > alpha {
             // switch hash flag from storing score for fail-low node
@@ -428,6 +415,22 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
             // adjust PV length
             search.pv_length[search.ply] = search.pv_length[search.ply + 1]
+
+            // fail-hard beta cutoff
+            if score >= beta {
+                // store hash entry with the score equal to beta
+                search.TT.store(pos.hash_key, uint8(depth), hash_flag_beta, beta, search.ply)
+
+                // only quiet moves
+                if move.get_move_capture() == 0 {
+                    // store killer moves
+                    search.killers[1][search.ply] = search.killers[0][search.ply]
+                    search.killers[0][search.ply] = move
+                }
+
+                // node (move) fails high
+                return beta 
+            }
         }
     }
 
@@ -479,6 +482,7 @@ func (search *Search) position(pos Position, depth int) {
         // end a search timer
         end_time := time.Since(start_time)
 
+        // stop if time is up and return best move
         if search.timer.stop == true {
             if best_move == null_move && current_depth == 1 {
                 best_move = search.pv_table[0][0]
@@ -490,6 +494,7 @@ func (search *Search) position(pos Position, depth int) {
         if (score <= alpha) || (score >= beta) {
             alpha = -infinity    
             beta  = infinity      
+            current_depth--
             continue;
         }
 

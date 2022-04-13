@@ -52,13 +52,13 @@ func (uci *UCIInterface) UCILoop() {
 }
 
 func (uci *UCIInterface) print_engine_info() {
-    fmt.Print("id name Golpher\n")
+    fmt.Print("id name Horowitz\n")
     fmt.Print("id author OliveriQ\n")
     fmt.Print("uciok\n")
 }
 
 func (uci *UCIInterface) boot_engine() {
-    fmt.Print("Golpher: UCI-Compatible chess engine written in Go\n")
+    fmt.Print("Horowitz: UCI-compatible chess engine written in Go\n")
 
     initialize_lookup_tables()
     Zob.init_random_keys()
