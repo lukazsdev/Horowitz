@@ -68,6 +68,13 @@ func (uci *UCIInterface) boot_engine() {
 
 // parse UCI "position" command (e.g position startpos e2e4)
 func (uci *UCIInterface) parse_position(command string) {
+	// reset repetitions table and index
+	uci.search.repetitions_index = 0
+
+	for i := 0; i < 1000; i++ {
+		uci.search.repetitions_table[i] = 0
+	}
+
 	// skip to next token (after "position")
 	command = command[9:len(command)]
 
@@ -106,6 +113,10 @@ func (uci *UCIInterface) parse_position(command string) {
 			if move == 0 {
 				break
 			}
+
+			// increment repetitions index and store current hash key
+			uci.search.repetitions_index++
+			uci.search.repetitions_table[uci.search.repetitions_index] = uci.pos.hash_key
 
 			uci.pos.make_move(move, all_moves)
 		}

@@ -20,6 +20,9 @@ type Search struct {
     pv_table  [max_ply][max_ply]Move
 
     follow_pv, score_pv  uint8
+
+    repetitions_table [1000]uint64
+    repetitions_index int
 }
 
 const (
@@ -80,6 +83,7 @@ func (search *Search) quiescence(pos Position, alpha, beta int) int {
     search.sort_moves(pos, &moves)
 
     for i := 0; i < moves.count; i++ {
+        // get current move in move list
         move := moves.list[i]
 
         // preserve board state
@@ -88,8 +92,13 @@ func (search *Search) quiescence(pos Position, alpha, beta int) int {
         // increment half move counter
         search.ply++
 
+        // increment repetition index and store current hash key
+        search.repetitions_index++
+        search.repetitions_table[search.repetitions_index] = pos.hash_key
+
         // skip if move is ilegal
         if !pos.make_move(move, only_captures) {
+            search.repetitions_index--
             search.ply--
             continue
         } 
@@ -97,11 +106,14 @@ func (search *Search) quiescence(pos Position, alpha, beta int) int {
         // recursively call quiescence
         score := -search.quiescence(pos, -beta, -alpha)
 
-        // take back move
-        pos.take_back()
-
         // decrement ply
         search.ply--
+
+        // decrement repetitions index
+        search.repetitions_index--
+
+        // take back move
+        pos.take_back()
 
         // fail-hard beta cutoff
         if score >= beta {
@@ -127,6 +139,12 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
     // define hash flag
     hash_flag := hash_flag_alpha
+
+    // if position repetition occurs
+    if search.ply > 0 && search.is_repetition(pos) {
+        // return draw score
+        return 0
+    }
 
     // check if current node is PV node or not
     is_pv_node := beta - alpha > 1
@@ -192,6 +210,10 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
         // increment ply
         search.ply++;
 
+        // increment repetition index and store current hash key
+        search.repetitions_index++
+        search.repetitions_table[search.repetitions_index] = pos.hash_key
+
         // hash enpassant if available
         if pos.enpassant_square != NO_SQ {
             pos.hash_key ^= Zob.enpassant_keys[pos.enpassant_square]
@@ -207,13 +229,16 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
         pos.hash_key ^= Zob.side_key
 
         // search moves with reduced depth to find beta cutoffs 
-        score = -search.negamax(pos, -beta, -beta + 1, depth - 1 - 2);
+        score = -search.negamax(pos, -beta, -beta + 1, depth - 1 - 2)
 
         // decrement ply
-        search.ply--;
+        search.ply--
+
+        // decrement repetitions index
+        search.repetitions_index--
             
         // restore board state
-        pos.take_back();
+        pos.take_back()
 
         // stop search if time is up
         if search.timer.stop == true {
@@ -223,7 +248,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
         // fail-hard beta cutoff
         if (score >= beta) {
             // node (position) fails high
-            return beta;
+            return beta
         }
     }
     
@@ -252,9 +277,14 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
         // increment half move counter
         search.ply++
+
+        // increment repetitions index and store current hash key
+        search.repetitions_index++
+        search.repetitions_table[search.repetitions_index] = pos.hash_key
         
         // skip if move is ilegal
         if !pos.make_move(move, all_moves) {
+            search.repetitions_index--
             search.ply--
             continue
         } 
@@ -288,14 +318,17 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
             }
         }
 
+        // decrement ply
+        search.ply--
+
+        // decrement repetitions index
+        search.repetitions_index--
+
         // take back move
         pos.take_back()
 
         // increment moves searched
         moves_searched++
-
-        // decrement ply
-        search.ply--
 
         // fail-hard beta cutoff
         if score >= beta {
@@ -482,4 +515,18 @@ func (search *Search) reset_info() {
         }
     }
     
+}
+
+func (search *Search) is_repetition(pos Position) bool {
+    // loop over repetitions array
+    for idx := 0; idx < search.repetitions_index; idx++ {
+        // if current repetitions hash key equals pos hash key
+        if search.repetitions_table[idx] == pos.hash_key {
+            // found a repetition
+            return true
+        }
+    }
+
+    // no repetition
+    return false
 }
