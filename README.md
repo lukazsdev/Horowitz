@@ -18,7 +18,4 @@ Only builds for Windows are available in this repository. To build locally on a 
     - [NMP (Null Move Pruning)](https://www.chessprogramming.org/Null_Move_Pruning)
     - [Aspiration windows](https://www.chessprogramming.org/Aspiration_Windows)
     - [Transposition Table](https://www.chessprogramming.org/Transposition_Table#:~:text=A%20Transposition%20Table%2C,tree%20with%20little%20negative%20impact.)
-- Evaluation:
-    - [Material](https://www.chessprogramming.org/Material)
-    - [Piece-square tables](https://www.chessprogramming.org/Piece-Square_Tables)
 

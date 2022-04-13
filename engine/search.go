@@ -137,20 +137,14 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
     // increment nodes
     search.nodes++
 
-    // score of current position
-    score := 0
-
     // initialize PV length
     search.pv_length[search.ply] = search.ply
-
-    // define hash flag
-    hash_flag := hash_flag_alpha
 
     // prevent index out of bounds of array
     if search.ply > max_ply - 1 {
         return evaluate(pos)
     }
-    
+
     // every 2048 nodes, check if time is up
     if (search.nodes & 2047) == 0 {
         search.timer.check()
@@ -161,18 +155,28 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
         return 0
     }
 
+    // score of current position
+    score := 0
+
+    // define hash flag
+    hash_flag := hash_flag_alpha
+
+    // current side to move and opposite side
+    var our_side, their_side = pos.side_to_move, other_side(pos.side_to_move)
+
+    // is king in check
+    king_square := pos.bitboards[get_piece_type(King, our_side)].bsf()
+    in_check := is_square_attacked(king_square, their_side, pos)
+    has_non_pawn_material := pos.non_pawn_material()
+
     // check if current node is PV node or not
     is_pv_node := beta - alpha > 1
 
-    // read hash entry if we're not in a root ply and hash entry is available
-    // and current node is not a PV node
-    score = search.TT.read(pos.hash_key, alpha, beta, search.ply, uint8(depth))
-    if search.ply > 0 && score != no_hash_entry && is_pv_node == false {
-        // if the move has already been searched (hence has a value)
-        // we just return the score for this move without searching it
-        return score
+    // increase depth if king in check
+    if in_check == true {
+        depth++
     }
-    
+
     if depth == 0 {
         // search only captures
         return search.quiescence(pos, alpha, beta)
@@ -184,17 +188,13 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
         return 0
     }
 
-    // current side to move and opposite side
-    var our_side, their_side = pos.side_to_move, other_side(pos.side_to_move)
-
-    // is king in check
-    king_square := pos.bitboards[get_piece_type(King, our_side)].bsf()
-    in_check := is_square_attacked(king_square, their_side, pos)
-    has_non_pawn_material := pos.non_pawn_material()
-
-    // increase depth if king in check
-    if in_check == true {
-        depth++
+    // read hash entry if we're not in a root ply and hash entry is available
+    // and current node is not a PV node
+    score = search.TT.read(pos.hash_key, alpha, beta, search.ply, uint8(depth))
+    if search.ply > 0 && score != no_hash_entry && is_pv_node == false {
+        // if the move has already been searched (hence has a value)
+        // we just return the score for this move without searching it
+        return score
     }
 
     // legal moves counter
@@ -390,6 +390,9 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 }
 
 func (search *Search) position(pos Position, depth int) {
+    // start a search timer
+    start_time := time.Now()
+    
     // initialize best move to no move
     best_move := null_move
 
@@ -410,9 +413,6 @@ func (search *Search) position(pos Position, depth int) {
     for current_depth := 1; current_depth <= depth; current_depth++ {
         // enable follow PV flag
         search.follow_pv = 1
-
-        // start a search timer
-        start_time := time.Now()
 
         // find best move within position
         score := search.negamax(pos, alpha, beta, current_depth)
