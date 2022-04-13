@@ -45,42 +45,42 @@ var KING_ATTACKS_TABLE = [64]Bitboard {
 
 // lookup table for white pawn attacks
 var WHITE_PAWN_ATTACKS = [64]Bitboard {
-	0x200, 0x500, 0xa00, 0x1400,
-	0x2800, 0x5000, 0xa000, 0x4000,
-	0x20000, 0x50000, 0xa0000, 0x140000,
-	0x280000, 0x500000, 0xa00000, 0x400000,
-	0x2000000, 0x5000000, 0xa000000, 0x14000000,
-	0x28000000, 0x50000000, 0xa0000000, 0x40000000,
-	0x200000000, 0x500000000, 0xa00000000, 0x1400000000,
-	0x2800000000, 0x5000000000, 0xa000000000, 0x4000000000,
-	0x20000000000, 0x50000000000, 0xa0000000000, 0x140000000000,
-	0x280000000000, 0x500000000000, 0xa00000000000, 0x400000000000,
-	0x2000000000000, 0x5000000000000, 0xa000000000000, 0x14000000000000,
-	0x28000000000000, 0x50000000000000, 0xa0000000000000, 0x40000000000000,
-	0x200000000000000, 0x500000000000000, 0xa00000000000000, 0x1400000000000000,
-	0x2800000000000000, 0x5000000000000000, 0xa000000000000000, 0x4000000000000000,
-	0x0, 0x0, 0x0, 0x0,
-	0x0, 0x0, 0x0, 0x0,
+    0x200, 0x500, 0xa00, 0x1400,
+    0x2800, 0x5000, 0xa000, 0x4000,
+    0x20000, 0x50000, 0xa0000, 0x140000,
+    0x280000, 0x500000, 0xa00000, 0x400000,
+    0x2000000, 0x5000000, 0xa000000, 0x14000000,
+    0x28000000, 0x50000000, 0xa0000000, 0x40000000,
+    0x200000000, 0x500000000, 0xa00000000, 0x1400000000,
+    0x2800000000, 0x5000000000, 0xa000000000, 0x4000000000,
+    0x20000000000, 0x50000000000, 0xa0000000000, 0x140000000000,
+    0x280000000000, 0x500000000000, 0xa00000000000, 0x400000000000,
+    0x2000000000000, 0x5000000000000, 0xa000000000000, 0x14000000000000,
+    0x28000000000000, 0x50000000000000, 0xa0000000000000, 0x40000000000000,
+    0x200000000000000, 0x500000000000000, 0xa00000000000000, 0x1400000000000000,
+    0x2800000000000000, 0x5000000000000000, 0xa000000000000000, 0x4000000000000000,
+    0x0, 0x0, 0x0, 0x0,
+    0x0, 0x0, 0x0, 0x0,
 }
 
 // lookup table for black pawn attacks
 var BLACK_PAWN_ATTACKS = [64]Bitboard {
-	0x0, 0x0, 0x0, 0x0,
-	0x0, 0x0, 0x0, 0x0,
-	0x2, 0x5, 0xa, 0x14,
-	0x28, 0x50, 0xa0, 0x40,
-	0x200, 0x500, 0xa00, 0x1400,
-	0x2800, 0x5000, 0xa000, 0x4000,
-	0x20000, 0x50000, 0xa0000, 0x140000,
-	0x280000, 0x500000, 0xa00000, 0x400000,
-	0x2000000, 0x5000000, 0xa000000, 0x14000000,
-	0x28000000, 0x50000000, 0xa0000000, 0x40000000,
-	0x200000000, 0x500000000, 0xa00000000, 0x1400000000,
-	0x2800000000, 0x5000000000, 0xa000000000, 0x4000000000,
-	0x20000000000, 0x50000000000, 0xa0000000000, 0x140000000000,
-	0x280000000000, 0x500000000000, 0xa00000000000, 0x400000000000,
-	0x2000000000000, 0x5000000000000, 0xa000000000000, 0x14000000000000,
-	0x28000000000000, 0x50000000000000, 0xa0000000000000, 0x40000000000000,
+    0x0, 0x0, 0x0, 0x0,
+    0x0, 0x0, 0x0, 0x0,
+    0x2, 0x5, 0xa, 0x14,
+    0x28, 0x50, 0xa0, 0x40,
+    0x200, 0x500, 0xa00, 0x1400,
+    0x2800, 0x5000, 0xa000, 0x4000,
+    0x20000, 0x50000, 0xa0000, 0x140000,
+    0x280000, 0x500000, 0xa00000, 0x400000,
+    0x2000000, 0x5000000, 0xa000000, 0x14000000,
+    0x28000000, 0x50000000, 0xa0000000, 0x40000000,
+    0x200000000, 0x500000000, 0xa00000000, 0x1400000000,
+    0x2800000000, 0x5000000000, 0xa000000000, 0x4000000000,
+    0x20000000000, 0x50000000000, 0xa0000000000, 0x140000000000,
+    0x280000000000, 0x500000000000, 0xa00000000000, 0x400000000000,
+    0x2000000000000, 0x5000000000000, 0xa000000000000, 0x14000000000000,
+    0x28000000000000, 0x50000000000000, 0xa0000000000000, 0x40000000000000,
 }
 
 // lookup table for pawn attacks
@@ -88,338 +88,338 @@ var PAWN_ATTACKS_TABLE [2][64]Bitboard
 
 // initialize pawn attacks lookup table
 func initialize_lookup_tables() {
-	for square := 0; square < 64; square++ {
-		PAWN_ATTACKS_TABLE[white][square] = WHITE_PAWN_ATTACKS[square]
-		PAWN_ATTACKS_TABLE[black][square] = BLACK_PAWN_ATTACKS[square]
-	}
+    for square := 0; square < 64; square++ {
+        PAWN_ATTACKS_TABLE[white][square] = WHITE_PAWN_ATTACKS[square]
+        PAWN_ATTACKS_TABLE[black][square] = BLACK_PAWN_ATTACKS[square]
+    }
 }
 
 // slider pseudo move generation (hyperbola quintessence)
 func hyp_quint(square int, occ Bitboard, mask Bitboard) Bitboard {
-	return (((mask & occ) - SQUARE_BB[square] * 2) ^
+    return (((mask & occ) - SQUARE_BB[square] * 2) ^
         reverse(reverse(mask & occ) - reverse(SQUARE_BB[square]) * 2)) & mask;
 }
 
 // returns rook attacks from given square and occupied bitboard
 func get_rook_attacks(square int, occ Bitboard) Bitboard {
-	return hyp_quint(square, occ, MASK_FILE[file_of(square)]) |
+    return hyp_quint(square, occ, MASK_FILE[file_of(square)]) |
         hyp_quint(square, occ, MASK_RANK[rank_of(square)])
 }
 
 // returns bishop attacks from given square and occupied bitboard
 func get_bishop_attacks(square int, occ Bitboard) Bitboard {
-	return hyp_quint(square, occ, MASK_DIAGONAL[diagonal_of(square)]) |
+    return hyp_quint(square, occ, MASK_DIAGONAL[diagonal_of(square)]) |
         hyp_quint(square, occ, MASK_ANTI_DIAGONAL[anti_diagonal_of(square)])
 }
 
 // returns queen attacks from given square and occupied bitboard
 func get_queen_attacks(square int, occ Bitboard) Bitboard {
-	return get_rook_attacks(square, occ) | get_bishop_attacks(square, occ)
+    return get_rook_attacks(square, occ) | get_bishop_attacks(square, occ)
 }
 
 
 func (pos *Position) generate_moves() MoveList {
-	var moves MoveList
-	// current piece bitboard, and its attacks
-	var bitboard, attacks Bitboard
+    var moves MoveList
+    // current piece bitboard, and its attacks
+    var bitboard, attacks Bitboard
 
-	// "from" square and "to" square for current move
-	var source_square, target_square int
+    // "from" square and "to" square for current move
+    var source_square, target_square int
 
-	// current side and opposite side
-	var our_side, their_side uint8 = pos.side_to_move, other_side(pos.side_to_move)
+    // current side and opposite side
+    var our_side, their_side uint8 = pos.side_to_move, other_side(pos.side_to_move)
 
-	// loop over all piece bitboards
-	for piece := white_pawn; piece <= black_king; piece++ {
-		// assign current piece to bitboard
-		bitboard = pos.bitboards[piece]
+    // loop over all piece bitboards
+    for piece := white_pawn; piece <= black_king; piece++ {
+        // assign current piece to bitboard
+        bitboard = pos.bitboards[piece]
 
-		// generate pawns and king castling moves
-		if (our_side == white && piece == white_pawn) || (our_side == black && piece == black_pawn) {
-			// loop over pawns within bitboard
-			for bitboard > 0 {
-				// initialize source square
-				source_square = bitboard.pop_lsb()
+        // generate pawns and king castling moves
+        if (our_side == white && piece == white_pawn) || (our_side == black && piece == black_pawn) {
+            // loop over pawns within bitboard
+            for bitboard > 0 {
+                // initialize source square
+                source_square = bitboard.pop_lsb()
 
-				// generate white pawn moves
-				if our_side == white {
-					// initialize target square
-					target_square = source_square + 8
+                // generate white pawn moves
+                if our_side == white {
+                    // initialize target square
+                    target_square = source_square + 8
 
-					// if target square does not contain any piece
-					if pos.occupied[both].get_bit(target_square) == 0 {
-						// pawn promotion
-						if (source_square>=SQ_A7) && (source_square <= SQ_H7) {
-							moves.add(encode_move(source_square, target_square, piece, white_queen, 0, 0, 0, 0))
-							moves.add(encode_move(source_square, target_square, piece, white_rook, 0, 0, 0, 0))
-							moves.add(encode_move(source_square, target_square, piece, white_bishop, 0, 0, 0, 0))
-							moves.add(encode_move(source_square, target_square, piece, white_knight, 0, 0, 0, 0))
-						} else {
-							// single push
-							moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
-							// double push
-							if (source_square>=SQ_A2) && (source_square<=SQ_H2) && pos.occupied[both].get_bit(target_square + 8) == 0 {
-								moves.add(encode_move(source_square, target_square + 8, piece, 0, 0, 1, 0, 0))
-							}
-						}
-					}
+                    // if target square does not contain any piece
+                    if pos.occupied[both].get_bit(target_square) == 0 {
+                        // pawn promotion
+                        if (source_square>=SQ_A7) && (source_square <= SQ_H7) {
+                            moves.add(encode_move(source_square, target_square, piece, white_queen, 0, 0, 0, 0))
+                            moves.add(encode_move(source_square, target_square, piece, white_rook, 0, 0, 0, 0))
+                            moves.add(encode_move(source_square, target_square, piece, white_bishop, 0, 0, 0, 0))
+                            moves.add(encode_move(source_square, target_square, piece, white_knight, 0, 0, 0, 0))
+                        } else {
+                            // single push
+                            moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
+                            // double push
+                            if (source_square>=SQ_A2) && (source_square<=SQ_H2) && pos.occupied[both].get_bit(target_square + 8) == 0 {
+                                moves.add(encode_move(source_square, target_square + 8, piece, 0, 0, 1, 0, 0))
+                            }
+                        }
+                    }
 
-					// initialize pawn attacks bitboard
-					attacks = PAWN_ATTACKS_TABLE[our_side][source_square] & pos.occupied[black]
+                    // initialize pawn attacks bitboard
+                    attacks = PAWN_ATTACKS_TABLE[our_side][source_square] & pos.occupied[black]
 
-					// generate pawn captures
-					for attacks > 0 {
-						// initialize target square
-						target_square = attacks.pop_lsb()
+                    // generate pawn captures
+                    for attacks > 0 {
+                        // initialize target square
+                        target_square = attacks.pop_lsb()
 
-						// pawn promotion
-						if (source_square>=SQ_A7) && (source_square <= SQ_H7) {
-							moves.add(encode_move(source_square, target_square, piece, white_queen, 1, 0, 0, 0))
-							moves.add(encode_move(source_square, target_square, piece, white_rook, 1, 0, 0, 0))
-							moves.add(encode_move(source_square, target_square, piece, white_bishop, 1, 0, 0, 0))
-							moves.add(encode_move(source_square, target_square, piece, white_knight, 1, 0, 0, 0))
-						} else {
-							// normal capture
-							moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
-						}
-					}
+                        // pawn promotion
+                        if (source_square>=SQ_A7) && (source_square <= SQ_H7) {
+                            moves.add(encode_move(source_square, target_square, piece, white_queen, 1, 0, 0, 0))
+                            moves.add(encode_move(source_square, target_square, piece, white_rook, 1, 0, 0, 0))
+                            moves.add(encode_move(source_square, target_square, piece, white_bishop, 1, 0, 0, 0))
+                            moves.add(encode_move(source_square, target_square, piece, white_knight, 1, 0, 0, 0))
+                        } else {
+                            // normal capture
+                            moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
+                        }
+                    }
 
-					// generate enpassant captures
-					if pos.enpassant_square != NO_SQ {
-						var enpassant_capture Bitboard = PAWN_ATTACKS_TABLE[our_side][source_square] & SQUARE_BB[pos.enpassant_square]
+                    // generate enpassant captures
+                    if pos.enpassant_square != NO_SQ {
+                        var enpassant_capture Bitboard = PAWN_ATTACKS_TABLE[our_side][source_square] & SQUARE_BB[pos.enpassant_square]
 
-						// check if enpassant capture is available
-						if enpassant_capture > 0 {
-							// initialize enpassant target square
-							var target_enpassant int = enpassant_capture.bsf()
-							moves.add(encode_move(source_square, target_enpassant, piece, 0, 1, 0, 1, 0))
-						}
-					}
-				// generate black pawn moves
-				} else {
-					// initialize target square
-					target_square = source_square - 8
+                        // check if enpassant capture is available
+                        if enpassant_capture > 0 {
+                            // initialize enpassant target square
+                            var target_enpassant int = enpassant_capture.bsf()
+                            moves.add(encode_move(source_square, target_enpassant, piece, 0, 1, 0, 1, 0))
+                        }
+                    }
+                // generate black pawn moves
+                } else {
+                    // initialize target square
+                    target_square = source_square - 8
 
-					// if target square does not contain any piece
-					if pos.occupied[both].get_bit(target_square) == 0 {
-						// pawn promotion
-						if (source_square>=SQ_A2) && (source_square <= SQ_H2) {
-							moves.add(encode_move(source_square, target_square, piece, black_queen, 0, 0, 0, 0))
-							moves.add(encode_move(source_square, target_square, piece, black_rook, 0, 0, 0, 0))
-							moves.add(encode_move(source_square, target_square, piece, black_bishop, 0, 0, 0, 0))
-							moves.add(encode_move(source_square, target_square, piece, black_knight, 0, 0, 0, 0))
-						} else {
-							// single push
-							moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
-							// double push
-							if (source_square>=SQ_A7) && (source_square<=SQ_H7) && pos.occupied[both].get_bit(target_square - 8) == 0 {
-								moves.add(encode_move(source_square, target_square - 8, piece, 0, 0, 1, 0, 0))
-							}
-						}
-					}
+                    // if target square does not contain any piece
+                    if pos.occupied[both].get_bit(target_square) == 0 {
+                        // pawn promotion
+                        if (source_square>=SQ_A2) && (source_square <= SQ_H2) {
+                            moves.add(encode_move(source_square, target_square, piece, black_queen, 0, 0, 0, 0))
+                            moves.add(encode_move(source_square, target_square, piece, black_rook, 0, 0, 0, 0))
+                            moves.add(encode_move(source_square, target_square, piece, black_bishop, 0, 0, 0, 0))
+                            moves.add(encode_move(source_square, target_square, piece, black_knight, 0, 0, 0, 0))
+                        } else {
+                            // single push
+                            moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
+                            // double push
+                            if (source_square>=SQ_A7) && (source_square<=SQ_H7) && pos.occupied[both].get_bit(target_square - 8) == 0 {
+                                moves.add(encode_move(source_square, target_square - 8, piece, 0, 0, 1, 0, 0))
+                            }
+                        }
+                    }
 
-					// initialize pawn attacks bitboard
-					attacks = PAWN_ATTACKS_TABLE[our_side][source_square] & pos.occupied[white]
+                    // initialize pawn attacks bitboard
+                    attacks = PAWN_ATTACKS_TABLE[our_side][source_square] & pos.occupied[white]
 
-					// generate pawn captures
-					for attacks > 0 {
-						// initialize target square
-						target_square = attacks.pop_lsb()
+                    // generate pawn captures
+                    for attacks > 0 {
+                        // initialize target square
+                        target_square = attacks.pop_lsb()
 
-						// pawn promotion
-						if (source_square>=SQ_A2) && (source_square <= SQ_H2) {
-							moves.add(encode_move(source_square, target_square, piece, black_queen, 1, 0, 0, 0))
-							moves.add(encode_move(source_square, target_square, piece, black_rook, 1, 0, 0, 0))
-							moves.add(encode_move(source_square, target_square, piece, black_bishop, 1, 0, 0, 0))
-							moves.add(encode_move(source_square, target_square, piece, black_knight, 1, 0, 0, 0))
-						} else {
-							// normal capture
-							moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
-						}
-					}
+                        // pawn promotion
+                        if (source_square>=SQ_A2) && (source_square <= SQ_H2) {
+                            moves.add(encode_move(source_square, target_square, piece, black_queen, 1, 0, 0, 0))
+                            moves.add(encode_move(source_square, target_square, piece, black_rook, 1, 0, 0, 0))
+                            moves.add(encode_move(source_square, target_square, piece, black_bishop, 1, 0, 0, 0))
+                            moves.add(encode_move(source_square, target_square, piece, black_knight, 1, 0, 0, 0))
+                        } else {
+                            // normal capture
+                            moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
+                        }
+                    }
 
-					// generate enpassant captures
-					if pos.enpassant_square != NO_SQ {
-						var enpassant_capture Bitboard = PAWN_ATTACKS_TABLE[our_side][source_square] & SQUARE_BB[pos.enpassant_square]
+                    // generate enpassant captures
+                    if pos.enpassant_square != NO_SQ {
+                        var enpassant_capture Bitboard = PAWN_ATTACKS_TABLE[our_side][source_square] & SQUARE_BB[pos.enpassant_square]
 
-						// check if enpassant capture is available
-						if enpassant_capture > 0 {
-							// initialize enpassant target square
-							var target_enpassant int = enpassant_capture.bsf()
-							moves.add(encode_move(source_square, target_enpassant, piece, 0, 1, 0, 1, 0))
-						}
-					}
-				}
-			}
-		}
+                        // check if enpassant capture is available
+                        if enpassant_capture > 0 {
+                            // initialize enpassant target square
+                            var target_enpassant int = enpassant_capture.bsf()
+                            moves.add(encode_move(source_square, target_enpassant, piece, 0, 1, 0, 1, 0))
+                        }
+                    }
+                }
+            }
+        }
 
-		// castling moves for white
-		if our_side == white && piece == white_king {
-			// check if king side castling is available
-			if (pos.castling_rights & white_kingside_castle) > 0 {
-				// check if squares between king and rook are empty
-				if (pos.occupied[both].get_bit(SQ_F1)==0) && (pos.occupied[both].get_bit(SQ_G1)==0) {
-					// check if king and f1 square are not under attack
-					if is_square_attacked(SQ_E1, black, *pos)==false && is_square_attacked(SQ_F1, black, *pos)==false {
-						moves.add(encode_move(SQ_E1, SQ_G1, piece, 0, 0, 0, 0, 1))
-					}
-				}
-			}
+        // castling moves for white
+        if our_side == white && piece == white_king {
+            // check if king side castling is available
+            if (pos.castling_rights & white_kingside_castle) > 0 {
+                // check if squares between king and rook are empty
+                if (pos.occupied[both].get_bit(SQ_F1)==0) && (pos.occupied[both].get_bit(SQ_G1)==0) {
+                    // check if king and f1 square are not under attack
+                    if is_square_attacked(SQ_E1, black, *pos)==false && is_square_attacked(SQ_F1, black, *pos)==false {
+                        moves.add(encode_move(SQ_E1, SQ_G1, piece, 0, 0, 0, 0, 1))
+                    }
+                }
+            }
 
-			// check if queen side castling is available
-			if (pos.castling_rights & white_queenside_castle) > 0 {
-				// check if squares between king and rook are empty
-				if (pos.occupied[both].get_bit(SQ_D1)==0) && (pos.occupied[both].get_bit(SQ_C1)==0) && (pos.occupied[both].get_bit(SQ_B1)==0) {
-					// check if king and d1 square are not under attack
-					if is_square_attacked(SQ_E1, black, *pos)==false && is_square_attacked(SQ_D1, black, *pos)==false {
-						moves.add(encode_move(SQ_E1, SQ_C1, piece, 0, 0, 0, 0, 1))
-					}
-				}
-			}
-		}
+            // check if queen side castling is available
+            if (pos.castling_rights & white_queenside_castle) > 0 {
+                // check if squares between king and rook are empty
+                if (pos.occupied[both].get_bit(SQ_D1)==0) && (pos.occupied[both].get_bit(SQ_C1)==0) && (pos.occupied[both].get_bit(SQ_B1)==0) {
+                    // check if king and d1 square are not under attack
+                    if is_square_attacked(SQ_E1, black, *pos)==false && is_square_attacked(SQ_D1, black, *pos)==false {
+                        moves.add(encode_move(SQ_E1, SQ_C1, piece, 0, 0, 0, 0, 1))
+                    }
+                }
+            }
+        }
 
-		// castling moves for black
-		if our_side == black && piece == black_king {
-			// check if king side castling is available
-			if (pos.castling_rights & black_kingside_castle) > 0 {
-				// check if squares between king and rook are empty
-				if (pos.occupied[both].get_bit(SQ_F8)==0) && (pos.occupied[both].get_bit(SQ_G8)==0) {
-					// check if king and f1 square are not under attack
-					if is_square_attacked(SQ_E8, white, *pos)==false && is_square_attacked(SQ_F8, white, *pos)==false {
-						
-						moves.add(encode_move(SQ_E8, SQ_G8, piece, 0, 0, 0, 0, 1))
-					}
-				}
-			}
+        // castling moves for black
+        if our_side == black && piece == black_king {
+            // check if king side castling is available
+            if (pos.castling_rights & black_kingside_castle) > 0 {
+                // check if squares between king and rook are empty
+                if (pos.occupied[both].get_bit(SQ_F8)==0) && (pos.occupied[both].get_bit(SQ_G8)==0) {
+                    // check if king and f1 square are not under attack
+                    if is_square_attacked(SQ_E8, white, *pos)==false && is_square_attacked(SQ_F8, white, *pos)==false {
+                        
+                        moves.add(encode_move(SQ_E8, SQ_G8, piece, 0, 0, 0, 0, 1))
+                    }
+                }
+            }
 
-			// check if queen side castling is available
-			if (pos.castling_rights & black_queenside_castle) > 0 {
-				// check if squares between king and rook are empty
-				if (pos.occupied[both].get_bit(SQ_D8)==0) && (pos.occupied[both].get_bit(SQ_C8)==0) && (pos.occupied[both].get_bit(SQ_B8)==0) {
-					// check if king and d1 square are not under attack
-					if is_square_attacked(SQ_E8, white, *pos)==false && is_square_attacked(SQ_D8, white, *pos)==false {
-						moves.add(encode_move(SQ_E8, SQ_C8, piece, 0, 0, 0, 0, 1))
-					}
-				}
-			}
-		}		
+            // check if queen side castling is available
+            if (pos.castling_rights & black_queenside_castle) > 0 {
+                // check if squares between king and rook are empty
+                if (pos.occupied[both].get_bit(SQ_D8)==0) && (pos.occupied[both].get_bit(SQ_C8)==0) && (pos.occupied[both].get_bit(SQ_B8)==0) {
+                    // check if king and d1 square are not under attack
+                    if is_square_attacked(SQ_E8, white, *pos)==false && is_square_attacked(SQ_D8, white, *pos)==false {
+                        moves.add(encode_move(SQ_E8, SQ_C8, piece, 0, 0, 0, 0, 1))
+                    }
+                }
+            }
+        }		
 
-		// generate knight moves
-		
-		if (our_side == white && piece == white_knight) || (our_side == black && piece == black_knight) {
-			for bitboard > 0 {
-				source_square = bitboard.pop_lsb()
-				attacks = KNIGHT_ATTACKS_TABLE[source_square] & (^pos.occupied[our_side])
-				for attacks > 0 {
-					// initialize target square and pop LSB
-					target_square = attacks.pop_lsb()
-					// quiet move
-					if pos.occupied[their_side].get_bit(target_square) == 0 {
-						moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
+        // generate knight moves
+        
+        if (our_side == white && piece == white_knight) || (our_side == black && piece == black_knight) {
+            for bitboard > 0 {
+                source_square = bitboard.pop_lsb()
+                attacks = KNIGHT_ATTACKS_TABLE[source_square] & (^pos.occupied[our_side])
+                for attacks > 0 {
+                    // initialize target square and pop LSB
+                    target_square = attacks.pop_lsb()
+                    // quiet move
+                    if pos.occupied[their_side].get_bit(target_square) == 0 {
+                        moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
 
-					// capture move
-					} else {
-						moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
-					}
-				}
-			}
-		} 
-		
-		// generate bishop moves
-		if (our_side == white && piece == white_bishop) || (our_side == black && piece == black_bishop) {
-			for bitboard > 0 {
-				source_square = bitboard.pop_lsb()
-				attacks = get_bishop_attacks(source_square, pos.occupied[both]) & (^pos.occupied[our_side])
-				for attacks > 0 {
-					// initialize target square and pop LSB
-					target_square = attacks.pop_lsb()
-					// quiet move
-					if pos.occupied[their_side].get_bit(target_square) == 0 {
-						moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
+                    // capture move
+                    } else {
+                        moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
+                    }
+                }
+            }
+        } 
+        
+        // generate bishop moves
+        if (our_side == white && piece == white_bishop) || (our_side == black && piece == black_bishop) {
+            for bitboard > 0 {
+                source_square = bitboard.pop_lsb()
+                attacks = get_bishop_attacks(source_square, pos.occupied[both]) & (^pos.occupied[our_side])
+                for attacks > 0 {
+                    // initialize target square and pop LSB
+                    target_square = attacks.pop_lsb()
+                    // quiet move
+                    if pos.occupied[their_side].get_bit(target_square) == 0 {
+                        moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
 
-					// capture move
-					} else {
-						moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
-					}
-				}
-			}
-		} 
-		// generate rook moves
-		if (our_side == white && piece == white_rook) || (our_side == black && piece == black_rook) {
-			for bitboard > 0 {
-				source_square = bitboard.pop_lsb()
-				attacks = get_rook_attacks(source_square, pos.occupied[both]) & (^pos.occupied[our_side])
-				for attacks > 0 {
-					// initialize target square and pop LSB
-					target_square = attacks.pop_lsb()
-					// quiet move
-					if pos.occupied[their_side].get_bit(target_square) == 0 {
-						moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
+                    // capture move
+                    } else {
+                        moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
+                    }
+                }
+            }
+        } 
+        // generate rook moves
+        if (our_side == white && piece == white_rook) || (our_side == black && piece == black_rook) {
+            for bitboard > 0 {
+                source_square = bitboard.pop_lsb()
+                attacks = get_rook_attacks(source_square, pos.occupied[both]) & (^pos.occupied[our_side])
+                for attacks > 0 {
+                    // initialize target square and pop LSB
+                    target_square = attacks.pop_lsb()
+                    // quiet move
+                    if pos.occupied[their_side].get_bit(target_square) == 0 {
+                        moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
 
-					// capture move
-					} else {
-						moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
-					}
-				}
-			}
-		} 
-		// generate queen moves
-		if (our_side == white && piece == white_queen) || (our_side == black && piece == black_queen) {
-			for bitboard > 0 {
-				source_square = bitboard.pop_lsb()
-				attacks = get_queen_attacks(source_square, pos.occupied[both]) & (^pos.occupied[our_side])
-				for attacks > 0 {
-					// initialize target square and pop LSB
-					target_square = attacks.pop_lsb()
-					// quiet move
-					if pos.occupied[their_side].get_bit(target_square) == 0 {
-						moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
+                    // capture move
+                    } else {
+                        moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
+                    }
+                }
+            }
+        } 
+        // generate queen moves
+        if (our_side == white && piece == white_queen) || (our_side == black && piece == black_queen) {
+            for bitboard > 0 {
+                source_square = bitboard.pop_lsb()
+                attacks = get_queen_attacks(source_square, pos.occupied[both]) & (^pos.occupied[our_side])
+                for attacks > 0 {
+                    // initialize target square and pop LSB
+                    target_square = attacks.pop_lsb()
+                    // quiet move
+                    if pos.occupied[their_side].get_bit(target_square) == 0 {
+                        moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
 
-					// capture move
-					} else {
-						moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
-					}
-				}
-			}
-		} 
-		// generate king moves
-		if (our_side == white && piece == white_king) || (our_side == black && piece == black_king) {
-			for bitboard > 0 {
-				source_square = bitboard.pop_lsb()
-				attacks = KING_ATTACKS_TABLE[source_square] & (^pos.occupied[our_side])
-				for attacks > 0 {
-					// initialize target square and pop LSB
-					target_square = attacks.pop_lsb()
-					// quiet move
-					if pos.occupied[their_side].get_bit(target_square) == 0 {
-						moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
+                    // capture move
+                    } else {
+                        moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
+                    }
+                }
+            }
+        } 
+        // generate king moves
+        if (our_side == white && piece == white_king) || (our_side == black && piece == black_king) {
+            for bitboard > 0 {
+                source_square = bitboard.pop_lsb()
+                attacks = KING_ATTACKS_TABLE[source_square] & (^pos.occupied[our_side])
+                for attacks > 0 {
+                    // initialize target square and pop LSB
+                    target_square = attacks.pop_lsb()
+                    // quiet move
+                    if pos.occupied[their_side].get_bit(target_square) == 0 {
+                        moves.add(encode_move(source_square, target_square, piece, 0, 0, 0, 0, 0))
 
-					// capture move
-					} else {
-						moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
-					}
-				}
-			}
-		}
-	}
+                    // capture move
+                    } else {
+                        moves.add(encode_move(source_square, target_square, piece, 0, 1, 0, 0, 0))
+                    }
+                }
+            }
+        }
+    }
 
-	return moves
+    return moves
 }
 
 
 // checks if square is attacked by the given side
 func is_square_attacked(square int, side uint8, pos Position) bool {
-	if square != NO_SQ {
-		if side == white && ((PAWN_ATTACKS_TABLE[black][square] & pos.bitboards[white_pawn]) > 0) { return true }
-		if side == black && ((PAWN_ATTACKS_TABLE[white][square] & pos.bitboards[black_pawn]) > 0) { return true }
+    if square != NO_SQ {
+        if side == white && ((PAWN_ATTACKS_TABLE[black][square] & pos.bitboards[white_pawn]) > 0) { return true }
+        if side == black && ((PAWN_ATTACKS_TABLE[white][square] & pos.bitboards[black_pawn]) > 0) { return true }
 
-		if (KNIGHT_ATTACKS_TABLE[square] & pos.bitboards[6 * side + white_knight]) > 0 { return true }
-		if (KING_ATTACKS_TABLE[square] & pos.bitboards[6 * side + white_king])     > 0 { return true }
+        if (KNIGHT_ATTACKS_TABLE[square] & pos.bitboards[6 * side + white_knight]) > 0 { return true }
+        if (KING_ATTACKS_TABLE[square] & pos.bitboards[6 * side + white_king])     > 0 { return true }
 
-		if (get_bishop_attacks(square, pos.occupied[both]) & pos.bitboards[6 * side + white_bishop]) > 0 { return true }
-		if (get_rook_attacks(square, pos.occupied[both])   & pos.bitboards[6 * side + white_rook])   > 0 { return true }
-		if (get_queen_attacks(square, pos.occupied[both])  & pos.bitboards[6 * side + white_queen])  > 0 { return true }
-	}
+        if (get_bishop_attacks(square, pos.occupied[both]) & pos.bitboards[6 * side + white_bishop]) > 0 { return true }
+        if (get_rook_attacks(square, pos.occupied[both])   & pos.bitboards[6 * side + white_rook])   > 0 { return true }
+        if (get_queen_attacks(square, pos.occupied[both])  & pos.bitboards[6 * side + white_queen])  > 0 { return true }
+    }
 
-	return false
+    return false
 }
