@@ -58,7 +58,7 @@ func (uci *UCIInterface) print_engine_info() {
 }
 
 func (uci *UCIInterface) boot_engine() {
-    fmt.Print("Horowitz: UCI-compatible chess engine written in Go\n")
+    fmt.Print("Horowitz v1.0: UCI-compatible chess engine written in Go\n")
 
     initialize_lookup_tables()
     Zob.init_random_keys()
