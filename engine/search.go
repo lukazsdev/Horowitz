@@ -43,10 +43,6 @@ const (
     null_move Move = 0
 )
 
-// margins for futility pruning and late move pruning
-var futility_margins = [9]int{0, 100, 160, 220, 280, 340, 400, 460, 520}
-var late_move_pruning_margins = [4]int{0, 8, 12, 24}
-
 // quiescence search (only search captures)
 func (search *Search) quiescence(pos Position, alpha, beta int) int {
     // evaluation
@@ -178,12 +174,16 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
 
     // check if current node is PV node or not
     is_pv_node := beta - alpha > 1
+
+    // can futility prune
     can_futility_prune := false
 
+    
     // increase depth if king in check
     if in_check == true {
         depth++
     }
+    
 
     if depth == 0 {
         // search only captures
@@ -207,6 +207,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
     
     
     
+    
     // static null move pruning
     if in_check == false && is_pv_node == false && abs(beta) < checkmate {
         // if current material - score margin is still good, prune branch
@@ -214,9 +215,11 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
         score_margin := static_nmp_margin * depth
 
         if static_score - score_margin >= beta {
+            //return beta
             return beta
         }
     }
+    
     
     
 
@@ -270,7 +273,6 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
         }
     }
 
-    
     // futility pruning
     if depth <= 8 && is_pv_node == false && in_check == false && alpha < checkmate {
         static_score := evaluate(pos)
@@ -278,8 +280,6 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
             can_futility_prune = true
         }
     }
-    
-    
 
     // legal moves counter
     legal_moves := 0
@@ -323,8 +323,6 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
         // increment legal moves
         legal_moves++
 
-        
-        
         // late move pruning
         if depth <= 3 && !is_pv_node && !in_check && legal_moves > late_move_pruning_margins[depth] {
             tactical := in_check || (move.get_move_promoted() > 0)
@@ -336,9 +334,6 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
             }
         }
         
-        
-
-        
         // futility pruning
         if can_futility_prune && legal_moves > 1 {
             tactical := in_check || (move.get_move_capture() > 0) || (move.get_move_promoted() > 0)
@@ -349,8 +344,7 @@ func (search *Search) negamax(pos Position, alpha, beta, depth int) int {
                 continue
             }
         }
-        
-        
+
 
         // full depth search
         if moves_searched == 0 {

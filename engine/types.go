@@ -55,6 +55,10 @@ const (
     only_captures uint8 = 1
 )
 
+// margins for futility pruning and late move pruning
+var futility_margins = [9]int{0, 100, 160, 220, 280, 340, 400, 460, 520}
+var late_move_pruning_margins = [4]int{0, 8, 12, 24}
+
 var char_to_piece map[byte]uint8 = map[byte]uint8{
     'P': white_pawn,
     'N': white_knight,
