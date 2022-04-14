@@ -5,7 +5,7 @@ package main
 const (
     // game phase scores
     opening_phase_score = 6192
-    endphase_score = 518
+    endgame_phase_score = 518
 
     // game phases
     opening uint8    = 0
@@ -349,7 +349,7 @@ func get_phase(phase_score int) uint8 {
         return opening
 
     // return endgame phase if score > endgame phase
-    } else if phase_score < endphase_score {
+    } else if phase_score < endgame_phase_score {
         return endgame
     }
 
