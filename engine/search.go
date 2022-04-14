@@ -466,7 +466,7 @@ func (search *Search) position(pos Position, depth int) {
     beta  :=  infinity
 
     // iterative deepening
-    for current_depth := 1; current_depth <= depth; current_depth++ {
+    for current_depth := 1; current_depth < depth; current_depth++ {
         // enable follow PV flag
         search.follow_pv = 1
 
