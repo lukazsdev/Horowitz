@@ -1,3 +1,5 @@
+#pragma once
+
 #include "chess.hpp"
 
 // game phase scores

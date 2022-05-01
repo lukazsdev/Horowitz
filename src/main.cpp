@@ -1,6 +1,7 @@
 #include <iostream>
 #include "chess.hpp"
 #include "evaluate.hpp"
+#include "search.hpp"
 
 using namespace Testing;
 
@@ -9,7 +10,6 @@ int main() {
     //perft.RunPerftTest();
     Position pos = Position("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
     pos.print();
-    int score = evaluate(pos);
-    std::cout << "score: " << score << std::endl;
-    return 0;
+    Search search;
+    search.search<White>(pos, 4);
 }
