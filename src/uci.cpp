@@ -1,5 +1,6 @@
 #include "uci.h"
 
+// main UCI loop
 void UCIInterface::UCILoop() {
     bootEngine();
     std::string line;

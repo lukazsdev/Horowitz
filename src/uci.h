@@ -3,6 +3,7 @@
 #include "chess.h"
 #include "search.h"
 
+// class for UCI Protocol
 class UCIInterface {
 public:
     Position pos;

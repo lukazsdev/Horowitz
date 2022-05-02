@@ -55,6 +55,7 @@ public:
 // Quiescence search
 template<Color c> 
 int Search::quiescence(Position pos, int alpha, int beta) {
+    // static evaluation
     int evaluation = evaluate(pos);
 
     nodes++;
