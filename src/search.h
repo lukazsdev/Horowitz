@@ -11,6 +11,23 @@ static constexpr int infinity = 10000;
 static constexpr int checkmate = 9000;
 static constexpr int windowSize = 50;
 
+// MVV LVA [attacker][victim]
+static constexpr int MVV_LVA[12][12] = {
+    {105, 205, 305, 405, 505, 605,  105, 205, 305, 405, 505, 605},
+    {104, 204, 304, 404, 504, 604,  104, 204, 304, 404, 504, 604},
+    {103, 203, 303, 403, 503, 603,  103, 203, 303, 403, 503, 603},
+    {102, 202, 302, 402, 502, 602,  102, 202, 302, 402, 502, 602},
+    {101, 201, 301, 401, 501, 601,  101, 201, 301, 401, 501, 601},
+    {100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600},
+
+    {105, 205, 305, 405, 505, 605,  105, 205, 305, 405, 505, 605},
+    {104, 204, 304, 404, 504, 604,  104, 204, 304, 404, 504, 604},
+    {103, 203, 303, 403, 503, 603,  103, 203, 303, 403, 503, 603},
+    {102, 202, 302, 402, 502, 602,  102, 202, 302, 402, 502, 602},
+    {101, 201, 301, 401, 501, 601,  101, 201, 301, 401, 501, 601},
+    {100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600}
+};
+
 class Search {
 public:
     uint64_t nodes;
@@ -22,11 +39,18 @@ public:
     int followPV, scorePV;
 
 public:
+    // main search functions
     template<Color c> void search(Position pos, int depth);
     template<Color c> int quiescence(Position pos, int alpha, int beta);
     template<Color c> int negamax(Position pos, int alpha, int beta, int depth);
+
+    // move ordering/scoring functions
+    int scoreMove(Position pos, Move move);
+    void sortMoves(Position pos, Moves &moveList);
+    void enablePVScoring(Moves moveList);
 };
 
+// Quiescence search
 template<Color c> 
 int Search::quiescence(Position pos, int alpha, int beta) {
     int evaluation = evaluate(pos);
@@ -44,6 +68,14 @@ int Search::quiescence(Position pos, int alpha, int beta) {
 
     // legal moves list
     Moves moveList = pos.generateLegalMoves<c>();
+
+    // if we are following PV line
+    if (followPV == 1) 
+        // enable PV move scoring
+        enablePVScoring(moveList);
+
+    // sort moves
+    sortMoves(pos, moveList);
 
     // iterate over legal moves
     for (int i = 0; i < moveList.count; i++) {
@@ -86,7 +118,7 @@ int Search::quiescence(Position pos, int alpha, int beta) {
  
 }
 
-// negamax search
+// Negamax search
 template<Color c> 
 int Search::negamax(Position pos, int alpha, int beta, int depth) {
     // increment nodes
@@ -116,6 +148,9 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
 
     // legal moves list
     Moves moveList = pos.generateLegalMoves<c>();
+
+    // sort moves
+    sortMoves(pos, moveList);
 
     // iterate over legal moves
     for (int i = 0; i < moveList.count; i++) {
@@ -190,10 +225,10 @@ void Search::search(Position pos, int depth) {
     //int lastScore = 0;
 
     // reset search info
-    nodes = 0;
-    ply = 0;
+    nodes    = 0;
+    ply      = 0;
     followPV = 0;
-    scorePV = 0;
+    scorePV  = 0;
 
     memset(pvLength, 0, sizeof(pvLength));
     memset(pvTable, 0, sizeof(pvTable));

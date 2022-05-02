@@ -317,6 +317,8 @@ Piece makePiece(PieceType type) {
   return Piece(6 * c + type);
 }
 
+Piece makePiece(Color c, PieceType type);
+
 /**********************************\
  ==================================
              Bit functions
@@ -445,10 +447,18 @@ public:
     inline bool promoted() {
         return bool((move & 0b1000000000000000) >> 15);
     }
+
+    // comparision operator
+    inline bool operator==(const Move& m) const {
+        return move == m.move;
+    }
+
     // returns move in UCI string format
     std::string toUci() {
         return squareToString[this->source()] + squareToString[this->target()];
     }
+
+
 };
 
 // move list

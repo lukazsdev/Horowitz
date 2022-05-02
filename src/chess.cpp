@@ -92,6 +92,10 @@ Color piece_color(Piece p){
     return Color(p / 6);
 }
 
+Piece makePiece(Color c, PieceType type) {
+  return Piece(6 * c + type);
+}
+
 int squareDistance(Square a, Square b) {
     return std::max(std::abs(file_of(a) - file_of(b)), std::abs(rank_of(a) - rank_of(b)));
 }
