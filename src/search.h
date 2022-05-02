@@ -50,6 +50,11 @@ int Search::quiescence(Position pos, int alpha, int beta) {
         // initialize current move
         Move move = moveList.moves[i];
 
+        // check if move isn't a capture
+        if (pos.board[move.target()] == None) 
+            continue;
+        
+
         // increment ply
         ply++;
 
