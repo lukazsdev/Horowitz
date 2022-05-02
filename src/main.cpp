@@ -1,4 +1,5 @@
 #include <iostream>
+#include <thread>
 #include "chess.h"
 #include "evaluate.h"
 #include "search.h"

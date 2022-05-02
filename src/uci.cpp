@@ -1,11 +1,10 @@
-#include <sstream>
 #include "uci.h"
 
 void UCIInterface::UCILoop() {
     bootEngine();
     std::string line;
     while (std::getline(std::cin, line)) {
-        std::istringstream iss(line);
+        iss = std::istringstream(line);
         std::string command;
         iss >> command;
         if (command == "uci") {
@@ -46,14 +45,15 @@ void UCIInterface::UCILoop() {
             }
         }
         else if (command == "go") {
-            if (pos.sideToMove == White) 
-                search.search<White>(pos, maxPly+1);
-            else
-                search.search<Black>(pos, maxPly+1);
-
+            stopThread();
+            parseGoCommand();
         }
         else if (command == "quit") {
+            stopThread();
             break;
+        }
+        else if (command == "stop") {
+            stopThread();
         }
         else if (command == "print") {
             pos.print();
@@ -91,8 +91,79 @@ Move UCIInterface::parseMove(std::string moveUci) {
     return Move();
 }
 
+void UCIInterface::parseGoCommand() {
+    std::string line;
+    std::string command;
+
+    int timeLeft   = InfiniteTime;
+    int increment  = NoValue;
+    int movesToGo  = NoValue;
+    int searchTime = NoValue;
+    int depth      = maxPly;
+
+    char colorPrefix = (pos.sideToMove == White) ? 'w' : 'b';
+
+    for (int i = 0; i < 20; i++) {
+        iss >> command;
+        if (command == "wtime"      && colorPrefix == 'w') {
+            iss >> timeLeft;
+        }
+        else if (command == "btime" && colorPrefix == 'b') {
+            iss >> timeLeft;
+        }
+        else if (command == "winc"  && colorPrefix == 'w') {
+            iss >> increment;
+        }
+        else if (command == "binc"  && colorPrefix == 'b') {
+            iss >> increment;
+        }
+        else if (command == "movestogo") {
+            iss >> movesToGo;
+        }
+        else if (command == "depth") {
+            iss >> depth;
+        }
+        else if (command == "movetime") {
+            iss >> timeLeft;
+        }
+    }
+
+    // Set the time_left to NoValue if we're already given a move time
+    // to use via movetime.
+    if (searchTime != NoValue) 
+        timeLeft = NoValue;
+
+    // Setup the timer with the go command time control information.
+    search.timer.setHardTimeForMove(searchTime);
+    search.timer.TimeLeft = timeLeft;
+    search.timer.Increment = increment;
+    search.timer.MovesToGo = movesToGo;
+
+    beginThread(depth);
+}
+
 void UCIInterface::bootEngine() {
     pos = Position();
+    search.timer.Stop = false;
     
-    std::cout << "Horowitz v2.0: UCI Compatible chess engine\n";
+    std::cout << "Horowitz v2.0: UCI-Compatible chess engine\n";
+}
+
+void UCIInterface::beginThread(int depth) {
+    if (isSearching()) 
+        stopThread();
+    search.timer.Stop = false;
+    threads = pos.sideToMove == White ?
+            std::thread(&Search::search<White>, std::ref(search), pos, depth) :
+            std::thread(&Search::search<Black>, std::ref(search), pos, depth);
+}
+
+void UCIInterface::stopThread() {
+    search.timer.Stop = true;
+    if (threads.joinable()) 
+        threads.join();
+}
+
+bool UCIInterface::isSearching() {
+    return threads.joinable();
 }

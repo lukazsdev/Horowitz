@@ -4,6 +4,7 @@
 #include "chess.h"
 #include "search.h"
 #include "evaluate.h"
+#include "timemanager.h"
 
 // search constants
 static constexpr int maxPly = 64;
@@ -30,6 +31,7 @@ static constexpr int MVV_LVA[12][12] = {
 
 class Search {
 public:
+    TimeManager timer;
     uint64_t nodes;
     int ply;
 
@@ -59,6 +61,14 @@ int Search::quiescence(Position pos, int alpha, int beta) {
 
     if (ply > maxPly - 1)
         return evaluation;
+
+    // every 2048 nodes, check if time is up
+    if ((nodes & 2047) == 0 )
+        timer.Check();
+    
+    // stop search if time is up
+    if (timer.Stop)
+        return 0;
     
     if (evaluation >= beta)
         return beta;
@@ -132,6 +142,16 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
     if (ply >= maxPly) {
         return evaluate(pos);
     }
+
+    // every 2048 nodes, check if time is up
+    if ((nodes & 2047) == 0)
+        timer.Check();
+    
+    // stop search if time is up
+    if (timer.Stop) {
+        return 0;
+    }
+    
 
     // check if king is in check
     bool in_check = pos.isSquareAttacked<~c>(pos.KingSq<c>());
@@ -218,11 +238,17 @@ void Search::search(Position pos, int depth) {
     // start search timer
     auto t1 = std::chrono::high_resolution_clock::now();
 
+    // start time manager timer
+    timer.Start();
+
+    // null move
+    Move nullMove = Move(NO_SQ, NO_SQ, Nonetype, 0);
+
     // initialize best move to null (no move)
-    Move *bestMove = NULL;
+    Move bestMove = nullMove;
 
     // last iteration score
-    //int lastScore = 0;
+    int lastScore = 0;
 
     // reset search info
     nodes    = 0;
@@ -249,6 +275,14 @@ void Search::search(Position pos, int depth) {
         auto t2 = std::chrono::high_resolution_clock::now();
         auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1);
 
+        // stop if time is up and return best move
+        if (timer.Stop) {
+            if (bestMove == nullMove && currentDepth == 1) 
+                bestMove = pvTable[0][0];
+            break;
+        }
+        
+
         // adjust aspiration window technique
         if ((score <= alpha) || (score >= beta)) {
             alpha = -infinity;
@@ -260,8 +294,14 @@ void Search::search(Position pos, int depth) {
         alpha = score - windowSize;
         beta = score + windowSize;
 
+
+        // If the score between this current iteration and the last iteration drops,
+        // take more time on the current search to make sure we find the best move.
+        if (currentDepth > 1 && lastScore > score && lastScore-score >= 30) 
+            timer.setSoftTimeForMove(timer.softTimeForMove * 13 / 10);
+
         // save current best move
-        bestMove = &pvTable[0][0];
+        bestMove = pvTable[0][0];
 
         // if PV is available (print search info)
         if (pvLength[0] > 0) {
@@ -291,10 +331,10 @@ void Search::search(Position pos, int depth) {
         std::cout << std::endl;
 
         // set previous score to current score
-        //lastScore = score;
+        lastScore = score;
     }
 
-    std::cout << "bestmove " << bestMove->toUci() << std::endl;
+    std::cout << "bestmove " << bestMove.toUci() << std::endl;
 }
 
 
