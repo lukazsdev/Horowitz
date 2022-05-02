@@ -47,9 +47,9 @@ void UCIInterface::UCILoop() {
         }
         else if (command == "go") {
             if (pos.sideToMove == White) 
-                search.search<White>(pos, maxPly + 1);
+                search.search<White>(pos, maxPly+1);
             else
-                search.search<Black>(pos, maxPly + 1);
+                search.search<Black>(pos, maxPly+1);
 
         }
         else if (command == "quit") {

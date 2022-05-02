@@ -27,6 +27,60 @@ public:
     template<Color c> int negamax(Position pos, int alpha, int beta, int depth);
 };
 
+template<Color c> 
+int Search::quiescence(Position pos, int alpha, int beta) {
+    int evaluation = evaluate(pos);
+
+    nodes++;
+
+    if (ply > maxPly - 1)
+        return evaluation;
+    
+    if (evaluation >= beta)
+        return beta;
+
+    if (evaluation > alpha)
+        alpha = evaluation;
+
+    // legal moves list
+    Moves moveList = pos.generateLegalMoves<c>();
+
+    // iterate over legal moves
+    for (int i = 0; i < moveList.count; i++) {
+        // initialize current move
+        Move move = moveList.moves[i];
+
+        // increment ply
+        ply++;
+
+        // make move
+        pos.makemove<c>(move);
+
+        // recursively call negamax
+        int score = -quiescence<~c>(pos, -beta, -alpha);
+
+        // unmake move
+        pos.unmakemove<c>(move);
+
+        // decrement ply
+        ply--;
+
+        // fail-hard beta cutoff
+        if (score >= beta) {
+            return beta;
+        }
+
+        // found a better move
+        if (score > alpha) {
+            // PV node (move)
+            alpha = score;
+        }
+    }
+
+    return alpha;
+ 
+}
+
 // negamax search
 template<Color c> 
 int Search::negamax(Position pos, int alpha, int beta, int depth) {
@@ -46,8 +100,10 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
     bool in_check = pos.isSquareAttacked<~c>(pos.KingSq<c>());
 
     // check if we have reached the depth limit
+    // then search all possible captures 
     if (depth == 0) {
-        return evaluate(pos);
+        //return evaluate(pos);
+        return quiescence<c>(pos, alpha, beta);
     }
 
     // legal moves counter

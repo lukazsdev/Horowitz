@@ -1,5 +1,5 @@
-out: main.o chess.o search.o evaluate.o uci.o
-	g++ main.o chess.o search.o evaluate.o uci.o -Wall -o out 
+horowitz.o: main.o chess.o search.o evaluate.o uci.o
+	g++ main.o chess.o search.o evaluate.o uci.o -Wall -o horowitz
 
 main.o: main.cpp
 	g++ -c -flto -O3 -msse2 -march=native -std=c++17 -static-libgcc -static-libstdc++ -Wall main.cpp
