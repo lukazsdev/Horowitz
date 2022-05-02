@@ -1,6 +1,6 @@
 #pragma once
 
-#include "chess.hpp"
+#include "chess.h"
 
 // game phase scores
 static constexpr int openingPhaseScore = 6192;

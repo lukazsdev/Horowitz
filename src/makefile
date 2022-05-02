@@ -1,17 +1,20 @@
-out: main.o chess.o search.o evaluate.o
-	g++ main.o chess.o search.o evaluate.o -Wall -o out 
+out: main.o chess.o search.o evaluate.o uci.o
+	g++ main.o chess.o search.o evaluate.o uci.o -Wall -o out 
 
 main.o: main.cpp
 	g++ -c -flto -O3 -msse2 -march=native -std=c++17 -static-libgcc -static-libstdc++ -Wall main.cpp
 
-chess.o: chess.cpp chess.hpp
+chess.o: chess.cpp chess.h
 	g++ -c -flto -O3 -msse2 -march=native -std=c++17 -static-libgcc -static-libstdc++ -Wall chess.cpp
 
-search.o: search.cpp search.hpp
+search.o: search.cpp search.h
 	g++ -c -flto -O3 -msse2 -march=native -std=c++17 -static-libgcc -static-libstdc++ -Wall search.cpp
 
-evaluate.o: evaluate.cpp evaluate.hpp
+evaluate.o: evaluate.cpp evaluate.h
 	g++ -c -flto -O3 -msse2 -march=native -std=c++17 -static-libgcc -static-libstdc++ -Wall evaluate.cpp
+
+uci.o: uci.cpp uci.h
+	g++ -c -flto -O3 -msse2 -march=native -std=c++17 -static-libgcc -static-libstdc++ -Wall uci.cpp
 
 clean:
 	del *.o *.exe

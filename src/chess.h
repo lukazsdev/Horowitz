@@ -112,6 +112,14 @@ static std::unordered_map<char, Piece> charToPiece({
     { 'k', BlackKing }
 });
 
+// map a promoted piece to its corresponding character
+static std::unordered_map<PieceType, char> promotedPieceToChar({
+    { Knight, 'n' },
+    { Bishop, 'b' },
+    { Rook, 'r' },
+    { Queen, 'q' }
+});
+
 // map a square to its string representation
 const std::string squareToString[64] = {
     "a1", "b1", "c1", "d1", "e1", "f1", "g1", "h1",

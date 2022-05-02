@@ -1,4 +1,4 @@
-#include "evaluate.hpp"
+#include "evaluate.h"
 
 int evaluate(Position pos) {
     Evaluation eval;

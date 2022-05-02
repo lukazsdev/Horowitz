@@ -1,9 +1,9 @@
 #pragma once
 
 #include <chrono>
-#include "chess.hpp"
-#include "search.hpp"
-#include "evaluate.hpp"
+#include "chess.h"
+#include "search.h"
+#include "evaluate.h"
 
 // search constants
 static constexpr int maxPly = 64;
@@ -126,7 +126,7 @@ void Search::search(Position pos, int depth) {
     Move *bestMove = NULL;
 
     // last iteration score
-    int lastScore = 0;
+    //int lastScore = 0;
 
     // reset search info
     nodes = 0;
@@ -142,12 +142,12 @@ void Search::search(Position pos, int depth) {
     int beta = infinity;
 
     // iterative deepening loop
-    for (int currentDepth = 1; currentDepth < depth; currentDepth++) {
+    for (int currentDepth = 1; currentDepth <= depth; currentDepth++) {
         // enable follow PV line flag
         followPV = 1;
 
         // search for best move within position
-        int score = negamax<c>(pos, -infinity, infinity, depth);
+        int score = negamax<c>(pos, -infinity, infinity, currentDepth);
 
         // get cumulative search time
         auto t2 = std::chrono::high_resolution_clock::now();
@@ -184,15 +184,18 @@ void Search::search(Position pos, int depth) {
         }
 
         // loop over pv line
-        std::cout << "pv: ";
         for (int i = 0; i < pvLength[0]; i++) {
             // print move
-            std::cout << pvTable[0][i].toUci() << " ";
+            Move pvMove = pvTable[0][i];
+            if (pvMove.promoted()) {
+                std::cout << pvMove.toUci() << promotedPieceToChar[pvMove.piece()] << " ";
+            }
+            else std::cout << pvMove.toUci() << " ";
         }
         std::cout << std::endl;
 
         // set previous score to current score
-        lastScore = score;
+        //lastScore = score;
     }
 
     std::cout << "bestmove " << bestMove->toUci() << std::endl;

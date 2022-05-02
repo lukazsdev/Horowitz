@@ -9,7 +9,7 @@
 #include <chrono>
 #include <algorithm>
 
-#include "chess.hpp"
+#include "chess.h"
 
 /**********************************\
  ==================================
