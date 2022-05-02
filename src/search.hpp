@@ -40,6 +40,9 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
         return evaluate(pos);
     }
 
+    // check if king is in check
+    bool in_check = pos.isSquareAttacked<~c>(pos.KingSq<c>());
+
     // check if we have reached the depth limit
     if (depth == 0) {
         return evaluate(pos);
@@ -98,7 +101,14 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
     }
  
     // no legal moves
-    // do stuff
+    if (legalMoves == 0) {
+        // checkmate
+        if (in_check) 
+            return -checkmate + ply;
+        // if not, then stalemate
+        else
+            return 0;
+    }
 
     // node (move) fails low
     return alpha;
@@ -129,3 +139,5 @@ void Search::search(Position pos, int depth) {
 
     std::cout << "bestmove " << bestMove.toUci() << std::endl;
 }
+
+
