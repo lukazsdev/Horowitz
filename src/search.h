@@ -80,11 +80,6 @@ int Search::quiescence(Position pos, int alpha, int beta) {
     // legal moves list
     Moves moveList = pos.generateLegalMoves<c>();
 
-    // if we are following PV line
-    if (followPV == 1) 
-        // enable PV move scoring
-        enablePVScoring(moveList);
-
     // sort moves
     sortMoves(pos, moveList);
 
@@ -169,6 +164,11 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
 
     // legal moves list
     Moves moveList = pos.generateLegalMoves<c>();
+
+    // if we are following PV line
+    if (followPV == 1) 
+        // enable PV move scoring
+        enablePVScoring(moveList);
 
     // sort moves
     sortMoves(pos, moveList);
@@ -270,7 +270,7 @@ void Search::search(Position pos, int depth) {
         followPV = 1;
 
         // search for best move within position
-        int score = negamax<c>(pos, -infinity, infinity, currentDepth);
+        int score = negamax<c>(pos, alpha, beta, currentDepth);
 
         // get cumulative search time
         auto t2 = std::chrono::high_resolution_clock::now();
