@@ -77,6 +77,10 @@ static constexpr uint8_t whiteQueenSideCastling = 2;
 static constexpr uint8_t blackKingSideCastling  = 4;
 static constexpr uint8_t blackQueenSideCastling = 8;
 
+// search constants
+static constexpr int infinity   = 10000;
+static constexpr int checkmate  = 9000;
+
 // default FEN string (start position)
 static constexpr auto defaultFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 ";
 

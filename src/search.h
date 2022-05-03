@@ -5,15 +5,14 @@
 #include "search.h"
 #include "evaluate.h"
 #include "timemanager.h"
-
-// null move (no move)
-#define nullMove Move(NO_SQ, NO_SQ, Nonetype, 0)
+#include "tt.h"
 
 // search constants
 static constexpr int maxPly     = 64;
-static constexpr int infinity   = 10000;
-static constexpr int checkmate  = 9000;
 static constexpr int windowSize = 50;
+
+// null move (no move)
+#define nullMove Move(NO_SQ, NO_SQ, Nonetype, 0)
 
 // MVV LVA [attacker][victim]
 static constexpr int MVV_LVA[12][12] = {
@@ -34,6 +33,7 @@ static constexpr int MVV_LVA[12][12] = {
 
 class Search {
 public:
+    TranspositionTable TT;
     TimeManager timer;
     uint64_t nodes;
     int ply;

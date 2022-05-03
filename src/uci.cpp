@@ -1,5 +1,6 @@
 #include "uci.h"
 #include "zobrist.h"
+#include "tt.h"
 
 // main UCI loop
 void UCIInterface::UCILoop() {
@@ -146,6 +147,7 @@ void UCIInterface::parseGoCommand() {
 
 void UCIInterface::bootEngine() {
     zobrist.initRandomKeys();
+    search.TT.Init();
     pos = Position();
     search.timer.Stop = false;
     

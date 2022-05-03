@@ -12,11 +12,5 @@ int main() {
     //PerftTesting perft;
     //perft.RunPerftTest();
     UCIInterface uci;
-    uci.bootEngine();
-    //uci.UCILoop();
-
-    Position pos = Position();
-    printf("%llx\n", zobrist.generateHashKey(pos));
-    pos.enpassantSquare = SQ_E4;
-    printf("%llx\n", zobrist.generateHashKey(pos));
+    uci.UCILoop();
 }

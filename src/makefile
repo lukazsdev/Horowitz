@@ -1,5 +1,5 @@
-horowitz.o: main.o chess.o search.o evaluate.o uci.o timemanager.o zobrist.o
-	g++ main.o chess.o search.o evaluate.o uci.o timemanager.o zobrist.o -Wall -o horowitz
+horowitz.o: main.o chess.o search.o evaluate.o uci.o timemanager.o zobrist.o tt.o
+	g++ main.o chess.o search.o evaluate.o uci.o timemanager.o zobrist.o tt.o -Wall -o horowitz
 
 main.o: main.cpp
 	g++ -c -flto -O3 -msse2 -march=native -std=c++17 -static-libgcc -static-libstdc++ -Wall main.cpp
@@ -21,6 +21,9 @@ timemanager.o: timemanager.cpp timemanager.h
 
 zobrist.o: zobrist.cpp zobrist.h
 	g++ -c -flto -O3 -msse2 -march=native -std=c++17 -static-libgcc -static-libstdc++ -Wall zobrist.cpp
+
+tt.o: tt.cpp tt.h
+	g++ -c -flto -O3 -msse2 -march=native -std=c++17 -static-libgcc -static-libstdc++ -Wall tt.cpp
 
 clean:
 	del *.o *.exe
