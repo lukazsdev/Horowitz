@@ -28,6 +28,15 @@ int Search::scoreMove(Position pos, Move move) {
         int victim = makePiece(~pos.sideToMove, Pawn);
         moveScore += MVV_LVA[attacker][victim] + 10000;
     }
+    // score first killer move
+    else if (killers[0][ply] == move) 
+        moveScore += 9000;
+    // score second killer move
+    else if (killers[1][ply] == move) 
+        moveScore += 8000;
+    // score history move
+    else 
+        moveScore += history[makePiece(pos.sideToMove, move.piece())][move.target()];
 
     return moveScore;
 }

@@ -6,10 +6,13 @@
 #include "evaluate.h"
 #include "timemanager.h"
 
+// null move (no move)
+#define nullMove Move(NO_SQ, NO_SQ, Nonetype, 0)
+
 // search constants
-static constexpr int maxPly = 64;
-static constexpr int infinity = 10000;
-static constexpr int checkmate = 9000;
+static constexpr int maxPly     = 64;
+static constexpr int infinity   = 10000;
+static constexpr int checkmate  = 9000;
 static constexpr int windowSize = 50;
 
 // MVV LVA [attacker][victim]
@@ -35,8 +38,11 @@ public:
     uint64_t nodes;
     int ply;
 
-    int pvLength[maxPly];
+    int  pvLength[maxPly];
     Move pvTable[maxPly][maxPly];
+
+    int  history[12][64];
+    Move killers[2][maxPly];
 
     int followPV, scorePV;
 
@@ -196,13 +202,14 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
         // decrement ply
         ply--;
 
-        // fail-hard beta cutoff
-        if (score >= beta) {
-            return beta;
-        }
-
         // found a better move
         if (score > alpha) {
+            // only quiet moves 
+            if (pos.board[move.target()] == None) {
+                // store history moves
+                history[makePiece(pos.sideToMove, move.piece())][move.target()] += depth;
+            }
+
             // PV node (move)
             alpha = score;
 
@@ -216,6 +223,18 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
 
             // adjust pv length
             pvLength[ply] = pvLength[ply + 1];
+
+            // fail-hard beta cutoff
+            if (score >= beta) {
+                // only quiet moves
+                if (pos.board[move.target()] == None) {
+                    // store killer moves
+                    killers[1][ply] = killers[0][ply];
+                    killers[0][ply] = move;
+                }
+
+                return beta;
+            }
         }
     }
  
@@ -242,9 +261,6 @@ void Search::search(Position pos, int depth) {
     // start time manager timer
     timer.Start();
 
-    // null move
-    Move nullMove = Move(NO_SQ, NO_SQ, Nonetype, 0);
-
     // initialize best move to null (no move)
     Move bestMove = nullMove;
 
@@ -259,6 +275,8 @@ void Search::search(Position pos, int depth) {
 
     memset(pvLength, 0, sizeof(pvLength));
     memset(pvTable, 0, sizeof(pvTable));
+    memset(killers, 0, sizeof(killers));
+    memset(history, 0, sizeof(history));
 
     // initialize alpha beta bounds
     int alpha = -infinity;
