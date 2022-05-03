@@ -1,10 +1,12 @@
 #include "tt.h"
 
+// clear TT and initialize size
 void TranspositionTable::Init() {
     size = HashTableSize;
     Clear();
 }
 
+// clear transposition table
 void TranspositionTable::Clear() {
     for (int idx = 0; idx < size; idx++) {
         entries[idx].hashKey  = 0;
@@ -14,6 +16,7 @@ void TranspositionTable::Clear() {
     }
 }
 
+// store an entry in the transposition table
 void TranspositionTable::Store(uint64_t hashKey, uint8_t depth, uint8_t flag, int score, int ply) {
     int index = hashKey % size;
     entries[index].hashKey = hashKey;
@@ -22,18 +25,16 @@ void TranspositionTable::Store(uint64_t hashKey, uint8_t depth, uint8_t flag, in
 
     // store score independent from the actual path
     // from root node (position) to current node (position)
-
-    if (score < -checkmate) {
+    if (score < -checkmate) 
         score -= ply;
-    }
-
-    if (score > checkmate) {
+    
+    if (score > checkmate) 
         score += ply;
-    }
 
     entries[index].score = (uint64_t)score;
 }
 
+// read an entry from the transposition table
 int TranspositionTable::Read(uint64_t hashKey, int alpha, int beta, int ply, uint8_t depth) {
     // create a TT instance pointer to particular hash entry storing
     // the scoring data for the current board position if available
@@ -48,31 +49,27 @@ int TranspositionTable::Read(uint64_t hashKey, int alpha, int beta, int ply, uin
             
             // retrieve score independent from the actual path
             // from root node (position) to current node (position)
-            if (score < -checkmate) {
+            if (score < -checkmate) 
                 score += ply;
-            }
-
-            if (score > checkmate) {
+            
+            if (score > checkmate) 
                 score -= ply;
-            }
-
+            
              // match the exact (PV node) score 
-             if (entry.flag == HashFlagExact) {
+             if (entry.flag == HashFlagExact) 
                  // return exact (PV node) score
                  return score;
-             }
-
+             
              // match alpha (fail-low node) score
-             if ((entry.flag == HashFlagAlpha) && (score <= alpha)) {
+             if ((entry.flag == HashFlagAlpha) && (score <= alpha)) 
                 // return alpha (fail-low node) score
                 return alpha;
-            }
-            
+             
             // match beta (fail-high node) score
-            if ((entry.flag == HashFlagBeta) && (score >= beta)) {
+            if ((entry.flag == HashFlagBeta) && (score >= beta)) 
                 // return beta (fail-high node) score
                 return beta;
-            }
+            
         }
     }
 

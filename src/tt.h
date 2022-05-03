@@ -1,3 +1,5 @@
+#pragma once
+
 #include "chess.h"
 
 // hash table size (~20MB)
@@ -23,7 +25,7 @@ struct TTEntry {
 class TranspositionTable {
 public:
     TTEntry entries[HashTableSize];
-    uint64_t size;
+    int size;
 
 public: 
     void Init();
@@ -33,5 +35,3 @@ public:
     void Store(uint64_t hashKey, uint8_t depth, uint8_t flag, int score, int ply);
     int Read(uint64_t hashKey, int alpha, int beta, int ply, uint8_t depth);
 };
-
-// clear the transposition table
