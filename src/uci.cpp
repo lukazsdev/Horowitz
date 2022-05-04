@@ -148,7 +148,7 @@ void UCIInterface::parseGoCommand() {
 void UCIInterface::bootEngine() {
     zobrist.initRandomKeys();
     //search.TT.Init();
-    pos = Position();
+    pos = Position(defaultFEN);
     search.timer.Stop = false;
     
     std::cout << "Horowitz v2.0: UCI-Compatible chess engine\n";

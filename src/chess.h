@@ -11,6 +11,8 @@
 #include <chrono>
 #include <algorithm>
 
+#include "zobrist.h"
+
 /**********************************\
  ==================================
                Types 
@@ -490,8 +492,9 @@ struct State {
     uint8_t  castlingRightsCopy;
     Piece  capturedPiece;
     uint8_t halfmoves;
-    State (Square enpassantCopy={}, uint8_t castlingRightsCopy={}, Piece capturedPieceCopy={}, uint8_t halfmovesCopy={}) :
-        enpassantCopy(enpassantCopy), castlingRightsCopy(castlingRightsCopy), capturedPiece(capturedPieceCopy), halfmoves(halfmovesCopy) {}
+    uint64_t hashKeyCopy;
+    State (Square enpassantCopy={}, uint8_t castlingRightsCopy={}, Piece capturedPieceCopy={}, uint8_t halfmovesCopy={}, uint64_t hashKeyCopy={}) :
+        enpassantCopy(enpassantCopy), castlingRightsCopy(castlingRightsCopy), capturedPiece(capturedPieceCopy), halfmoves(halfmovesCopy), hashKeyCopy(hashKeyCopy) {}
 };
 
 class Position {
@@ -501,6 +504,9 @@ public:
 
     // array of pieces on squares
     Piece board[64];
+
+    // zobrist hash key of position
+    uint64_t hashKey;
 
     // store previous states
     State storeInfo[1024];
@@ -568,6 +574,9 @@ public:
     // sets the internal board representation to the 
     // FEN (Forsyth-Edwards Notation) string given
     void parseFEN(std::string FEN);
+
+    // generate zobrist hash for position
+    uint64_t generateHashKey();
 
     // prints the entire board 
     void print();
@@ -660,7 +669,7 @@ void Position::makemove(Move& move){
 
     Piece capturedPiece = board[target];
     // Safe important board information
-    storeInfo[storeCount] = State(enpassantSquare, castlingRights, capturedPiece, halfMoveClock);
+    storeInfo[storeCount] = State(enpassantSquare, castlingRights, capturedPiece, halfMoveClock, hashKey);
     storeCount++;
 
     // update castling rights
@@ -758,6 +767,14 @@ void Position::makemove(Move& move){
 
     // increase fullmoves
     fullMoveCounter++;
+
+    // debugging hashing
+    uint64_t hashFromScratch = generateHashKey();
+    if (hashFromScratch != hashKey){
+        std::cout << "Hash key mismatch" << std::endl;
+        print();
+        std::cout << std::endl;
+    }
 }
 
 template <Color c> 
@@ -768,6 +785,7 @@ void Position::unmakemove(Move& move){
     enpassantSquare = safeState.enpassantCopy;
     castlingRights = safeState.castlingRightsCopy;
     halfMoveClock = safeState.halfmoves;
+    hashKey = safeState.hashKeyCopy;
 
     // Swap sides and decrement fullmoves
     sideToMove = ~sideToMove;

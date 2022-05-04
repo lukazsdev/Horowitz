@@ -16,7 +16,6 @@ public:
 public:
     Zobrist() : randomState(1804289383) {};
     void initRandomKeys();
-    uint64_t generateHashKey(Position pos);
 
 private:
     uint64_t random64();

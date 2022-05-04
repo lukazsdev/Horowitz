@@ -10,6 +10,7 @@
 #include <algorithm>
 
 #include "chess.h"
+#include "zobrist.h"
 
 /**********************************\
  ==================================
@@ -147,6 +148,9 @@ uint16_t Position::fullmoves() {
 // Board constructor that takes in FEN string.
 // if no parameter given, set to default position
 Position::Position(std::string FEN) {
+    // initialie hash key to zero
+    hashKey = 0;
+
     // init lookup tables used for movegen
     initializeLookupTables();
 
@@ -245,6 +249,48 @@ void Position::parseFEN(std::string FEN) {
             break;
         }
     }
+
+    // set hash key to current position
+    hashKey = generateHashKey();
+}
+
+uint64_t Position::generateHashKey() {
+    // final hash key
+    uint64_t hashKey = 0ULL;
+
+    // general purpose bitboard
+    Bitboard bitboard;
+
+    // loop over all pieces
+    for (int piece = 0; piece < 12; piece++) {
+        // get piece bitboard
+        bitboard = PiecesBB[piece];
+
+        // loop over all pieces
+        while (bitboard) {
+            // get current square
+            Square square = poplsb(bitboard);
+
+            // add piece key to hash key
+            hashKey ^= zobrist.pieceKeys[piece][square];
+        }
+    }
+
+    // add enpassant key to hash key
+    if (enpassantSquare != NO_SQ) {
+        hashKey ^= zobrist.enpassantKeys[enpassantSquare];
+    }
+
+    // add castle key to hash key
+    hashKey ^= zobrist.castleKeys[castlingRights];
+
+    // add side key to hash key
+    if (sideToMove == Black) {
+        hashKey ^= zobrist.sideKey;
+    }
+
+    // return hash key
+    return hashKey;
 }
 
 // print the current board state
