@@ -1,3 +1,5 @@
+#pragma once
+
 #include "chess.h"
 
 // class holding random numbers

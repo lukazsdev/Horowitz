@@ -2,11 +2,11 @@
 
 #include "chess.h"
 
-// hash table size (~20MB)
-static constexpr int HashTableSize = 800000;
+// hash table size (in MB)
+static constexpr int HashTableSize = 64;
 
 // no hash entry found constant
-static constexpr int NoHashEntry = 20000;
+static constexpr int NoHashEntry = 800000;
 
 // transposition table hash flags
 static constexpr int HashFlagExact = 0;
@@ -24,7 +24,7 @@ struct TTEntry {
 // struct for a transposition table
 class TranspositionTable {
 public:
-    TTEntry entries[HashTableSize];
+    TTEntry* entries;
     int size;
 
 public: 

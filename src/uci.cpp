@@ -147,7 +147,7 @@ void UCIInterface::parseGoCommand() {
 
 void UCIInterface::bootEngine() {
     zobrist.initRandomKeys();
-    search.TT.Init();
+    //search.TT.Init();
     pos = Position();
     search.timer.Stop = false;
     
