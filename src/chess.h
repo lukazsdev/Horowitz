@@ -11,8 +11,6 @@
 #include <chrono>
 #include <algorithm>
 
-#include "zobrist.h"
-
 /**********************************\
  ==================================
                Types 
@@ -578,6 +576,12 @@ public:
     // generate zobrist hash for position
     uint64_t generateHashKey();
 
+    // incrementally update zobrist hash functions
+    void updateZobristPiece(Piece piece, Square sq);
+    void updateZobristEnpassant(Square sq);
+    void updateZobristCastling();
+    void updateZobristSideToMove();
+    
     // prints the entire board 
     void print();
 
@@ -672,31 +676,54 @@ void Position::makemove(Move& move){
     storeInfo[storeCount] = State(enpassantSquare, castlingRights, capturedPiece, halfMoveClock, hashKey);
     storeCount++;
 
+    // hash piece
+    updateZobristPiece(piece, source);
+    updateZobristPiece(piece, target);
+
     // update castling rights
     if (piece == makePiece<c>(King)){
+        // hash castling
+        //updateZobristCastling();
         if constexpr (c == White){
             if (source == SQ_E1 && target == SQ_G1 && castlingRights & whiteKingSideCastling){
                 removePiece(WhiteRook, SQ_H1);
                 placePiece(WhiteRook, SQ_F1);
+
+                updateZobristPiece(WhiteRook, SQ_H1);
+                updateZobristPiece(WhiteRook, SQ_F1);
             }  
             else if (source == SQ_E1 && target == SQ_C1 && castlingRights & whiteQueenSideCastling){
                 removePiece(WhiteRook, SQ_A1);
                 placePiece(WhiteRook, SQ_D1);
+
+                updateZobristPiece(WhiteRook, SQ_A1);
+                updateZobristPiece(WhiteRook, SQ_D1);
             }
+
+            updateZobristCastling();
             castlingRights &= ~whiteKingSideCastling;
             castlingRights &= ~whiteQueenSideCastling;
+            updateZobristCastling();
         }
         else{
             if (source == SQ_E8 && target == SQ_G8 && castlingRights & blackKingSideCastling){
                 removePiece(BlackRook, SQ_H8);
                 placePiece(BlackRook, SQ_F8);
+
+                updateZobristPiece(BlackRook, SQ_H8);
+                updateZobristPiece(BlackRook, SQ_F8);
             }
             else if (source == SQ_E8 && target == SQ_C8 && castlingRights & blackQueenSideCastling){
                 removePiece(BlackRook, SQ_A8);
                 placePiece(BlackRook, SQ_D8);
+
+                updateZobristPiece(BlackRook, SQ_A8);
+                updateZobristPiece(BlackRook, SQ_D8);
             }
+            updateZobristCastling();
             castlingRights &= ~blackKingSideCastling;
             castlingRights &= ~blackQueenSideCastling;
+            updateZobristCastling();
         }
     }
 
@@ -704,32 +731,60 @@ void Position::makemove(Move& move){
     // rook move loses castle rights
     if (piece == makePiece<c>(Rook)){
         if constexpr (c== White){
-            if (source == SQ_A1)
+            if (source == SQ_A1) {
+                updateZobristCastling();
                 castlingRights &= ~whiteQueenSideCastling;
-            else if (source == SQ_H1)
+                updateZobristCastling();
+            }
+            else if (source == SQ_H1) {
+                updateZobristCastling();
                 castlingRights &= ~whiteKingSideCastling;
+                updateZobristCastling();
+            }
         }
         else{
-            if (source == SQ_A8)
+            if (source == SQ_A8) {
+                updateZobristCastling();
                 castlingRights &= ~blackQueenSideCastling;
-            else if (source == SQ_H8)
+                updateZobristCastling();
+            }
+            else if (source == SQ_H8) {
+                updateZobristCastling();
                 castlingRights &= ~blackKingSideCastling;
+                updateZobristCastling();
+            }
         }
 
     }
     // Rook capture loses castle rights
     if (capturedPiece == makePiece<~c>(Rook)){
-        if (target == SQ_A1)
+        if (target == SQ_A1) {
+            updateZobristCastling();
             castlingRights &= ~whiteQueenSideCastling;
-        else if (target == SQ_H1)
+            updateZobristCastling();
+        }
+        else if (target == SQ_H1) {
+            updateZobristCastling();
             castlingRights &= ~whiteKingSideCastling;
-        else if (target == SQ_A8)
+            updateZobristCastling();
+        }
+        else if (target == SQ_A8) {
+            updateZobristCastling();
             castlingRights &= ~blackQueenSideCastling;
-        else if (target == SQ_H8)
+            updateZobristCastling();
+        }
+        else if (target == SQ_H8) {
+            updateZobristCastling();
             castlingRights &= ~blackKingSideCastling;
+            updateZobristCastling();
+        }
     }
 
     bool enpassant = (target) == enpassantSquare ? true : false;
+
+    // hash enpassant if available
+    if (enpassantSquare != NO_SQ)
+        updateZobristEnpassant(enpassantSquare);
 
     enpassantSquare = NO_SQ;
     if (move.piece() == Pawn){
@@ -738,6 +793,8 @@ void Position::makemove(Move& move){
         if (enpassant){
             int8_t offset = c == White ? -8 : 8;
             removePiece(makePiece<~c>(Pawn), Square(target + offset));
+            //remove pawn from hash key
+            updateZobristPiece(makePiece<~c>(Pawn), Square(target + offset));
         }
         // update enpassant square
         if (piece == makePiece<c>(Pawn) && std::abs(source - target) == 16){
@@ -745,6 +802,7 @@ void Position::makemove(Move& move){
             Bitboard epMask = GetPawnAttacks<c>(Square(target + offset));
             if (epMask & Pawns<~c>()){
                 enpassantSquare = Square(target + offset);
+                updateZobristEnpassant(Square(target + offset));
             }
         }
     }
@@ -752,6 +810,9 @@ void Position::makemove(Move& move){
     if (capturedPiece != None){
         halfMoveClock = 0;
         removePiece(capturedPiece, target);
+
+        // remove the piece from hash key
+        updateZobristPiece(capturedPiece, target);
     }
 
     if (!move.promoted()){
@@ -760,10 +821,20 @@ void Position::makemove(Move& move){
     }
     else{
         removePiece(makePiece<c>(Pawn), source);
+
+        // remove promoted piece from hash key
+        updateZobristPiece(makePiece<c>(Pawn), source);
+
         placePiece(piece, target);
+
+        // add promoted piece into the hash key
+        updateZobristPiece(piece, target);
     }
     // Switch sides
     sideToMove = ~sideToMove;
+
+    // hash side to move
+    updateZobristSideToMove();
 
     // increase fullmoves
     fullMoveCounter++;
@@ -771,8 +842,10 @@ void Position::makemove(Move& move){
     // debugging hashing
     uint64_t hashFromScratch = generateHashKey();
     if (hashFromScratch != hashKey){
-        std::cout << "Hash key mismatch" << std::endl;
-        print();
+        std::cout << "move: " << move.toUci() << std::endl;
+        printf("hash from scratch: %llx\n", hashFromScratch);
+        printf("this hash: %llx\n", hashKey);
+        //print();
         std::cout << std::endl;
     }
 }

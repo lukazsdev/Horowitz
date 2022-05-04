@@ -293,6 +293,22 @@ uint64_t Position::generateHashKey() {
     return hashKey;
 }
 
+void Position::updateZobristPiece(Piece piece, Square sq) {
+    hashKey ^= zobrist.pieceKeys[piece][sq];
+}
+
+void Position::updateZobristEnpassant(Square sq) {
+    hashKey ^= zobrist.enpassantKeys[sq];
+}
+
+void Position::updateZobristCastling() {
+    hashKey ^= zobrist.castleKeys[castlingRights];
+}
+
+void Position::updateZobristSideToMove() {
+    hashKey ^= zobrist.sideKey;
+}
+
 // print the current board state
 void Position::print() {
     std::cout << "\n";
