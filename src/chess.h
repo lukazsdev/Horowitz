@@ -677,8 +677,14 @@ void Position::makemove(Move& move){
     storeCount++;
 
     // hash piece
-    updateZobristPiece(piece, source);
-    updateZobristPiece(piece, target);
+    if (move.promoted()) {
+        updateZobristPiece(makePiece<c>(Pawn), source);
+        updateZobristPiece(makePiece<c>(Pawn), target);
+    }
+    else {
+        updateZobristPiece(piece, source);
+        updateZobristPiece(piece, target);
+    }
 
     // update castling rights
     if (piece == makePiece<c>(King)){
@@ -823,7 +829,7 @@ void Position::makemove(Move& move){
         removePiece(makePiece<c>(Pawn), source);
 
         // remove promoted piece from hash key
-        updateZobristPiece(makePiece<c>(Pawn), source);
+        updateZobristPiece(makePiece<c>(Pawn), target);
 
         placePiece(piece, target);
 
@@ -842,6 +848,7 @@ void Position::makemove(Move& move){
     // debugging hashing
     uint64_t hashFromScratch = generateHashKey();
     if (hashFromScratch != hashKey){
+        print();
         std::cout << "move: " << move.toUci() << std::endl;
         printf("hash from scratch: %llx\n", hashFromScratch);
         printf("this hash: %llx\n", hashKey);
