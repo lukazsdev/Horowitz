@@ -844,17 +844,6 @@ void Position::makemove(Move& move){
 
     // increase fullmoves
     fullMoveCounter++;
-
-    // debugging hashing
-    uint64_t hashFromScratch = generateHashKey();
-    if (hashFromScratch != hashKey){
-        print();
-        std::cout << "move: " << move.toUci() << std::endl;
-        printf("hash from scratch: %llx\n", hashFromScratch);
-        printf("this hash: %llx\n", hashKey);
-        //print();
-        std::cout << std::endl;
-    }
 }
 
 template <Color c> 

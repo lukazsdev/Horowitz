@@ -3,10 +3,10 @@
 #include "chess.h"
 
 // hash table size (in MB)
-static constexpr int HashTableSize = 64;
+static constexpr int HashTableSize = 800000;
 
 // no hash entry found constant
-static constexpr int NoHashEntry = 800000;
+static constexpr int NoHashEntry = 20000;
 
 // transposition table hash flags
 static constexpr int HashFlagExact = 0;

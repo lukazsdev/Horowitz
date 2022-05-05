@@ -19,6 +19,7 @@ void UCIInterface::UCILoop() {
             std::cout << "readyok" << std::endl;
         }
         else if (command == "ucinewgame") {
+            search.TT.Clear();
             pos.parseFEN(defaultFEN);
         }
         else if (command == "position") {
@@ -147,7 +148,7 @@ void UCIInterface::parseGoCommand() {
 
 void UCIInterface::bootEngine() {
     zobrist.initRandomKeys();
-    //search.TT.Init();
+    search.TT.Init();
     pos = Position(defaultFEN);
     search.timer.Stop = false;
     

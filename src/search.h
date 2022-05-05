@@ -133,6 +133,9 @@ int Search::quiescence(Position pos, int alpha, int beta) {
 // Negamax search
 template<Color c> 
 int Search::negamax(Position pos, int alpha, int beta, int depth) {
+    // score of current position
+    int score = 0;
+
     // increment nodes
     nodes++;
 
@@ -153,10 +156,19 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
     if (timer.Stop) {
         return 0;
     }
+
+    // define hash flag
+    int hashFlag = HashFlagAlpha;
     
 
     // check if king is in check
-    bool in_check = pos.isSquareAttacked<~c>(pos.KingSq<c>());
+    // check if current node is PV node or not
+    bool inCheck = pos.isSquareAttacked<~c>(pos.KingSq<c>());
+    bool isPVNode = beta - alpha > 1;
+
+    // increment depth if king is in check
+    if (inCheck)
+        depth++;
 
     // check if we have reached the depth limit
     // then search all possible captures 
@@ -164,6 +176,15 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
         //return evaluate(pos);
         return quiescence<c>(pos, alpha, beta);
     }
+
+    // read hash entry if we're not in a root ply and hash entry is available
+    // and current node is not a PV node
+    score = TT.Read(pos.hashKey, alpha, beta, ply, (uint8_t)depth);
+    if (ply > 0 && score != NoHashEntry && !isPVNode)
+        // if the move has already been searched (hence has a value)
+        // we just return the score for this move without searching it
+        return score;
+    
 
     // legal moves counter
     int legalMoves = 0;
@@ -194,7 +215,7 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
         legalMoves++;
 
         // recursively call negamax
-        int score = -negamax<~c>(pos, -beta, -alpha, depth - 1);
+        score = -negamax<~c>(pos, -beta, -alpha, depth - 1);
 
         // unmake move
         pos.unmakemove<c>(move);
@@ -204,6 +225,10 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
 
         // found a better move
         if (score > alpha) {
+            // switch hash flag from storing score of fail-low node
+            // to the one storing score for PV node
+            hashFlag = HashFlagExact;
+
             // only quiet moves 
             if (pos.board[move.target()] == None) {
                 // store history moves
@@ -226,6 +251,9 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
 
             // fail-hard beta cutoff
             if (score >= beta) {
+                // store hash entry with the score equal to beta
+                TT.Store(pos.hashKey, (uint8_t)depth, HashFlagBeta, beta, ply);
+
                 // only quiet moves
                 if (pos.board[move.target()] == None) {
                     // store killer moves
@@ -241,12 +269,15 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
     // no legal moves
     if (legalMoves == 0) {
         // checkmate
-        if (in_check) 
+        if (inCheck) 
             return -checkmate + ply;
         // if not, then stalemate
         else
             return 0;
     }
+
+    // store hash entry with the score equal to alpha
+    TT.Store(pos.hashKey, (uint8_t)depth, hashFlag, alpha, ply);
 
     // node (move) fails low
     return alpha;

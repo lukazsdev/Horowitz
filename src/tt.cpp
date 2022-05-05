@@ -2,8 +2,8 @@
 
 // clear TT and initialize size
 void TranspositionTable::Init() {
-    size = HashTableSize;
     entries = new TTEntry[HashTableSize];
+    size = HashTableSize;
     Clear();
 }
 
