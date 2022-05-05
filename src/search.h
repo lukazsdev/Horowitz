@@ -222,37 +222,6 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
         // increment legal moves counter
         legalMoves++;
 
-        // recursively call negamax
-        //score = -negamax<~c>(pos, -beta, -alpha, depth - 1);
-
-        /*
-        // full depth search
-        if moves_searched == 0 {
-            // recursively call negamax normally
-            score = -search.negamax(pos, -beta, -alpha, depth - 1)
-        } else {
-            // condition to consider LMR
-            if moves_searched >= full_depth_moves && 
-                depth >= reduction_limit && in_check == false &&
-                 move.get_move_capture() == 0 && move.get_move_promoted() == 0 {
-                // search current move with reduced depth
-                score = -search.negamax(pos, -alpha - 1, -alpha, depth - 2)
-            } else {
-                // hack to ensure that full-depth search is done
-                score = alpha + 1
-            }
-
-            // PV search
-            if score > alpha {
-                score = -search.negamax(pos, -alpha - 1, -alpha, depth - 1)
-                // check for failure
-                if (score > alpha) && (score < beta) {
-                    score = -search.negamax(pos, -beta, -alpha, depth - 1)
-                }
-            }
-        }
-        */
-
        // full depth search
         if (movesSearched == 0) 
             // recursively call negamax normally
