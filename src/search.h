@@ -7,9 +7,11 @@
 #include "timemanager.h"
 #include "tt.h"
 
-// search constants
-static constexpr int maxPly     = 64;
-static constexpr int windowSize = 50;
+// search constants and pruning parameters
+static constexpr int maxPly         = 64;
+static constexpr int windowSize     = 50;
+static constexpr int fullDepthMoves = 4;
+static constexpr int reductionLimit = 3;
 
 // null move (no move)
 #define nullMove Move(NO_SQ, NO_SQ, Nonetype, 0)
@@ -161,8 +163,8 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
     int hashFlag = HashFlagAlpha;
     
 
-    // check if king is in check
-    // check if current node is PV node or not
+    // check if king is in check 
+    // check if current node is PV node 
     bool inCheck = pos.isSquareAttacked<~c>(pos.KingSq<c>());
     bool isPVNode = beta - alpha > 1;
 
@@ -200,10 +202,16 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
     // sort moves
     sortMoves(pos, moveList);
 
+    // number of moves searched in the move list
+    int movesSearched = 0;
+
     // iterate over legal moves
     for (int i = 0; i < moveList.count; i++) {
         // initialize current move
         Move move = moveList.moves[i];
+
+        // check if move is a capture
+        bool isCapture = pos.board[move.target()] != None;
 
         // increment ply
         ply++;
@@ -215,13 +223,70 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
         legalMoves++;
 
         // recursively call negamax
-        score = -negamax<~c>(pos, -beta, -alpha, depth - 1);
+        //score = -negamax<~c>(pos, -beta, -alpha, depth - 1);
+
+        /*
+        // full depth search
+        if moves_searched == 0 {
+            // recursively call negamax normally
+            score = -search.negamax(pos, -beta, -alpha, depth - 1)
+        } else {
+            // condition to consider LMR
+            if moves_searched >= full_depth_moves && 
+                depth >= reduction_limit && in_check == false &&
+                 move.get_move_capture() == 0 && move.get_move_promoted() == 0 {
+                // search current move with reduced depth
+                score = -search.negamax(pos, -alpha - 1, -alpha, depth - 2)
+            } else {
+                // hack to ensure that full-depth search is done
+                score = alpha + 1
+            }
+
+            // PV search
+            if score > alpha {
+                score = -search.negamax(pos, -alpha - 1, -alpha, depth - 1)
+                // check for failure
+                if (score > alpha) && (score < beta) {
+                    score = -search.negamax(pos, -beta, -alpha, depth - 1)
+                }
+            }
+        }
+        */
+
+       // full depth search
+        if (movesSearched == 0) 
+            // recursively call negamax normally
+            score = -negamax<~c>(pos, -beta, -alpha, depth - 1);
+        else {
+            // condition to consider LMR
+            if (movesSearched >= fullDepthMoves && depth >= reductionLimit &&
+            !inCheck && !isCapture && !move.promoted()) {
+                // search current move with reduced depth
+                score = -negamax<~c>(pos, -alpha - 1, -alpha, depth - 2);
+            }
+            else 
+                // hack to ensure that full-depth search is done
+                score = alpha + 1;
+            
+            // PV search
+            if (score > alpha) {
+                score = -negamax<~c>(pos, -alpha - 1, -alpha, depth - 1);
+                // check for failure
+                if ((score > alpha) && score < beta) {
+                    score = -negamax<~c>(pos, -beta, -alpha, depth - 1);
+                }
+            }
+        }
+
 
         // unmake move
         pos.unmakemove<c>(move);
 
         // decrement ply
         ply--;
+
+        // increment moves searched
+        movesSearched++;
 
         // found a better move
         if (score > alpha) {
