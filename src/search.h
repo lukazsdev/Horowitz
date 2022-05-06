@@ -8,13 +8,11 @@
 #include "tt.h"
 
 // search constants and pruning parameters
-static constexpr int maxPly         = 64;
-static constexpr int windowSize     = 50;
-static constexpr int fullDepthMoves = 4;
-static constexpr int reductionLimit = 3;
-
-// null move (no move)
-#define nullMove Move(NO_SQ, NO_SQ, Nonetype, 0)
+static constexpr int maxPly          = 64;
+static constexpr int windowSize      = 50;
+//static constexpr int staticNMPMargin = 120;
+static constexpr int fullDepthMoves  = 4;
+static constexpr int reductionLimit  = 3;
 
 // MVV LVA [attacker][victim]
 static constexpr int MVV_LVA[12][12] = {
@@ -52,7 +50,7 @@ public:
     // main search functions
     template<Color c> void search(Position pos, int depth);
     template<Color c> int quiescence(Position pos, int alpha, int beta);
-    template<Color c> int negamax(Position pos, int alpha, int beta, int depth);
+    template<Color c> int negamax(Position pos, int alpha, int beta, int depth, bool nmp=false);
 
     // move ordering/scoring functions
     int scoreMove(Position pos, Move move);
@@ -134,7 +132,7 @@ int Search::quiescence(Position pos, int alpha, int beta) {
 
 // Negamax search
 template<Color c> 
-int Search::negamax(Position pos, int alpha, int beta, int depth) {
+int Search::negamax(Position pos, int alpha, int beta, int depth, bool nmp) {
     // score of current position
     int score = 0;
 
@@ -186,6 +184,54 @@ int Search::negamax(Position pos, int alpha, int beta, int depth) {
         // if the move has already been searched (hence has a value)
         // we just return the score for this move without searching it
         return score;
+
+    
+    /*
+    // null move pruning (only done if we don't have non pawn material)
+    if (depth >= 3 && !inCheck && ply > 0 && pos.hasNonPawnMaterial() && !nmp) {
+
+        // make null move
+        pos.makemove<c>(nullMove);
+
+        // increment ply
+        ply++;
+
+        // hash enpassant if available
+        if (pos.enpassantSquare != NO_SQ)
+            pos.updateZobristEnpassant(pos.enpassantSquare);
+        
+        // reset enpassant square
+        pos.enpassantSquare = NO_SQ;
+
+        // switch the side (give opponent extra move)
+        pos.sideToMove = ~pos.sideToMove;
+
+        // hash the side to move
+        pos.updateZobristSideToMove();
+
+        // search moves with reduced depth to find beta cutoffs 
+        score = -negamax<~c>(pos, -beta, -beta + 1, depth - 1 - 2, true);
+
+        // unmake null move (restore board state)
+        pos.unmakemove<c>(nullMove); 
+
+        // switch the side (give opponent extra move)
+        pos.sideToMove = ~pos.sideToMove;
+
+        // decrement ply
+        ply--;
+
+        // stop search if time is up
+        if (timer.Stop) 
+            return 0;
+        
+        // fail-hard beta cutoff
+        if (score >= beta) 
+            // node (position) fails high
+            return beta;
+    }
+    */
+    
     
 
     // legal moves counter

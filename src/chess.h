@@ -84,6 +84,9 @@ static constexpr int checkmate  = 9000;
 // default FEN string (start position)
 static constexpr auto defaultFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 ";
 
+// null move (no move)
+#define nullMove Move(NO_SQ, NO_SQ, Nonetype, 0)
+
 // map a piece to its corresponding character
 static std::unordered_map<Piece, char> pieceToChar({
     { WhitePawn, 'P' },
@@ -588,9 +591,9 @@ public:
     // returns a list of legal moves for current board state
     template <Color c> Moves generateLegalMoves();
 
-    template <Color c> void makemove(Move& move);
+    template <Color c> void makemove(Move move);
 
-    template <Color c> void unmakemove(Move& move);
+    template <Color c> void unmakemove(Move move);
 
     Piece piece_at(Square sq);
 
@@ -662,10 +665,14 @@ private:
     template <Color c> Bitboard LegalRookMoves(Square sq);
     template <Color c> Bitboard LegalQueenMoves(Square sq);
     template <Color c> Bitboard LegalKingMoves(Square sq);
+
+public:
+    // tells us whether we have non pawn material on the board
+    bool hasNonPawnMaterial();
 };
 
 template <Color c> 
-void Position::makemove(Move& move){
+void Position::makemove(Move move){
     Piece piece = makePiece<c>(move.piece());
 
     Square source = move.source();
@@ -675,6 +682,8 @@ void Position::makemove(Move& move){
     // Safe important board information
     storeInfo[storeCount] = State(enpassantSquare, castlingRights, capturedPiece, halfMoveClock, hashKey);
     storeCount++;
+
+    if (move == nullMove) return;
 
     // hash piece
     if (move.promoted()) {
@@ -847,7 +856,7 @@ void Position::makemove(Move& move){
 }
 
 template <Color c> 
-void Position::unmakemove(Move& move){
+void Position::unmakemove(Move move){
     // Retrive important board information
     storeCount--;
     State safeState = storeInfo[storeCount];
@@ -855,6 +864,8 @@ void Position::unmakemove(Move& move){
     castlingRights = safeState.castlingRightsCopy;
     halfMoveClock = safeState.halfmoves;
     hashKey = safeState.hashKeyCopy;
+
+    if (move == nullMove) return;
 
     // Swap sides and decrement fullmoves
     sideToMove = ~sideToMove;

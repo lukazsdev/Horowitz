@@ -356,6 +356,11 @@ void Position::removePiece(Piece piece, Square sq) {
     board[sq] = None;
 }
 
+bool Position::hasNonPawnMaterial() {
+    return (PiecesBB[WhiteKnight] > 0 || PiecesBB[WhiteBishop] > 0 || PiecesBB[WhiteRook] > 0 || PiecesBB[WhiteQueen] > 0 ||
+        PiecesBB[BlackKnight] > 0 || PiecesBB[BlackBishop] > 0 || PiecesBB[BlackRook] > 0 || PiecesBB[BlackQueen] > 0);
+}
+
 /**********************************\
  ==================================
          Move generation
