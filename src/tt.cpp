@@ -49,7 +49,7 @@ void TranspositionTable::Init(int sizeInMB) {
         // clear hash table
         Clear();
         
-        printf("Hash table is initialied with %d entries\n", hashTableEntries);
+        printf("Hash table is initialized with %d entries\n", hashTableEntries);
     }
 }
 
