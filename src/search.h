@@ -13,6 +13,7 @@ static constexpr int windowSize      = 50;
 //static constexpr int staticNMPMargin = 120;
 static constexpr int fullDepthMoves  = 4;
 static constexpr int reductionLimit  = 3;
+static constexpr int staticNMPMargin = 120;
 
 // MVV LVA [attacker][victim]
 static constexpr int MVV_LVA[12][12] = {
@@ -51,7 +52,7 @@ public:
     // main search functions
     template<Color c> void search(int depth);
     template<Color c> int quiescence(int alpha, int beta);
-    template<Color c> int negamax(int alpha, int beta, int depth, bool nmp=false);
+    template<Color c> int negamax(int alpha, int beta, int depth);
 
     // move ordering/scoring functions
     int scoreMove(Move move);
@@ -133,7 +134,7 @@ int Search::quiescence(int alpha, int beta) {
 
 // Negamax search
 template<Color c> 
-int Search::negamax(int alpha, int beta, int depth, bool nmp) {
+int Search::negamax(int alpha, int beta, int depth) {
     // score of current position
     int score = 0;
 
@@ -185,11 +186,20 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
         // if the move has already been searched (hence has a value)
         // we just return the score for this move without searching it
         return score;
-
     
-    /*
+
+    // static null move pruning
+    if (!inCheck && !isPVNode && abs(beta) < checkmate) {
+        // if current material - score margin is still good, prune branch
+        int staticScore = evaluate(pos);
+        int scoreMargin = staticNMPMargin * depth;
+        
+        if (staticScore - scoreMargin >= beta)
+            return beta;
+    }
+    
     // null move pruning (only done if we don't have non pawn material)
-    if (depth >= 3 && !inCheck && ply > 0 && pos.hasNonPawnMaterial() && !nmp) {
+    if (depth >= 3 && !inCheck && ply > 0 && pos.hasNonPawnMaterial()) {
 
         // make null move
         pos.makemove<c>(nullMove);
@@ -211,7 +221,7 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
         pos.updateZobristSideToMove();
 
         // search moves with reduced depth to find beta cutoffs 
-        score = -negamax<~c>(pos, -beta, -beta + 1, depth - 1 - 2, true);
+        score = -negamax<~c>(-beta, -beta + 1, depth - 1 - 2);
 
         // unmake null move (restore board state)
         pos.unmakemove<c>(nullMove); 
@@ -231,8 +241,6 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
             // node (position) fails high
             return beta;
     }
-    */
-    
     
 
     // legal moves counter

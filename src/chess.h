@@ -688,7 +688,8 @@ void Position::makemove(Move move){
     storeInfo[storeCount] = State(enpassantSquare, castlingRights, capturedPiece, halfMoveClock, hashKey);
     storeCount++;
 
-    if (move == nullMove) return;
+    if (move == nullMove) 
+        return;
 
     // hash piece
     if (move.promoted()) {
@@ -870,7 +871,8 @@ void Position::unmakemove(Move move){
     halfMoveClock = safeState.halfmoves;
     hashKey = safeState.hashKeyCopy;
 
-    if (move == nullMove) return;
+    if (move == nullMove) 
+        return;
 
     // Swap sides and decrement fullmoves
     sideToMove = ~sideToMove;
