@@ -33,6 +33,7 @@ static constexpr int MVV_LVA[12][12] = {
 
 class Search {
 public:
+    Position pos;
     TranspositionTable TT;
     TimeManager timer;
     uint64_t nodes;
@@ -48,19 +49,19 @@ public:
 
 public:
     // main search functions
-    template<Color c> void search(Position pos, int depth);
-    template<Color c> int quiescence(Position pos, int alpha, int beta);
-    template<Color c> int negamax(Position pos, int alpha, int beta, int depth, bool nmp=false);
+    template<Color c> void search(int depth);
+    template<Color c> int quiescence(int alpha, int beta);
+    template<Color c> int negamax(int alpha, int beta, int depth, bool nmp=false);
 
     // move ordering/scoring functions
-    int scoreMove(Position pos, Move move);
-    void sortMoves(Position pos, Moves &moveList);
+    int scoreMove(Move move);
+    void sortMoves(Moves &moveList);
     void enablePVScoring(Moves moveList);
 };
 
 // Quiescence search
 template<Color c> 
-int Search::quiescence(Position pos, int alpha, int beta) {
+int Search::quiescence(int alpha, int beta) {
     // static evaluation
     int evaluation = evaluate(pos);
 
@@ -87,7 +88,7 @@ int Search::quiescence(Position pos, int alpha, int beta) {
     Moves moveList = pos.generateLegalMoves<c>();
 
     // sort moves
-    sortMoves(pos, moveList);
+    sortMoves(moveList);
 
     // iterate over legal moves
     for (int i = 0; i < moveList.count; i++) {
@@ -106,7 +107,7 @@ int Search::quiescence(Position pos, int alpha, int beta) {
         pos.makemove<c>(move);
 
         // recursively call negamax
-        int score = -quiescence<~c>(pos, -beta, -alpha);
+        int score = -quiescence<~c>(-beta, -alpha);
 
         // unmake move
         pos.unmakemove<c>(move);
@@ -132,7 +133,7 @@ int Search::quiescence(Position pos, int alpha, int beta) {
 
 // Negamax search
 template<Color c> 
-int Search::negamax(Position pos, int alpha, int beta, int depth, bool nmp) {
+int Search::negamax(int alpha, int beta, int depth, bool nmp) {
     // score of current position
     int score = 0;
 
@@ -172,9 +173,9 @@ int Search::negamax(Position pos, int alpha, int beta, int depth, bool nmp) {
 
     // check if we have reached the depth limit
     // then search all possible captures 
-    if (depth == 0) {
+    if (depth <= 0) {
         //return evaluate(pos);
-        return quiescence<c>(pos, alpha, beta);
+        return quiescence<c>(alpha, beta);
     }
 
     // read hash entry if we're not in a root ply and hash entry is available
@@ -246,7 +247,7 @@ int Search::negamax(Position pos, int alpha, int beta, int depth, bool nmp) {
         enablePVScoring(moveList);
 
     // sort moves
-    sortMoves(pos, moveList);
+    sortMoves(moveList);
 
     // number of moves searched in the move list
     int movesSearched = 0;
@@ -271,13 +272,13 @@ int Search::negamax(Position pos, int alpha, int beta, int depth, bool nmp) {
        // full depth search
         if (movesSearched == 0) 
             // recursively call negamax normally
-            score = -negamax<~c>(pos, -beta, -alpha, depth - 1);
+            score = -negamax<~c>(-beta, -alpha, depth - 1);
         else {
             // condition to consider LMR
             if (movesSearched >= fullDepthMoves && depth >= reductionLimit &&
             !inCheck && !isCapture && !move.promoted()) {
                 // search current move with reduced depth
-                score = -negamax<~c>(pos, -alpha - 1, -alpha, depth - 2);
+                score = -negamax<~c>(-alpha - 1, -alpha, depth - 2);
             }
             else 
                 // hack to ensure that full-depth search is done
@@ -285,10 +286,10 @@ int Search::negamax(Position pos, int alpha, int beta, int depth, bool nmp) {
             
             // PV search
             if (score > alpha) {
-                score = -negamax<~c>(pos, -alpha - 1, -alpha, depth - 1);
+                score = -negamax<~c>(-alpha - 1, -alpha, depth - 1);
                 // check for failure
                 if ((score > alpha) && score < beta) {
-                    score = -negamax<~c>(pos, -beta, -alpha, depth - 1);
+                    score = -negamax<~c>(-beta, -alpha, depth - 1);
                 }
             }
         }
@@ -365,7 +366,7 @@ int Search::negamax(Position pos, int alpha, int beta, int depth, bool nmp) {
 
 // root search function (iterative deepening search)
 template<Color c> 
-void Search::search(Position pos, int depth) {
+void Search::search(int depth) {
     // start search timer
     auto t1 = std::chrono::high_resolution_clock::now();
 
@@ -399,7 +400,7 @@ void Search::search(Position pos, int depth) {
         followPV = 1;
 
         // search for best move within position
-        int score = negamax<c>(pos, alpha, beta, currentDepth);
+        int score = negamax<c>(alpha, beta, currentDepth);
 
         // get cumulative search time
         auto t2 = std::chrono::high_resolution_clock::now();

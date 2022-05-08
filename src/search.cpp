@@ -1,7 +1,7 @@
 #include <vector>
 #include "search.h"
 
-int Search::scoreMove(Position pos, Move move) {
+int Search::scoreMove(Move move) {
     int moveScore = 0;
 
     // if PV move scoring is allowed
@@ -58,13 +58,13 @@ void Search::enablePVScoring(Moves moveList) {
     }
 }
 
-void Search::sortMoves(Position pos, Moves &moveList) {
+void Search::sortMoves(Moves &moveList) {
     // move scores
     std::vector<int> moveScores;
 
     // score each move in move list
     for (int count = 0; count < moveList.count; count++) {
-        moveScores.push_back(scoreMove(pos, moveList.moves[count]));
+        moveScores.push_back(scoreMove(moveList.moves[count]));
     }
 
     // sort moves based on scores

@@ -20,13 +20,13 @@ void UCIInterface::UCILoop() {
         }
         else if (command == "ucinewgame") {
             search.TT.Clear();
-            pos.parseFEN(defaultFEN);
+            search.pos.parseFEN(defaultFEN);
         }
         else if (command == "position") {
             std::string subcommand;
             iss >> subcommand;
             if (subcommand == "startpos") {
-                pos.parseFEN(defaultFEN);
+                search.pos.parseFEN(defaultFEN);
             }
             else if (subcommand == "fen") {
                 std::string temp;
@@ -35,16 +35,16 @@ void UCIInterface::UCILoop() {
                     iss >> temp;
                     fen += " " + temp;
                 }
-                pos.parseFEN(fen);
+                search.pos.parseFEN(fen);
             }
             iss >> subcommand;
             if (subcommand == "moves") {
                 std::string moveUci;
                 while (iss >> moveUci) {
                     Move move = parseMove(moveUci);
-                    if (pos.sideToMove == White) 
-                        pos.makemove<White>(move);
-                    else pos.makemove<Black>(move);
+                    if (search.pos.sideToMove == White) 
+                        search.pos.makemove<White>(move);
+                    else search.pos.makemove<Black>(move);
                 }
             }
         }
@@ -60,14 +60,14 @@ void UCIInterface::UCILoop() {
             stopThread();
         }
         else if (command == "print") {
-            pos.print();
+            search.pos.print();
         }
     }
 }
 
 Move UCIInterface::parseMove(std::string moveUci) {
-    Moves moveList = (pos.sideToMove == White) ? 
-        pos.generateLegalMoves<White>() : pos.generateLegalMoves<Black>();
+    Moves moveList = (search.pos.sideToMove == White) ? 
+        search.pos.generateLegalMoves<White>() : search.pos.generateLegalMoves<Black>();
 
     Square source = Square((moveUci[1] - 49) * 8 + (moveUci[0] - 97));
     Square target = Square((moveUci[3] - 49) * 8 + (moveUci[2] - 97));
@@ -105,7 +105,7 @@ void UCIInterface::parseGoCommand() {
     int searchTime = NoValue;
     int depth      = maxPly;
 
-    char colorPrefix = (pos.sideToMove == White) ? 'w' : 'b';
+    char colorPrefix = (search.pos.sideToMove == White) ? 'w' : 'b';
 
     for (int i = 0; i < 20; i++) {
         iss >> command;
@@ -149,7 +149,7 @@ void UCIInterface::parseGoCommand() {
 void UCIInterface::bootEngine() {
     zobrist.initRandomKeys();
     search.TT.Init(64);
-    pos = Position(defaultFEN);
+    search.pos = Position(defaultFEN);
     search.timer.Stop = false;
     
     std::cout << "Horowitz v2.0: UCI-Compatible chess engine\n";
@@ -159,9 +159,9 @@ void UCIInterface::beginThread(int depth) {
     if (isSearching()) 
         stopThread();
     search.timer.Stop = false;
-    threads = pos.sideToMove == White ?
-            std::thread(&Search::search<White>, std::ref(search), pos, depth) :
-            std::thread(&Search::search<Black>, std::ref(search), pos, depth);
+    threads = search.pos.sideToMove == White ?
+            std::thread(&Search::search<White>, std::ref(search), depth) :
+            std::thread(&Search::search<Black>, std::ref(search), depth);
 }
 
 void UCIInterface::stopThread() {
