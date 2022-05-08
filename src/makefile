@@ -26,4 +26,4 @@ tt.o: tt.cpp tt.h
 	g++ -c -flto -O3 -msse2 -march=native -std=c++17 -static-libgcc -static-libstdc++ -Wall tt.cpp
 
 clean:
-	del *.o *.exe
+	del *.o
