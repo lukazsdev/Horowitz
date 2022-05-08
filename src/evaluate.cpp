@@ -1,7 +1,7 @@
 #include "evaluate.h"
 
 // static evaluation function
-int evaluate(Position pos) {
+int evaluate(Position& pos) {
     // initialize eval instance
     Evaluation eval;
 
@@ -47,44 +47,44 @@ int evaluate(Position pos) {
 }
 
 // evaluate pawns
-void evalPawn(Position pos, Color color, Square sq, Evaluation &eval) {
+void evalPawn(Position& pos, Color color, Square sq, Evaluation &eval) {
     eval.OPScores[color] += PSQT[openingPhase][Pawn][FLIP_SQ[color][sq]];
     eval.EGScores[color] += PSQT[endgamePhase][Pawn][FLIP_SQ[color][sq]];
 }
 
 // evaluate knights
-void evalKnight(Position pos, Color color, Square sq, Evaluation &eval) {
+void evalKnight(Position& pos, Color color, Square sq, Evaluation &eval) {
     eval.OPScores[color] += PSQT[openingPhase][Knight][FLIP_SQ[color][sq]];
     eval.EGScores[color] += PSQT[endgamePhase][Knight][FLIP_SQ[color][sq]];
 }
 
 // evaluate bishops
-void evalBishop(Position pos, Color color, Square sq, Evaluation &eval) {
+void evalBishop(Position& pos, Color color, Square sq, Evaluation &eval) {
     eval.OPScores[color] += PSQT[openingPhase][Bishop][FLIP_SQ[color][sq]];
     eval.EGScores[color] += PSQT[endgamePhase][Bishop][FLIP_SQ[color][sq]];
 }
 
 // evaluate rooks
-void evalRook(Position pos, Color color, Square sq, Evaluation &eval) {
+void evalRook(Position &pos, Color color, Square sq, Evaluation &eval) {
     eval.OPScores[color] += PSQT[openingPhase][Rook][FLIP_SQ[color][sq]];
     eval.EGScores[color] += PSQT[endgamePhase][Rook][FLIP_SQ[color][sq]];
 }
 
 // evaluate queens
-void evalQueen(Position pos, Color color, Square sq, Evaluation &eval) {
+void evalQueen(Position& pos, Color color, Square sq, Evaluation &eval) {
     eval.OPScores[color] += PSQT[openingPhase][Queen][FLIP_SQ[color][sq]];
     eval.EGScores[color] += PSQT[endgamePhase][Queen][FLIP_SQ[color][sq]];
 }
 
 // evaluate king
-void evalKing(Position pos, Color color, Square sq, Evaluation &eval) {
+void evalKing(Position& pos, Color color, Square sq, Evaluation &eval) {
     //std::cout << sq << std::endl;
     eval.OPScores[color] += PSQT[openingPhase][King][FLIP_SQ[color][sq]];
     eval.EGScores[color] += PSQT[endgamePhase][King][FLIP_SQ[color][sq]];
 }
 
 // get game phase score
-int getPhaseScore(Position pos) {
+int getPhaseScore(Position& pos) {
     int white_piece_scores = 0, black_piece_scores = 0;
 
     for (Piece piece = WhiteKnight; piece <= WhiteQueen; piece = Piece(piece + 1)) {
@@ -111,7 +111,7 @@ int getPhase(int phaseScore) {
 
 // function for calling the evaluation
 // function for the given piece
-void evalPiece(PieceType piece, Position pos, Color color, Square sq, Evaluation &eval) {
+void evalPiece(PieceType piece, Position &pos, Color color, Square sq, Evaluation &eval) {
     switch (piece) {
         case Pawn: evalPawn(pos, color, sq, eval);     break;
         case Knight: evalKnight(pos, color, sq, eval); break;

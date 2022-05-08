@@ -202,17 +202,17 @@ static constexpr int materialScore[2][6] = {
 };
 
 // evaluation/tappered eval functions
-int evaluate(Position pos);
-int getPhaseScore(Position pos);
+int evaluate(Position& pos);
+int getPhaseScore(Position& pos);
 int getPhase(int phaseScore);
 int perspective(int score, Color color);
 
 // evaluation functions for each piece
-void evalPawn(Position pos, Color color, Square sq, Evaluation &eval);
-void evalKnight(Position pos, Color color, Square sq, Evaluation &eval);
-void evalBishop(Position pos, Color color, Square sq, Evaluation &eval);
-void evalRook(Position pos, Color color, Square sq, Evaluation &eval);
-void evalQueen(Position pos, Color color, Square sq, Evaluation &eval);
-void evalKing(Position pos, Color color, Square sq, Evaluation &eval);
+void evalPawn(Position& pos, Color color, Square sq, Evaluation &eval);
+void evalKnight(Position& pos, Color color, Square sq, Evaluation &eval);
+void evalBishop(Position& pos, Color color, Square sq, Evaluation &eval);
+void evalRook(Position& pos, Color color, Square sq, Evaluation &eval);
+void evalQueen(Position& pos, Color color, Square sq, Evaluation &eval);
+void evalKing(Position& pos, Color color, Square sq, Evaluation &eval);
 
-void evalPiece(PieceType piece, Position pos, Color color, Square sq, Evaluation &eval);
+void evalPiece(PieceType piece, Position& pos, Color color, Square sq, Evaluation &eval);

@@ -42,7 +42,7 @@ public:
     int  pvLength[maxPly];
     Move pvTable[maxPly][maxPly];
 
-    int  history[12][64];
+    int  history[12][maxPly];
     Move killers[2][maxPly];
 
     int followPV, scorePV;
