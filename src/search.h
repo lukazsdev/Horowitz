@@ -10,10 +10,15 @@
 // search constants and pruning parameters
 static constexpr int maxPly          = 64;
 static constexpr int windowSize      = 50;
+
 //static constexpr int staticNMPMargin = 120;
 static constexpr int fullDepthMoves  = 4;
 static constexpr int reductionLimit  = 3;
 static constexpr int staticNMPMargin = 120;
+
+// margins for futility pruning and late move pruning
+static constexpr int futilityMargins[9] = {0, 100, 160, 220, 280, 340, 400, 460, 520};
+static constexpr int lateMovePruningMargins[4] = {0, 8, 12, 24};
 
 // MVV LVA [attacker][victim]
 static constexpr int MVV_LVA[12][12] = {
@@ -165,8 +170,10 @@ int Search::negamax(int alpha, int beta, int depth) {
 
     // check if king is in check 
     // check if current node is PV node 
+    // can futility prune
     bool inCheck = pos.isSquareAttacked<~c>(pos.KingSq<c>());
     bool isPVNode = beta - alpha > 1;
+    bool canFutilityPrune = false;
 
     // increment depth if king is in check
     if (inCheck)
@@ -241,6 +248,14 @@ int Search::negamax(int alpha, int beta, int depth) {
             // node (position) fails high
             return beta;
     }
+
+    // futility pruning
+    if (depth <= 8 && !isPVNode && !inCheck && alpha < checkmate) {
+        int staticScore = evaluate(pos);
+        if (staticScore + futilityMargins[depth] <= alpha) {
+            canFutilityPrune = true;
+        }
+    }
     
 
     // legal moves counter
@@ -276,6 +291,26 @@ int Search::negamax(int alpha, int beta, int depth) {
 
         // increment legal moves counter
         legalMoves++;
+
+        // late move pruning
+        if (depth <= 3 && !isPVNode && !inCheck && legalMoves > lateMovePruningMargins[depth]) {
+            bool tactical = inCheck || (move.promoted() > 0);
+            if (!tactical) {
+                pos.unmakemove<c>(move);
+                ply--;
+                continue;
+            }
+        }
+
+        // futility pruning
+        if (canFutilityPrune && legalMoves > 1) {
+            bool tactical = (inCheck) || (isCapture) || (move.promoted() > 0);
+            if (!tactical) {
+                pos.unmakemove<c>(move);
+                ply--;
+                continue;
+            }
+        }
 
        // full depth search
         if (movesSearched == 0) 
