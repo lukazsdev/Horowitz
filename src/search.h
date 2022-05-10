@@ -509,6 +509,7 @@ void Search::search(int depth) {
     }
 
     // print best move
+    std::cout << "bestmove" << " ";
     if (bestMove.promoted()) {
          std::cout << bestMove.toUci() << promotedPieceToChar[bestMove.piece()];
     }
