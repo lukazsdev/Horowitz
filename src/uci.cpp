@@ -20,7 +20,7 @@ void UCIInterface::UCILoop() {
         }
         else if (command == "ucinewgame") {
             search.TT.Clear();
-            search.pos.parseFEN(defaultFEN);
+            search.pos = Position();
         }
         else if (command == "position") {
             std::string subcommand;
@@ -48,6 +48,9 @@ void UCIInterface::UCILoop() {
                 }
             }
         }
+        else if (command == "count") {
+            std::cout << search.pos.storeCount << std::endl;
+        }
         else if (command == "go") {
             stopThread();
             parseGoCommand();
@@ -61,6 +64,11 @@ void UCIInterface::UCILoop() {
         }
         else if (command == "print") {
             search.pos.print();
+        }
+        else if (command == "moves") {
+            Moves moveList = search.pos.generateLegalMoves<White>();
+            for (int i = 0; i < moveList.count; i++) 
+                std::cout << moveList.moves[i].toUci() << std::endl;
         }
     }
 }

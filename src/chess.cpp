@@ -173,6 +173,7 @@ void Position::parseFEN(std::string FEN) {
     // reset board info
     memset(PiecesBB, 0ULL, sizeof(PiecesBB));
     memset(board, None, sizeof(board));
+    storeCount = 0;
 
     // reset enpassant square
     enpassantSquare = NO_SQ;
