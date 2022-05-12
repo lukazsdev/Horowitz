@@ -1,132 +1,180 @@
 #include "evaluate.h"
 
-// static evaluation function
-int evaluate(Position& pos) {
-    // initialize eval instance
-    Evaluation eval;
 
-    // initialize current game phase 
-    // and game phase score
-    int phaseScore = getPhaseScore(pos);
-    int phase = getPhase(phaseScore);
+namespace Eval {
 
-    // loop over all pieces
-    for (int bb_piece = (int)WhitePawn; bb_piece <= (int)BlackKing; bb_piece++) {
-        Bitboard bitboard = pos.PiecesBB[bb_piece];
-        
-        PieceType piece = (PieceType)(bb_piece % 6);
-        Color color = (Color)(bb_piece / 6);
+extern const int PSQT_MG[6][64] = {
+    // Piece-square table for pawns
+	{
+		0, 0, 0, 0, 0, 0, 0, 0,
+		13, 36, -13, 9, -2, 33, -64, -65,
+		1, -7, 12, -2, 35, 48, 20, -5,
+		-13, 3, 4, 25, 23, 17, 6, -19,
+		-22, -19, -1, 14, 19, 4, -10, -22,
+		-14, -20, -3, -4, 6, 5, 13, -5,
+		-20, -16, -22, -12, -8, 20, 18, -11,
+		0, 0, 0, 0, 0, 0, 0, 0
+	},
 
-        // increment opening and endgame scores based on
-        // the current piece's positional and material score
-        while (bitboard) {
-            Square sq = poplsb(bitboard);
+	// Piece-square table for knights
+	{
+		-153, -52, -33, -26, 23, -85, -36, -96,
+		-88, -41, 43, 12, 4, 34, -6, -27,
+		-44, 30, 17, 30, 40, 59, 40, 23,
+		-18, 7, -11, 30, 12, 44, 5, 16,
+		-8, 5, 13, 5, 21, 11, 12, -8,
+		-18, -3, 13, 17, 27, 23, 26, -9,
+		-15, -33, -5, 12, 15, 23, -5, -2,
+		-70, -6, -33, -17, 6, -6, -4, -15
+	},
 
-            eval.OPScores[color] += materialScore[openingPhase][piece];
-            eval.EGScores[color] += materialScore[endgamePhase][piece];
+	// Piece-square table for bishops
+	{
+		-31, -8, -88, -41, -33, -33, -7, -1,
+		-34, -1, -27, -34, 10, 26, 7, -58,
+		-23, 22, 30, 18, 17, 30, 19, -8,
+		-7, -2, 2, 30, 20, 18, 2, -10,
+		-4, 11, 2, 21, 24, 2, 4, 10,
+		3, 19, 19, 7, 16, 31, 20, 5,
+		13, 25, 17, 12, 17, 27, 38, 11,
+		-20, 12, 7, 4, 11, 3, -13, -16
+	},
 
-            evalPiece(piece, pos, color, sq, eval);
-        }
-    }
-    // tappered evaluation
-    int openingScore = eval.OPScores[White] - eval.OPScores[Black];
-    int endgameScore = eval.EGScores[White] - eval.EGScores[Black];
+	// Piece square table for rook
+	{
+		10, 13, -9, 14, 13, -14, 0, 0,
+		10, 8, 25, 29, 32, 31, 0, 8,
+		-14, 6, 1, 5, -11, 13, 34, -5,
+		-26, -19, 0, 2, -2, 10, -23, -26,
+		-33, -24, -13, -10, -3, -17, -9, -31,
+		-32, -20, -6, -9, -3, -2, -13, -27,
+		-30, -9, -6, 3, 9, 6, -5, -54,
+		-6, 1, 12, 22, 22, 18, -23, -8
+	},
 
-    if (phase == middlegamePhase) 
-        eval.score = (openingScore * phaseScore + endgameScore * 
-                (openingPhaseScore - phaseScore)) / openingPhaseScore;
-    
-    else if (phase == openingPhase) {
-        eval.score = openingScore;
-    }
+	// Piece square table for queens
+	{
+		-22, -16, -6, -8, 33, 23, 10, 25,
+		-26, -46, -16, 5, -27, 4, 3, 22,
+		-15, -16, -5, -19, 8, 32, 11, 26,
+		-28, -31, -26, -26, -16, -9, -12, -18,
+		-11, -28, -14, -18, -10, -10, -11, -11,
+		-19, 4, -5, -1, -2, 1, 6, 1,
+		-21, -3, 13, 14, 19, 22, 2, 14,
+		4, 2, 13, 24, 6, -8, -6, -31
+	},
 
-    else if (phase == endgamePhase) 
-        eval.score = endgameScore;
+	// Piece square table for kings
+	{
+		-54, 30, 48, 29, -21, 2, 17, 15,
+		36, 33, 20, 54, 34, 30, -1, -15,
+		31, 35, 48, 26, 32, 46, 50, 9,
+		20, 28, 28, 22, 24, 26, 30, -2,
+		-14, 34, 12, 7, 9, 7, 4, -20,
+		0, 10, 8, 9, 9, 8, 17, -16,
+		0, 16, -1, -35, -14, -5, 12, 3,
+		-38, 24, 13, -61, -3, -29, 19, -6
+	}
+};
 
-    return perspective(eval.score, pos.sideToMove);
-}
+extern const int PSQT_EG[6][64] = {
+    // Piece-square table for pawns
+	{
+		0, 0, 0, 0, 0, 0, 0, 0,
+		52, 40, 22, -4, 7, -1, 41, 62,
+		34, 34, 11, -18, -30, -7, 14, 20,
+		15, 6, -6, -24, -17, -11, 1, 4,
+		3, 2, -12, -20, -18, -13, -6, -9,
+		-8, -2, -14, -11, -8, -10, -15, -17,
+		-2, -4, 0, -10, 1, -8, -12, -19,
+		0, 0, 0, 0, 0, 0, 0, 0
+	},
 
-// evaluate pawns
-void evalPawn(Position& pos, Color color, Square sq, Evaluation &eval) {
-    eval.OPScores[color] += PSQT[openingPhase][Pawn][FLIP_SQ[color][sq]];
-    eval.EGScores[color] += PSQT[endgamePhase][Pawn][FLIP_SQ[color][sq]];
-}
+	// Piece-square table for knights
+	{
 
-// evaluate knights
-void evalKnight(Position& pos, Color color, Square sq, Evaluation &eval) {
-    eval.OPScores[color] += PSQT[openingPhase][Knight][FLIP_SQ[color][sq]];
-    eval.EGScores[color] += PSQT[endgamePhase][Knight][FLIP_SQ[color][sq]];
-}
+		-35, -26, 5, -17, -10, -15, -40, -73,
+		1, 10, -11, 13, 3, -13, -7, -28,
+		-6, -6, 15, 12, 7, 5, -6, -22,
+		6, 13, 27, 24, 25, 17, 15, 0,
+		5, 7, 24, 32, 23, 24, 21, 3,
+		0, 9, 1, 20, 14, -3, -12, -3,
+		-12, 1, 6, 4, 8, -8, -2, -23,
+		-6, -23, -2, 9, -2, -2, -26, -38
+	},
 
-// evaluate bishops
-void evalBishop(Position& pos, Color color, Square sq, Evaluation &eval) {
-    eval.OPScores[color] += PSQT[openingPhase][Bishop][FLIP_SQ[color][sq]];
-    eval.EGScores[color] += PSQT[endgamePhase][Bishop][FLIP_SQ[color][sq]];
-}
+	// Piece-square table for bishops
+	{
+		-3, -9, 7, 0, 7, -2, -3, -15,
+		7, 4, 14, -1, 2, -2, -2, -3,
+		13, -1, -1, 0, -3, 2, 6, 12,
+		8, 14, 14, 7, 8, 6, 4, 12,
+		7, 5, 14, 13, 0, 7, 0, 2,
+		2, 4, 8, 10, 11, -2, 3, 4,
+		-1, -8, -1, 1, 6, -1, -3, -15,
+		-4, 2, -3, 5, 3, 1, 6, 1
+	},
 
-// evaluate rooks
-void evalRook(Position &pos, Color color, Square sq, Evaluation &eval) {
-    eval.OPScores[color] += PSQT[openingPhase][Rook][FLIP_SQ[color][sq]];
-    eval.EGScores[color] += PSQT[endgamePhase][Rook][FLIP_SQ[color][sq]];
-}
+	// Piece square table for rook
+	{
+		15, 11, 20, 15, 17, 18, 15, 13,
+		14, 17, 16, 13, 5, 10, 15, 13,
+		13, 10, 10, 10, 8, 3, -1, 2,
+		12, 9, 14, 6, 6, 8, 6, 13,
+		12, 12, 13, 7, 2, 4, 2, 4,
+		5, 8, -1, 3, 0, -3, 1, -4,
+		4, 0, 2, 5, -5, -3, -5, 7,
+		-5, 1, 2, -1, -4, -6, 3, -18
+	},
 
-// evaluate queens
-void evalQueen(Position& pos, Color color, Square sq, Evaluation &eval) {
-    eval.OPScores[color] += PSQT[openingPhase][Queen][FLIP_SQ[color][sq]];
-    eval.EGScores[color] += PSQT[endgamePhase][Queen][FLIP_SQ[color][sq]];
-}
+	// Piece square table for queens
+	{
+		-13, 17, 16, 14, 14, 13, 8, 22,
+		-10, 3, 19, 21, 35, 25, 18, 12,
+		-9, -12, -12, 28, 29, 21, 27, 20,
+		14, 17, 8, 16, 30, 25, 44, 41,
+		-6, 17, 8, 27, 14, 21, 34, 33,
+		12, -20, 10, -2, 5, 16, 22, 17,
+		1, -12, -14, -12, -8, -15, -24, -18,
+		-17, -24, -19, -13, 1, -12, -9, -30
+	},
 
-// evaluate king
-void evalKing(Position& pos, Color color, Square sq, Evaluation &eval) {
-    //std::cout << sq << std::endl;
-    eval.OPScores[color] += PSQT[openingPhase][King][FLIP_SQ[color][sq]];
-    eval.EGScores[color] += PSQT[endgamePhase][King][FLIP_SQ[color][sq]];
-}
+	// Piece square table for kings
+	{
+		-71, -40, -23, -22, -8, 15, 2, -17,
+		-14, 16, 14, 12, 15, 33, 23, 10,
+		5, 17, 19, 16, 17, 44, 40, 9,
+		-13, 19, 24, 28, 25, 31, 23, 1,
+		-19, -3, 23, 27, 27, 24, 10, -10,
+		-18, 0, 14, 20, 23, 17, 6, -4,
+		-24, -7, 10, 17, 17, 11, 0, -12,
+		-45, -29, -17, 1, -15, -4, -21, -39
+	}
+};
 
-// get game phase score
-int getPhaseScore(Position& pos) {
-    int white_piece_scores = 0, black_piece_scores = 0;
+// flip white's perspective to black's
+extern const int FLIP_SQ[2][64] = {
+    {
+		56, 57, 58, 59, 60, 61, 62, 63,
+		48, 49, 50, 51, 52, 53, 54, 55,
+		40, 41, 42, 43, 44, 45, 46, 47,
+		32, 33, 34, 35, 36, 37, 38, 39,
+		24, 25, 26, 27, 28, 29, 30, 31,
+		16, 17, 18, 19, 20, 21, 22, 23,
+		8, 9, 10, 11, 12, 13, 14, 15,
+		0, 1, 2, 3, 4, 5, 6, 7
+	},
 
-    for (Piece piece = WhiteKnight; piece <= WhiteQueen; piece = Piece(piece + 1)) {
-        white_piece_scores += popCount(pos.PiecesBB[piece]) * materialScore[openingPhase][piece % 6];
-    }
+	{
+        0, 1, 2, 3, 4, 5, 6, 7,
+		8, 9, 10, 11, 12, 13, 14, 15,
+		16, 17, 18, 19, 20, 21, 22, 23,
+		24, 25, 26, 27, 28, 29, 30, 31,
+		32, 33, 34, 35, 36, 37, 38, 39,
+		40, 41, 42, 43, 44, 45, 46, 47,
+		48, 49, 50, 51, 52, 53, 54, 55,
+		56, 57, 58, 59, 60, 61, 62, 63
+	}
+};
 
-    for (Piece piece = BlackKnight; piece <= BlackQueen; piece = Piece(piece + 1)) {
-        black_piece_scores += popCount(pos.PiecesBB[piece]) * materialScore[openingPhase][piece % 6];
-    }
-
-    return white_piece_scores + black_piece_scores;
-}
-
-// get current game phase
-int getPhase(int phaseScore) {
-    if (phaseScore > openingPhaseScore) 
-        return openingPhase;
-
-    else if (phaseScore < endgamePhaseScore) 
-        return endgamePhase;
-    
-    return middlegamePhase;
-}
-
-// function for calling the evaluation
-// function for the given piece
-void evalPiece(PieceType piece, Position &pos, Color color, Square sq, Evaluation &eval) {
-    switch (piece) {
-        case Pawn: evalPawn(pos, color, sq, eval);     break;
-        case Knight: evalKnight(pos, color, sq, eval); break;
-        case Bishop: evalBishop(pos, color, sq, eval); break;
-        case Rook: evalRook(pos, color, sq, eval);     break;
-        case Queen: evalQueen(pos, color, sq, eval);   break;
-        case King: evalKing(pos, color, sq, eval);     break;
-        default:                                       break;
-    }
-
-}
-
-// this is implemented so that the score is positive 
-// if the current side to move is better than the opponent
-// and negative otherwise
-int perspective(int score, Color color) {
-    return color == White ? score : -score;
-}
+} // end of evaluation namespace

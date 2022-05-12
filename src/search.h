@@ -69,7 +69,7 @@ public:
 template<Color c> 
 int Search::quiescence(int alpha, int beta) {
     // static evaluation
-    int evaluation = evaluate(pos);
+    int evaluation = Eval::evaluate<c>(pos);
 
     nodes++;
 
@@ -152,7 +152,7 @@ int Search::negamax(int alpha, int beta, int depth) {
     // if depth limit is greater than max ply.
     // exit if current ply is greater than max ply
     if (ply >= maxPly) {
-        return evaluate(pos);
+        return Eval::evaluate<c>(pos);
     }
 
     // every 2048 nodes, check if time is up
@@ -182,7 +182,7 @@ int Search::negamax(int alpha, int beta, int depth) {
     // check if we have reached the depth limit
     // then search all possible captures 
     if (depth <= 0) {
-        //return evaluate(pos);
+        //return Eval::evaluate<c>(pos);
         return quiescence<c>(alpha, beta);
     }
 
@@ -198,7 +198,7 @@ int Search::negamax(int alpha, int beta, int depth) {
     // static null move pruning
     if (!inCheck && !isPVNode && abs(beta) < checkmate) {
         // if current material - score margin is still good, prune branch
-        int staticScore = evaluate(pos);
+        int staticScore = Eval::evaluate<c>(pos);
         int scoreMargin = staticNMPMargin * depth;
         
         if (staticScore - scoreMargin >= beta)
@@ -251,7 +251,7 @@ int Search::negamax(int alpha, int beta, int depth) {
 
     // futility pruning
     if (depth <= 8 && !isPVNode && !inCheck && alpha < checkmate) {
-        int staticScore = evaluate(pos);
+        int staticScore = Eval::evaluate<c>(pos);
         if (staticScore + futilityMargins[depth] <= alpha) {
             canFutilityPrune = true;
         }
