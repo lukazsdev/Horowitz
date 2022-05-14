@@ -6,7 +6,6 @@
 // class for UCI Protocol
 class UCIInterface {
 public:
-    Position pos;
     Search search;
 
     std::istringstream iss;

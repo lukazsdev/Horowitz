@@ -6,6 +6,7 @@
 #include "evaluate.h"
 #include "timemanager.h"
 #include "tt.h"
+#include "book.h"
 
 // search constants and pruning parameters
 static constexpr int maxPly          = 64;
@@ -58,6 +59,7 @@ public:
     template<Color c> void search(int depth);
     template<Color c> int quiescence(int alpha, int beta);
     template<Color c> int negamax(int alpha, int beta, int depth);
+    template<Color c> bool searchBook();
 
     // move ordering/scoring functions
     int scoreMove(Move move);
@@ -410,6 +412,14 @@ int Search::negamax(int alpha, int beta, int depth) {
 // root search function (iterative deepening search)
 template<Color c> 
 void Search::search(int depth) {
+    // check if we can probe the opening book
+    bool canProbeOpening = searchBook<c>();
+    
+    // if we can, then exit search, as we have
+    // already found the best move from the book
+    if (canProbeOpening)
+        return;
+
     // start search timer
     auto t1 = std::chrono::high_resolution_clock::now();
 
@@ -516,4 +526,20 @@ void Search::search(int depth) {
     else std::cout << bestMove.toUci() << std::endl;
 }
 
+// search internal opening book
+template<Color c> 
+bool Search::searchBook() {
+    if (OpeningBook.find(pos.hashKey) != OpeningBook.end()) {
+        std::string bestMove = OpeningBook[pos.hashKey];
+        Moves moveList = pos.generateLegalMoves<c>();
+        for (int i = 0; i < moveList.count; i++) {
+            Move move = moveList.moves[i];
+            if (bestMove == move.toUci()) {
+                std::cout << "bestmove " << bestMove << std::endl;
+                return true;
+            }
+        }
+    }
 
+    return false;
+}
