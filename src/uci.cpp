@@ -39,13 +39,17 @@ void UCIInterface::UCILoop() {
             }
             iss >> subcommand;
             if (subcommand == "moves") {
+                int plies = 0;
                 std::string moveUci;
                 while (iss >> moveUci) {
+                    plies++;
                     Move move = parseMove(moveUci);
                     if (search.pos.sideToMove == White) 
                         search.pos.makemove<White>(move);
                     else search.pos.makemove<Black>(move);
                 }
+                if (plies % 10) 
+                    search.TT.Clear();
             }
         }
         else if (command == "count") {
