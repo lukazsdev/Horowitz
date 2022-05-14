@@ -220,9 +220,7 @@ void Position::parseFEN(std::string FEN) {
         char curr = pieces[index];
         if (charToPiece.find(curr) != charToPiece.end()) {
             Piece piece = charToPiece[curr];
-            Color color = piece_color(piece);
             placePiece(piece, square);
-            
             square = Square(square + 1);
         }
         else if (curr == '/') square = Square(square - 16);

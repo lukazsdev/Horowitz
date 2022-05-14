@@ -33,15 +33,57 @@ static constexpr int PhaseValues[6] = {
 static constexpr int PieceValueMG[6] = {82, 337, 365, 477, 1025,  0};
 static constexpr int PieceValueEG[6] = {94, 281, 297, 512,  936,  0};
 
-// mobility for midgame and endgame
-//static constexpr int PieceMobilityMG[4] = { 3, 4, 5, 1 };
-//static constexpr int PieceMobilityEG[4] = { 4, 4, 3, 7 };
+// mobility units for each piece
+static constexpr int KnightMobilityUnit = 4;
+static constexpr int BishopMobilityUnit = 4;
+static constexpr int RookMobilityUnit   = 5;
+static constexpr int QueenMobilityUnit  = 9;  
+
+// piece mobility for midgame and endgame
+static constexpr int PieceMobilityMG[4] = {4, 5, 0, 0};
+static constexpr int PieceMobilityEG[4] = {3, 5, 2, 1};
+
+// evaluation masks 
+extern Bitboard isolatedPawnMasks[8];
+
+// penalties
+static constexpr int isolatedPawnPenalityMG = 5;
+static constexpr int isolatedPawnPenalityEG = 10;
+static constexpr int backwardPawnPenalityMG = 20;
+static constexpr int backwardPawnPenalityEG = 30;
+
+// initialize all evaluation masks
+void init();
+// check whether given pawn is a backwards pawn or not
+bool isBackwardsPawn(Square sq, Bitboard ourPawnsBB, Color c);
 
 // evaluate pawns
 template<Color c>
 void evalPawn(Position& pos, Square sq, EvalInfo &eval) {
+    // add material + piece square table scores
     eval.MGScores[c] += PieceValueMG[Pawn] + PSQT_MG[Pawn][FLIP_SQ[c][sq]];
     eval.EGScores[c] += PieceValueEG[Pawn] + PSQT_EG[Pawn][FLIP_SQ[c][sq]];
+
+    // retrieve our pawns bitboard
+    Bitboard ourPawnsBB = pos.Pawns<c>();
+    int file = file_of(sq);
+
+    // evaluate isolated pawn
+    if ((isolatedPawnMasks[file] & ourPawnsBB) == 0) {
+        eval.MGScores[c] -= isolatedPawnPenalityMG;
+        eval.EGScores[c] -= isolatedPawnPenalityEG;
+    }
+
+    // evaluate backward pawn (only check if both adjacent files have pawns)
+    if (file > 0 && file < 7) {
+        if ((MASK_FILE[file-1] & ourPawnsBB) && (MASK_FILE[file+1] & ourPawnsBB)) {
+            if (isBackwardsPawn(sq, ourPawnsBB, c)) {
+                eval.MGScores[c] -= backwardPawnPenalityMG;
+                eval.EGScores[c] -= backwardPawnPenalityEG;
+            }
+        }
+    }
+
 }
 
 // evaluate knights
@@ -49,20 +91,18 @@ template<Color c>
 void evalKnight(Position& pos, Square sq, EvalInfo &eval) {
     // add material + piece square table scores
     eval.MGScores[c] += PieceValueMG[Knight] + PSQT_MG[Knight][FLIP_SQ[c][sq]];
-    eval.EGScores[c] += PieceValueEG[Knight] + PSQT_EG[Knight][FLIP_SQ[c][sq]];
+    eval.EGScores[c] += PieceValueEG[Knight] + PSQT_EG[Knight][FLIP_SQ[c][sq]];   
 
-    /*
     // retrieve important bitboards
-    Bitboard usBB  = pos.allPieces<c>();
+    Bitboard usBB = pos.allPieces<c>(); 
 
     // evaluate piece mobility
-    Bitboard moves = pos.GetKnightAttacks(sq) ^ ~usBB;
+    Bitboard moves = pos.GetKnightAttacks(sq) & ~usBB;
     int mobility   = popCount(moves);
 
     // add mobility bonuses
-    eval.MGScores[c] += (mobility - 4) * PieceMobilityMG[Knight - 1];
-    eval.EGScores[c] += (mobility - 4) * PieceMobilityEG[Knight - 1];
-    */
+    eval.MGScores[c] += ((mobility - KnightMobilityUnit) * PieceMobilityMG[Knight - 1]) / 2;
+    eval.EGScores[c] += ((mobility - KnightMobilityUnit) * PieceMobilityEG[Knight - 1]) / 2;
 }
 
 // evaluate bishops
@@ -71,7 +111,6 @@ void evalBishop(Position& pos, Square sq, EvalInfo &eval) {
     eval.MGScores[c] += PieceValueMG[Bishop] + PSQT_MG[Bishop][FLIP_SQ[c][sq]];
     eval.EGScores[c] += PieceValueEG[Bishop] + PSQT_EG[Bishop][FLIP_SQ[c][sq]];
 
-    /*
     // retrieve important bitboards
     Bitboard usBB  = pos.allPieces<c>();
     Bitboard allBB = pos.allPieces<c>() | pos.allPieces<~c>();
@@ -81,9 +120,9 @@ void evalBishop(Position& pos, Square sq, EvalInfo &eval) {
     int mobility   = popCount(moves);
 
     // add mobility bonuses
-    eval.MGScores[c] += (mobility - 7) * PieceMobilityMG[Bishop - 1];
-    eval.EGScores[c] += (mobility - 7) * PieceMobilityEG[Bishop - 1];
-    */
+    eval.MGScores[c] += ((mobility - BishopMobilityUnit) * PieceMobilityMG[Bishop - 1]) / 2;
+    eval.EGScores[c] += ((mobility - BishopMobilityUnit) * PieceMobilityEG[Bishop - 1]) / 2;
+    
 }
 
 // evaluate rooks
@@ -92,7 +131,6 @@ void evalRook(Position& pos, Square sq, EvalInfo &eval) {
     eval.MGScores[c] += PieceValueMG[Rook] + PSQT_MG[Rook][FLIP_SQ[c][sq]];
     eval.EGScores[c] += PieceValueEG[Rook] + PSQT_EG[Rook][FLIP_SQ[c][sq]];
 
-    /*
     // retrieve important bitboards
     Bitboard usBB  = pos.allPieces<c>();
     Bitboard allBB = pos.allPieces<c>() | pos.allPieces<~c>();
@@ -102,9 +140,8 @@ void evalRook(Position& pos, Square sq, EvalInfo &eval) {
     int mobility   = popCount(moves);
 
     // add mobility bonuses
-    eval.MGScores[c] += (mobility - 7) * PieceMobilityMG[Rook - 1];
-    eval.EGScores[c] += (mobility - 7) * PieceMobilityEG[Rook - 1];
-    */
+    eval.MGScores[c] += ((mobility - RookMobilityUnit) * PieceMobilityMG[Rook - 1]) / 2;
+    eval.EGScores[c] += ((mobility - RookMobilityUnit) * PieceMobilityEG[Rook - 1]) / 2;
 }
 
 // evaluate queens
@@ -113,7 +150,7 @@ void evalQueen(Position& pos, Square sq, EvalInfo &eval) {
     eval.MGScores[c] += PieceValueMG[Queen] + PSQT_MG[Queen][FLIP_SQ[c][sq]];
     eval.EGScores[c] += PieceValueEG[Queen] + PSQT_EG[Queen][FLIP_SQ[c][sq]];
 
-    /*
+    
     // retrieve important bitboards
     Bitboard usBB  = pos.allPieces<c>();
     Bitboard allBB = pos.allPieces<c>() | pos.allPieces<~c>();
@@ -123,9 +160,9 @@ void evalQueen(Position& pos, Square sq, EvalInfo &eval) {
     int mobility   = popCount(moves);
 
     // add mobility bonuses
-    eval.MGScores[c] += (mobility - 14) * PieceMobilityMG[Queen - 1];
-    eval.EGScores[c] += (mobility - 14) * PieceMobilityEG[Queen - 1];
-    */
+    eval.MGScores[c] += ((mobility - QueenMobilityUnit) * PieceMobilityMG[Queen - 1]) / 2;
+    eval.EGScores[c] += ((mobility - QueenMobilityUnit) * PieceMobilityEG[Queen - 1]) / 2;
+    
 }
 
 // evaluate kings
@@ -189,7 +226,6 @@ int evaluate(Position& pos) {
     phase = (phase*256 + (TotalPhase / 2)) / TotalPhase;
     return (MGScore * (256 - phase) + EGScore * phase) / 256;
 }
-
 
 
 }; // end if evaluation namespace
