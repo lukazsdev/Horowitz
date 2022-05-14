@@ -175,7 +175,10 @@ void Position::parseFEN(std::string FEN) {
     // reset board info
     memset(PiecesBB, 0ULL, sizeof(PiecesBB));
     memset(board, None, sizeof(board));
-    storeCount = 0;
+    materialCountScore    = 0;
+    pieceSquareTableScore = 0;
+    storeCount            = 0;
+
 
     // reset enpassant square
     enpassantSquare = NO_SQ;
@@ -217,7 +220,9 @@ void Position::parseFEN(std::string FEN) {
         char curr = pieces[index];
         if (charToPiece.find(curr) != charToPiece.end()) {
             Piece piece = charToPiece[curr];
+            Color color = piece_color(piece);
             placePiece(piece, square);
+            
             square = Square(square + 1);
         }
         else if (curr == '/') square = Square(square - 16);

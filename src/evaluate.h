@@ -1,6 +1,7 @@
 #pragma once
 
 #include "chess.h"
+#include "psqt.h"
 
 namespace Eval {
 
@@ -35,11 +36,6 @@ static constexpr int PieceValueEG[6] = {94, 281, 297, 512,  936,  0};
 // mobility for midgame and endgame
 //static constexpr int PieceMobilityMG[4] = { 3, 4, 5, 1 };
 //static constexpr int PieceMobilityEG[4] = { 4, 4, 3, 7 };
-
-// piece square tables (positional piece scores)
-extern const int PSQT_MG[6][64];
-extern const int PSQT_EG[6][64];
-extern const int FLIP_SQ[2][64];
 
 // evaluate pawns
 template<Color c>

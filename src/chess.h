@@ -11,6 +11,8 @@
 #include <chrono>
 #include <algorithm>
 
+#include "psqt.h"
+
 /**********************************\
  ==================================
                Types 
@@ -556,6 +558,11 @@ public:
 
     // current castling rights
     uint8_t castlingRights;
+
+    // incrementally updatable PSQT
+    // and material count scores
+    int pieceSquareTableScore;
+    int materialCountScore;
 
     // pawn half moves
     uint8_t ply();
