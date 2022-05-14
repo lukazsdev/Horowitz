@@ -78,8 +78,8 @@ static constexpr uint8_t blackKingSideCastling  = 4;
 static constexpr uint8_t blackQueenSideCastling = 8;
 
 // search constants
-static constexpr int infinity   = 10000;
-static constexpr int checkmate  = 9000;
+static constexpr int infinity   = 50000;
+static constexpr int checkmate  = 49000;
 
 // default FEN string (start position)
 static constexpr auto defaultFEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1 ";
@@ -547,7 +547,7 @@ public:
 
     // full moves
     uint16_t fullMoveCounter;
-public:
+
     // current side to move
     Color sideToMove;
 
@@ -635,7 +635,6 @@ public:
     template <Color c> constexpr Bitboard Kings();
     template <Color c> constexpr Bitboard PieceBB(PieceType type);
 
-private:
     // places a piece on a particular square
     void placePiece(Piece piece, Square sq);
 

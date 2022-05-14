@@ -3,7 +3,7 @@
 #include "chess.h"
 
 // no hash entry found constant
-static constexpr int NoHashEntry = 20000;
+static constexpr int NoHashEntry = 100000;
 
 // transposition table hash flags
 static constexpr int HashFlagExact = 0;

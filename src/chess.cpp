@@ -44,6 +44,8 @@ inline bool isBitSet(Bitboard bb, Square sq) {
     return (bb & SQUARE_BB[sq]) ? true : false;
 }
 
+// 00000000 00000000 00000000 ...
+
 // print given bitboard (for debugging purposes)
 void printBitboard(Bitboard bb) {
     std::cout << "\n";
