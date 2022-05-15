@@ -1,3 +1,21 @@
+/*
+  Horowitz, a UCI compatible chess engine. 
+  Copyright (C) 2022 by OliveriQ.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #pragma once
 
 #include <algorithm>
@@ -32,25 +50,24 @@ static constexpr int PhaseValues[6] = {
 };
 
 // material piece values for midgame and endgame
-static constexpr int PieceValueMG[6] = {102, 337, 365, 477, 1025,  0};
-static constexpr int PieceValueEG[6] = {94, 281, 297, 512,  936,  0};
+static constexpr int PieceValueMG[6] = {100, 315, 330, 525, 1010,  0};
+static constexpr int PieceValueEG[6] = {110, 315, 330, 550, 1010,  0};
 static constexpr int PieceValue[6] = {100, 300, 320, 500, 900, 0};
 
 // maximum possible endgame material (rook * 2 + bishop + knight)
+// minimum possible middlegame material (starting - 2000)
 static constexpr float materialEndgameStart = 1620;
+static constexpr int minMiddlegameMaterial = 4000;
 
 // mobility units for each piece
-static constexpr int BishopMobilityUnit = 4;
-static constexpr int QueenMobilityUnit  = 9; 
+static constexpr int KnightMobilityUnit = 4;
+static constexpr int BishopMobilityUnit = 6;
+static constexpr int RookMobilityUnit   = 7;
+static constexpr int QueenMobilityUnit  = 13; 
 
 // piece mobility for midgame and endgame
-static constexpr int PieceMobilityMG[4] = {0, 5, 0, 1};
-static constexpr int PieceMobilityEG[4] = {0, 5, 0, 2};
-
-// king safety
-static constexpr int kingSafetyBonus = 10;
-static constexpr int castledQueensideBonus = 20;
-static constexpr int castledKingsideBonus  = 30;
+static constexpr int PieceMobilityMG[4] = {4, 5, 2, 1};
+static constexpr int PieceMobilityEG[4] = {4, 5, 4, 2};
 
 // evaluation masks 
 extern Bitboard isolatedPawnMasks[8];
@@ -68,7 +85,7 @@ static constexpr int semiOpenFileBonus = 10;
 static constexpr int openFileBonus = 15;
 
 // bishop pair bonus
-static constexpr int bishopPairBonus = 30;
+static constexpr int bishopPairBonus = 20;
 
 // lookup table for center manhattan distance
 static constexpr int CenterManhattanDistance[64] = { 
@@ -80,6 +97,21 @@ static constexpr int CenterManhattanDistance[64] = {
   4, 3, 2, 1, 1, 2, 3, 4,
   5, 4, 3, 2, 2, 3, 4, 5,
   6, 5, 4, 3, 3, 4, 5, 6
+};
+
+// king safety (pawns shielding king)
+static constexpr int kingSafetyBonus = 5;
+
+// starting from A1, B1, C1 ...
+static constexpr int kingDangerZonesTable[64] = {
+     0,  0, 10, 50, 50, 50,  0, 0,
+     0, 10, 50, 50, 50, 50, 10, 0,
+    60, 60, 60, 60, 60, 60, 60, 60,
+    60, 60, 60, 60, 60, 60, 60, 60,
+    60, 60, 60, 60, 60, 60, 60, 60,
+    60, 60, 60, 60, 60, 60, 60, 60,
+     0, 10, 50, 50, 50, 50, 10, 0,
+     0,  0, 10, 50, 50, 50,  0, 0,
 };
 
 
@@ -144,6 +176,14 @@ void evalKnight(Position& pos, Square sq, EvalInfo &eval) {
     // add material + piece square table scores
     eval.MGScores[c] += PieceValueMG[Knight] + PSQT_MG[Knight][FLIP_SQ[c][sq]];
     eval.EGScores[c] += PieceValueEG[Knight] + PSQT_EG[Knight][FLIP_SQ[c][sq]];   
+
+    // evaluate piece mobility
+    Bitboard usBB = pos.allPieces<c>();
+    int mobility = popCount(pos.GetKnightAttacks(sq) & ~usBB);
+
+    // add mobility bonuses
+    eval.MGScores[c] += ((mobility - KnightMobilityUnit) * PieceMobilityMG[Knight - 1]) / 2;
+    eval.EGScores[c] += ((mobility - KnightMobilityUnit) * PieceMobilityEG[Knight - 1]) / 2;
 }
 
 // evaluate bishops
@@ -183,6 +223,18 @@ void evalRook(Position& pos, Square sq, EvalInfo &eval) {
         eval.MGScores[c] += openFileBonus;
         eval.EGScores[c] += openFileBonus;
     }
+
+    // retrieve important bitboards
+    Bitboard usBB  = pos.allPieces<c>();
+    Bitboard allBB = pos.allPieces<c>() | pos.allPieces<~c>();
+
+    // evaluate piece mobility
+    Bitboard moves = pos.GetRookAttacks(sq, allBB) & ~usBB;
+    int mobility   = popCount(moves);
+
+    // add mobility bonuses
+    eval.MGScores[c] += ((mobility - RookMobilityUnit) * PieceMobilityMG[Rook - 1]) / 2;
+    eval.EGScores[c] += ((mobility - RookMobilityUnit) * PieceMobilityEG[Rook - 1]) / 2;
 }
 
 // evaluate queens
@@ -208,7 +260,7 @@ void evalQueen(Position& pos, Square sq, EvalInfo &eval) {
 
 // evaluate kings
 template<Color c>
-void evalKing(Position& pos, Square sq, EvalInfo &eval) {
+void evalKing(Position& pos, Square sq, int material, EvalInfo &eval) {
     eval.MGScores[c] += PieceValueMG[King] + PSQT_MG[King][FLIP_SQ[c][sq]];
     eval.EGScores[c] += PieceValueEG[King] + PSQT_EG[King][FLIP_SQ[c][sq]];
 
@@ -217,7 +269,6 @@ void evalKing(Position& pos, Square sq, EvalInfo &eval) {
     eval.MGScores[c] += popCount(pos.GetKingAttacks(sq) & pos.Pawns<c>()) * kingSafetyBonus;
     eval.EGScores[c] += popCount(pos.GetKingAttacks(sq) & pos.Pawns<c>()) * kingSafetyBonus;
 
-    // evaluate semi open files
     // evaluate semi open files
     if ((pos.Pawns<c>() & MASK_FILE[file_of(sq)]) == 0) {
         eval.MGScores[c] -= semiOpenFileBonus;
@@ -230,22 +281,9 @@ void evalKing(Position& pos, Square sq, EvalInfo &eval) {
         eval.EGScores[c] -= openFileBonus;
     }
 
-    // retrieve king squares
-    Square ourKingSq   = bsf(pos.Kings<c>());
-
-    // add king castled bonus if king has castled
-    if (c == White) {
-        if (ourKingSq == SQ_G1) 
-            eval.MGScores[c] += castledKingsideBonus;
-        else if (ourKingSq == SQ_C1)
-            eval.MGScores[c] += castledQueensideBonus;
-    }
-    else {
-        if (ourKingSq == SQ_G8) 
-            eval.MGScores[c] += castledKingsideBonus;
-        else if (ourKingSq == SQ_C8)
-            eval.MGScores[c] += castledQueensideBonus;
-    }
+    // add king danger zone penalty 
+    if (material > minMiddlegameMaterial) 
+        eval.MGScores[c] -= kingDangerZonesTable[sq];
 
 }
 
@@ -309,6 +347,9 @@ int evaluate(Position& pos) {
         // retrieve piece 
         PieceType pt = (PieceType)(pos.board[sq] % 6);
         Color color  = (Color)(pos.board[sq] / 6);
+        
+        // skip if piece is a king
+        if (pt == King) continue;
 
         // incrementally update materials count
         if (color == c) ourMaterial += PieceValue[pt];
@@ -334,6 +375,10 @@ int evaluate(Position& pos) {
     Square ourKingSq   = bsf(pos.Kings<c>());
     Square theirKingSq = bsf(pos.Kings<~c>());
 
+    // evaluate king
+    evalKing<c>(pos, ourKingSq, ourMaterial + theirMaterial, eval);
+    evalKing<~c>(pos, theirKingSq, ourMaterial + theirMaterial, eval);
+
     // mop up eval
     eval.EGScores[c] += mopUpEval<c>(ourKingSq, theirKingSq, ourMaterial, theirMaterial, ourEndgamePhaseWeight);
     eval.EGScores[~c] += mopUpEval<~c>(theirKingSq, ourKingSq, theirMaterial, ourMaterial, theirEndgamePhaseWeight);
@@ -344,7 +389,7 @@ int evaluate(Position& pos) {
 
     // interpolate midgame and endgame scores (tappered eval)
     phase = (phase*256 + (TotalPhase / 2)) / TotalPhase;
-    return (MGScore * (256 - phase) + EGScore * phase) / 256;
+    return ((MGScore * (256 - phase)) + EGScore * phase) / 256;
 }
 
 

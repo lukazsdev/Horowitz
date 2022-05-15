@@ -1,2 +1,3 @@
-# horowitz
-UCI-compatible chess engine.
+## Overview:
+Horowitz is a UCI-compatible chess engine.
+## Installation:

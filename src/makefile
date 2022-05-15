@@ -1,7 +1,7 @@
 horowitz.o: main.o chess.o search.o evaluate.o uci.o timemanager.o zobrist.o tt.o psqt.o
 	g++ main.o chess.o search.o evaluate.o uci.o timemanager.o zobrist.o tt.o psqt.o -Wall -o horowitz
 
-main.o: main.cpp book.h
+main.o: main.cpp 
 	g++ -c -flto -O3 -msse2 -march=native -std=c++17 -static-libgcc -static-libstdc++ -Wall main.cpp
 
 chess.o: chess.cpp chess.h
