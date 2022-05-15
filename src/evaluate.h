@@ -1,5 +1,7 @@
 #pragma once
 
+#include <algorithm>
+
 #include "chess.h"
 #include "psqt.h"
 
@@ -32,6 +34,10 @@ static constexpr int PhaseValues[6] = {
 // material piece values for midgame and endgame
 static constexpr int PieceValueMG[6] = {102, 337, 365, 477, 1025,  0};
 static constexpr int PieceValueEG[6] = {94, 281, 297, 512,  936,  0};
+static constexpr int PieceValue[6] = {100, 300, 320, 500, 900, 0};
+
+// maximum possible endgame material (rook * 2 + bishop + knight)
+static constexpr float materialEndgameStart = 1620;
 
 // mobility units for each piece
 static constexpr int BishopMobilityUnit = 4;
@@ -47,22 +53,50 @@ static constexpr int kingSafetyBonus = 10;
 // evaluation masks 
 extern Bitboard isolatedPawnMasks[8];
 
-// penalties and bonuses
+// pawn bonuses
 static constexpr int isolatedPawnPenalityMG = 5;
 static constexpr int isolatedPawnPenalityEG = 10;
 static constexpr int backwardPawnPenalityMG = 5;
 static constexpr int backwardPawnPenalityEG = 10;
 
+// semi and open file bonuses
 static constexpr int semiOpenFileBonus = 10;
 static constexpr int openFileBonus = 15;
 
+// bishop pair bonus
 static constexpr int bishopPairBonus = 30;
+
+// lookup table for center manhattan distance
+static constexpr int CenterManhattanDistance[64] = { 
+  6, 5, 4, 3, 3, 4, 5, 6,
+  5, 4, 3, 2, 2, 3, 4, 5,
+  4, 3, 2, 1, 1, 2, 3, 4,
+  3, 2, 1, 0, 0, 1, 2, 3,
+  3, 2, 1, 0, 0, 1, 2, 3,
+  4, 3, 2, 1, 1, 2, 3, 4,
+  5, 4, 3, 2, 2, 3, 4, 5,
+  6, 5, 4, 3, 3, 4, 5, 6
+};
 
 
 // initialize all evaluation masks
-// check whether given pawn is a backwards pawn or not
 void init();
+
+// calculate endgame phase weight 
+float endgamePhaseWeight(int materialWithoutPawns);
+
+// check whether given pawn is a backwards pawn or not
 bool isBackwardsPawn(Square sq, Bitboard ourPawnsBB, Color c);
+
+template<Color c>
+int mopUpEval(Square ourKingSq, Square theirKingSq, int ourMaterial, int theirMaterial, float endgameWeight) {
+    int mopUpScore = 0;
+	if ((ourMaterial > theirMaterial + PieceValue[Pawn] * 2) && endgameWeight > 0) {
+        mopUpScore += CenterManhattanDistance[theirKingSq] * 10;
+        return (int)(mopUpScore * endgameWeight);
+	}
+    return 0;
+}
 
 // evaluate pawns
 template<Color c>
@@ -233,6 +267,10 @@ int evaluate(Position& pos) {
     // evaluate bishop pair
     evalBishopPair<c>(pos, eval);
     evalBishopPair<~c>(pos, eval);
+
+    // count material
+    int ourMaterial = 0;
+    int theirMaterial = 0;
     
     // loop over allBB to retrieve each piece 
     // and procede to evaluate them individually
@@ -244,6 +282,10 @@ int evaluate(Position& pos) {
         PieceType pt = (PieceType)(pos.board[sq] % 6);
         Color color  = (Color)(pos.board[sq] / 6);
 
+        // incrementally update materials count
+        if (color == c) ourMaterial += PieceValue[pt];
+        else theirMaterial += PieceValue[pt];
+
         // evaluate piece
         if (color == White) 
             evalPiece<White>(pos, pt, sq, eval);
@@ -253,6 +295,21 @@ int evaluate(Position& pos) {
         // update phase value
         phase -= PhaseValues[pt];
     }
+    
+    // material without pawns for calculating endgame phase weight
+    int ourMaterialWithoutPawns   = ourMaterial - popCount(pos.Pawns<c>()) * PieceValue[Pawn];
+    int theirMaterialWithoutPawns = theirMaterial - popCount(pos.Pawns<~c>()) * PieceValue[Pawn];
+    float ourEndgamePhaseWeight   = endgamePhaseWeight(ourMaterialWithoutPawns);
+    float theirEndgamePhaseWeight = endgamePhaseWeight(theirMaterialWithoutPawns);
+
+    // retrieve king squares
+    Square ourKingSq   = bsf(pos.Kings<c>());
+    Square theirKingSq = bsf(pos.Kings<~c>());
+
+    // mop up eval
+    eval.EGScores[c] += mopUpEval<c>(ourKingSq, theirKingSq, ourMaterial, theirMaterial, ourEndgamePhaseWeight);
+    eval.EGScores[~c] += mopUpEval<~c>(theirKingSq, ourKingSq, theirMaterial, ourMaterial, theirEndgamePhaseWeight);
+
     // get total midgame and endgame scores
     int MGScore = eval.MGScores[c] - eval.MGScores[~c];
     int EGScore = eval.EGScores[c] - eval.EGScores[~c];

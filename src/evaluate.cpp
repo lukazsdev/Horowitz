@@ -15,6 +15,12 @@ void init() {
 	}
 }
 
+// mop up evaluation functions
+float endgamePhaseWeight(int materialWithoutPawns) {
+	float multiplier = 1 / materialEndgameStart;
+	return 1 - std::min((float)1, (float)materialWithoutPawns * multiplier);
+}
+
 // return whether given pawn is backwards or not
 bool isBackwardsPawn(Square sq, Bitboard ourPawnsBB, Color c) {
     if (c == White) {

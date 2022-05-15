@@ -55,9 +55,6 @@ void UCIInterface::UCILoop() {
                     search.TT.Clear();
             }
         }
-        else if (command == "count") {
-            std::cout << search.pos.storeCount << std::endl;
-        }
         else if (command == "go") {
             stopThread();
             parseGoCommand();
