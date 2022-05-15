@@ -212,11 +212,11 @@ int Search::negamax(int alpha, int beta, int depth) {
         return quiescence<c>(alpha, beta);
     }
 
-    /*
+    
     // return 0 (draw) if repetition occurs
     if (ply > 0 && repetitions.isRepetition(pos)) 
         return 0;
-    */
+    
 
     // read hash entry if we're not in a root ply and hash entry is available
     // and current node is not a PV node
