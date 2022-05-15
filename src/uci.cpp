@@ -24,6 +24,7 @@ void UCIInterface::UCILoop() {
             search.repetitions.Reset();
         }
         else if (command == "position") {
+            search.repetitions.Reset();
             std::string subcommand;
             iss >> subcommand;
             if (subcommand == "startpos") {

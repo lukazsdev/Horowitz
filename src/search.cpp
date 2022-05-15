@@ -88,8 +88,8 @@ void Search::sortMoves(Moves &moveList) {
 
 // add a hash key (position) to table
 void Repetition::Add(uint64_t hash) {
-    repetitionsTable[count] = hash;
     count++;
+    repetitionsTable[count] = hash;
 }
 
 void Repetition::Reset() {
