@@ -1,3 +1,21 @@
+/*
+  Horowitz, a UCI compatible chess engine. 
+  Copyright (C) 2022 by OliveriQ.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #pragma once
 
 #include <chrono>
@@ -6,7 +24,6 @@
 #include "evaluate.h"
 #include "timemanager.h"
 #include "tt.h"
-#include "book.h"
 
 // search constants and pruning parameters
 static constexpr int maxPly          = 64;
@@ -76,7 +93,6 @@ public:
     template<Color c> void search(int depth);
     template<Color c> int quiescence(int alpha, int beta);
     template<Color c> int negamax(int alpha, int beta, int depth);
-    template<Color c> bool searchBook();
 
     // move ordering/scoring functions
     int scoreMove(Move move);
@@ -456,14 +472,6 @@ int Search::negamax(int alpha, int beta, int depth) {
 // root search function (iterative deepening search)
 template<Color c> 
 void Search::search(int depth) {
-    // check if we can probe the opening book
-    //bool canProbeOpening = searchBook<c>();
-    
-    // if we can, then exit search, as we have
-    // already found the best move from the book
-    //if (canProbeOpening)
-        //return;
-
     // start search timer
     auto t1 = std::chrono::high_resolution_clock::now();
 
@@ -568,22 +576,4 @@ void Search::search(int depth) {
          std::cout << bestMove.toUci() << promotedPieceToChar[bestMove.piece()] << std::endl;
     }
     else std::cout << bestMove.toUci() << std::endl;
-}
-
-// search internal opening book
-template<Color c> 
-bool Search::searchBook() {
-    if (OpeningBook.find(pos.hashKey) != OpeningBook.end()) {
-        std::string bestMove = OpeningBook[pos.hashKey];
-        Moves moveList = pos.generateLegalMoves<c>();
-        for (int i = 0; i < moveList.count; i++) {
-            Move move = moveList.moves[i];
-            if (bestMove == move.toUci()) {
-                std::cout << "bestmove " << bestMove << std::endl;
-                return true;
-            }
-        }
-    }
-
-    return false;
 }

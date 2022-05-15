@@ -1,6 +1,27 @@
+/*
+  Horowitz, a UCI compatible chess engine. 
+  Copyright (C) 2022 by OliveriQ.
+
+  This program is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  This program is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
 #include "uci.h"
 #include "zobrist.h"
 #include "tt.h"
+
+// engine version
+#define VERSION "2.0"
 
 // main UCI loop
 void UCIInterface::UCILoop() {
@@ -165,8 +186,8 @@ void UCIInterface::bootEngine() {
     search.pos = Position(defaultFEN);
     search.timer.Stop = false;
     search.repetitions.Reset();
-    
-    std::cout << "Horowitz v2.0: UCI-Compatible chess engine\n";
+
+    std::cout << "Horowitz v" << VERSION << ": UCI-Compatible chess engine\n";
 }
 
 void UCIInterface::beginThread(int depth) {
