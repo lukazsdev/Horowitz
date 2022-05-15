@@ -30,7 +30,7 @@ static constexpr int PhaseValues[6] = {
 };
 
 // material piece values for midgame and endgame
-static constexpr int PieceValueMG[6] = {82, 337, 365, 477, 1025,  0};
+static constexpr int PieceValueMG[6] = {102, 337, 365, 477, 1025,  0};
 static constexpr int PieceValueEG[6] = {94, 281, 297, 512,  936,  0};
 
 // mobility units for each piece
@@ -42,7 +42,7 @@ static constexpr int PieceMobilityMG[4] = {0, 5, 0, 1};
 static constexpr int PieceMobilityEG[4] = {0, 5, 0, 2};
 
 // king safety
-static constexpr int kingSafetyBonus = 5;
+static constexpr int kingSafetyBonus = 10;
 
 // evaluation masks 
 extern Bitboard isolatedPawnMasks[8];
@@ -167,10 +167,10 @@ void evalKing(Position& pos, Square sq, EvalInfo &eval) {
     eval.MGScores[c] += PieceValueMG[King] + PSQT_MG[King][FLIP_SQ[c][sq]];
     eval.EGScores[c] += PieceValueEG[King] + PSQT_EG[King][FLIP_SQ[c][sq]];
 
-    // king safety. count the amount of pieces of own side
-    // that are shielding the king.
-    eval.MGScores[c] += popCount(pos.GetKingAttacks(sq) & pos.allPieces<c>()) * kingSafetyBonus;
-    eval.EGScores[c] += popCount(pos.GetKingAttacks(sq) & pos.allPieces<c>()) * kingSafetyBonus;
+    // king safety. count the amount of pawns of own side
+    // that are shielding the king (touching it)
+    eval.MGScores[c] += popCount(pos.GetKingAttacks(sq) & pos.Pawns<c>()) * kingSafetyBonus;
+    eval.EGScores[c] += popCount(pos.GetKingAttacks(sq) & pos.Pawns<c>()) * kingSafetyBonus;
 
     // evaluate semi open files
     // evaluate semi open files
