@@ -49,6 +49,8 @@ static constexpr int PieceMobilityEG[4] = {0, 5, 0, 2};
 
 // king safety
 static constexpr int kingSafetyBonus = 10;
+static constexpr int castledQueensideBonus = 20;
+static constexpr int castledKingsideBonus  = 30;
 
 // evaluation masks 
 extern Bitboard isolatedPawnMasks[8];
@@ -58,6 +60,8 @@ static constexpr int isolatedPawnPenalityMG = 5;
 static constexpr int isolatedPawnPenalityEG = 10;
 static constexpr int backwardPawnPenalityMG = 5;
 static constexpr int backwardPawnPenalityEG = 10;
+static constexpr int doubledPawnPenalityMG = 10;
+static constexpr int doubledPawnPenalityEG = 20;
 
 // semi and open file bonuses
 static constexpr int semiOpenFileBonus = 10;
@@ -108,6 +112,13 @@ void evalPawn(Position& pos, Square sq, EvalInfo &eval) {
     // retrieve our pawns bitboard
     Bitboard ourPawnsBB = pos.Pawns<c>();
     int file = file_of(sq);
+
+    // evaluate doubled pawn
+    int doubledPawns = popCount(ourPawnsBB & MASK_FILE[file]);
+    if (doubledPawns > 1) {
+        eval.MGScores[c] -= (doubledPawns - 1) * doubledPawnPenalityMG;
+        eval.EGScores[c] -= (doubledPawns - 1) * doubledPawnPenalityEG;
+    }
 
     // evaluate isolated pawn
     if ((isolatedPawnMasks[file] & ourPawnsBB) == 0) {
@@ -217,6 +228,23 @@ void evalKing(Position& pos, Square sq, EvalInfo &eval) {
     if (((pos.Pawns<c>() | pos.Pawns<~c>()) & MASK_FILE[file_of(sq)]) == 0) {
         eval.MGScores[c] -= openFileBonus;
         eval.EGScores[c] -= openFileBonus;
+    }
+
+    // retrieve king squares
+    Square ourKingSq   = bsf(pos.Kings<c>());
+
+    // add king castled bonus if king has castled
+    if (c == White) {
+        if (ourKingSq == SQ_G1) 
+            eval.MGScores[c] += castledKingsideBonus;
+        else if (ourKingSq == SQ_C1)
+            eval.MGScores[c] += castledQueensideBonus;
+    }
+    else {
+        if (ourKingSq == SQ_G8) 
+            eval.MGScores[c] += castledKingsideBonus;
+        else if (ourKingSq == SQ_C8)
+            eval.MGScores[c] += castledQueensideBonus;
     }
 
 }

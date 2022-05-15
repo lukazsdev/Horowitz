@@ -457,12 +457,12 @@ int Search::negamax(int alpha, int beta, int depth) {
 template<Color c> 
 void Search::search(int depth) {
     // check if we can probe the opening book
-    bool canProbeOpening = searchBook<c>();
+    //bool canProbeOpening = searchBook<c>();
     
     // if we can, then exit search, as we have
     // already found the best move from the book
-    if (canProbeOpening)
-        return;
+    //if (canProbeOpening)
+        //return;
 
     // start search timer
     auto t1 = std::chrono::high_resolution_clock::now();
