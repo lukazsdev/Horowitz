@@ -21,6 +21,7 @@ void UCIInterface::UCILoop() {
         else if (command == "ucinewgame") {
             search.TT.Clear();
             search.pos = Position();
+            search.repetitions.Reset();
         }
         else if (command == "position") {
             std::string subcommand;
@@ -44,6 +45,7 @@ void UCIInterface::UCILoop() {
                 while (iss >> moveUci) {
                     plies++;
                     Move move = parseMove(moveUci);
+                    search.repetitions.Add(search.pos.hashKey);
                     if (search.pos.sideToMove == White) 
                         search.pos.makemove<White>(move);
                     else search.pos.makemove<Black>(move);
@@ -164,6 +166,7 @@ void UCIInterface::bootEngine() {
     Eval::init();
     search.pos = Position(defaultFEN);
     search.timer.Stop = false;
+    search.repetitions.Reset();
     
     std::cout << "Horowitz v2.0: UCI-Compatible chess engine\n";
 }

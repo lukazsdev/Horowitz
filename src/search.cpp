@@ -85,3 +85,23 @@ void Search::sortMoves(Moves &moveList) {
         }
     }
 }
+
+// add a hash key (position) to table
+void Repetition::Add(uint64_t hash) {
+    repetitionsTable[count] = hash;
+    count++;
+}
+
+void Repetition::Reset() {
+    memset(repetitionsTable, 0, sizeof(repetitionsTable));
+    count = 0;
+}
+
+// check whether the current position has ocurred
+bool Repetition::isRepetition(Position& pos) {
+    for (int idx = 0; idx < count; idx++) {
+        if (repetitionsTable[idx] == pos.hashKey)
+            return true;
+    }
+    return false;
+} 

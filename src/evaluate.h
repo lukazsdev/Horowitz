@@ -190,7 +190,7 @@ void evalKing(Position& pos, Square sq, EvalInfo &eval) {
 template<Color c>
 void evalBishopPair(Position& pos, EvalInfo& eval) {
     int bishopsCount = popCount(pos.Bishops<c>());
-    if (bishopsCount == 2) {
+    if (bishopsCount >= 2) {
         eval.MGScores[c] += bishopPairBonus;
         eval.EGScores[c] += bishopPairBonus;
     }

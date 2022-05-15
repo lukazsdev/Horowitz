@@ -38,11 +38,28 @@ static constexpr int MVV_LVA[12][12] = {
     {100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600}
 };
 
+
+// class for detecting repetitions
+class Repetition {
+public:
+    uint64_t repetitionsTable[1024]{};
+    int count{};
+
+    // add a hash key (position) to table
+    void Add(uint64_t hash);
+    // check whether the current position has ocurred
+    bool isRepetition(Position& pos);
+    // reset repetitions table and reset count
+    void Reset();
+};
+
+
 class Search {
 public:
     Position pos;
     TranspositionTable TT;
     TimeManager timer;
+    Repetition repetitions;
     uint64_t nodes;
     int ply;
 
@@ -66,6 +83,7 @@ public:
     void sortMoves(Moves &moveList);
     void enablePVScoring(Moves moveList);
 };
+
 
 // Quiescence search
 template<Color c> 
@@ -111,6 +129,9 @@ int Search::quiescence(int alpha, int beta) {
         // increment ply
         ply++;
 
+        // add current position to repetitions table
+        repetitions.Add(pos.hashKey);
+
         // make move
         pos.makemove<c>(move);
 
@@ -122,6 +143,9 @@ int Search::quiescence(int alpha, int beta) {
 
         // decrement ply
         ply--;
+
+        // decrement repetitions index
+        repetitions.count--;
 
         // fail-hard beta cutoff
         if (score >= beta) {
@@ -188,6 +212,10 @@ int Search::negamax(int alpha, int beta, int depth) {
         return quiescence<c>(alpha, beta);
     }
 
+    // return 0 (draw) if repetition occurs
+    if (ply > 0 && repetitions.isRepetition(pos)) 
+        return 0;
+
     // read hash entry if we're not in a root ply and hash entry is available
     // and current node is not a PV node
     score = TT.Read(pos.hashKey, alpha, beta, ply, (uint8_t)depth);
@@ -216,6 +244,9 @@ int Search::negamax(int alpha, int beta, int depth) {
         // increment ply
         ply++;
 
+        // add current position to repetitions table
+        repetitions.Add(pos.hashKey);
+
         // hash enpassant if available
         if (pos.enpassantSquare != NO_SQ)
             pos.updateZobristEnpassant(pos.enpassantSquare);
@@ -240,6 +271,9 @@ int Search::negamax(int alpha, int beta, int depth) {
 
         // decrement ply
         ply--;
+
+        // decrement repetitions index
+        repetitions.count--;
 
         // stop search if time is up
         if (timer.Stop) 
@@ -288,6 +322,9 @@ int Search::negamax(int alpha, int beta, int depth) {
         // increment ply
         ply++;
 
+        // add current position to repetitions table
+        repetitions.Add(pos.hashKey);
+
         // make move
         pos.makemove<c>(move);
 
@@ -299,6 +336,7 @@ int Search::negamax(int alpha, int beta, int depth) {
             bool tactical = inCheck || (move.promoted() > 0);
             if (!tactical) {
                 pos.unmakemove<c>(move);
+                repetitions.count--;
                 ply--;
                 continue;
             }
@@ -309,6 +347,7 @@ int Search::negamax(int alpha, int beta, int depth) {
             bool tactical = (inCheck) || (isCapture) || (move.promoted() > 0);
             if (!tactical) {
                 pos.unmakemove<c>(move);
+                repetitions.count--;
                 ply--;
                 continue;
             }
@@ -345,6 +384,9 @@ int Search::negamax(int alpha, int beta, int depth) {
 
         // decrement ply
         ply--;
+
+        // decrement repetitions index
+        repetitions.count--;
 
         // increment moves searched
         movesSearched++;
