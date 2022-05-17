@@ -24,373 +24,128 @@
 #include "psqt.h"
 
 namespace Eval {
+    void init();
+    void printTables();
 
-// struct for holding opening 
-// and endgame scores
-struct EvalInfo {
-    int MGScores[2]{};
-    int EGScores[2]{};
-};
+    // lookup tables for midgame and endgame scores
+    extern int MGTable[12][64];
+    extern int EGTable[12][64];
 
-// maps a piece to how much weight it should have on the phase of the game
-static constexpr int PawnPhase   = 1;
-static constexpr int KnightPhase = 1;
-static constexpr int BishopPhase = 1;
-static constexpr int RookPhase   = 2;
-static constexpr int QueenPhase  = 4;
-static constexpr int TotalPhase = PawnPhase*16 + KnightPhase*4 + BishopPhase* 4 + RookPhase*4 + QueenPhase*2;
+    // struct for holding opening 
+    // and endgame scores
+    struct EvalInfo {
+        int MGScores[2]{};
+        int EGScores[2]{};
+    };
 
-// array used for mapping piece to its phase
-static constexpr int PhaseValues[6] = {
-    PawnPhase, 
-    KnightPhase, 
-    BishopPhase, 
-    RookPhase,
-    QueenPhase
-};
+    // maps a piece to how much weight it should have on the phase of the game
+    static constexpr int PawnPhase   = 1;
+    static constexpr int KnightPhase = 1;
+    static constexpr int BishopPhase = 1;
+    static constexpr int RookPhase   = 2;
+    static constexpr int QueenPhase  = 4;
 
-// material piece values for midgame and endgame
-static constexpr int PieceValueMG[6] = {100, 315, 330, 525, 1010,  0};
-static constexpr int PieceValueEG[6] = {110, 315, 330, 550, 1010,  0};
-static constexpr int PieceValue[6] = {100, 300, 320, 500, 900, 0};
+    // array used for mapping piece to its phase
+    static constexpr int PhaseValues[6] = {
+        PawnPhase, 
+        KnightPhase, 
+        BishopPhase, 
+        RookPhase,
+        QueenPhase
+    };
 
-// maximum possible endgame material (rook * 2 + bishop + knight)
-// minimum possible middlegame material (starting - 2000)
-static constexpr float materialEndgameStart = 1620;
-static constexpr int minMiddlegameMaterial = 4000;
+   // material piece values for midgame and endgame
+   static constexpr int PieceValueMG[6] = {82, 337, 365, 477, 1025,  0};
+   static constexpr int PieceValueEG[6] = {94, 281, 297, 512,  936,  0};
+   static constexpr int PieceValue[6] = {100, 320, 320, 500, 900, 0};
 
-// mobility units for each piece
-static constexpr int KnightMobilityUnit = 4;
-static constexpr int BishopMobilityUnit = 6;
-static constexpr int RookMobilityUnit   = 7;
-static constexpr int QueenMobilityUnit  = 13; 
+   // maximum material to consider position as an endgame
+   static constexpr float materialEndgameStart = 1620;
 
-// piece mobility for midgame and endgame
-static constexpr int PieceMobilityMG[4] = {4, 5, 2, 1};
-static constexpr int PieceMobilityEG[4] = {4, 5, 4, 2};
+   // lookup table for center manhattan distance
+   static constexpr int CenterManhattanDistance[64] = { 
+        6, 5, 4, 3, 3, 4, 5, 6,
+        5, 4, 3, 2, 2, 3, 4, 5,
+        4, 3, 2, 1, 1, 2, 3, 4,
+        3, 2, 1, 0, 0, 1, 2, 3,
+        3, 2, 1, 0, 0, 1, 2, 3,
+        4, 3, 2, 1, 1, 2, 3, 4,
+        5, 4, 3, 2, 2, 3, 4, 5,
+        6, 5, 4, 3, 3, 4, 5, 6
+    };
 
-// evaluation masks 
-extern Bitboard isolatedPawnMasks[8];
+    // calculate endgame phase weight 
+    float endgamePhaseWeight(int materialWithoutPawns);
 
-// pawn bonuses
-static constexpr int isolatedPawnPenalityMG = 5;
-static constexpr int isolatedPawnPenalityEG = 10;
-static constexpr int backwardPawnPenalityMG = 5;
-static constexpr int backwardPawnPenalityEG = 10;
-static constexpr int doubledPawnPenalityMG = 10;
-static constexpr int doubledPawnPenalityEG = 20;
-
-// semi and open file bonuses
-static constexpr int semiOpenFileBonus = 10;
-static constexpr int openFileBonus = 15;
-
-// bishop pair bonus
-static constexpr int bishopPairBonus = 20;
-
-// lookup table for center manhattan distance
-static constexpr int CenterManhattanDistance[64] = { 
-  6, 5, 4, 3, 3, 4, 5, 6,
-  5, 4, 3, 2, 2, 3, 4, 5,
-  4, 3, 2, 1, 1, 2, 3, 4,
-  3, 2, 1, 0, 0, 1, 2, 3,
-  3, 2, 1, 0, 0, 1, 2, 3,
-  4, 3, 2, 1, 1, 2, 3, 4,
-  5, 4, 3, 2, 2, 3, 4, 5,
-  6, 5, 4, 3, 3, 4, 5, 6
-};
-
-// king safety (pawns shielding king)
-static constexpr int kingSafetyBonus = 5;
-
-// starting from A1, B1, C1 ...
-static constexpr int kingDangerZonesTable[64] = {
-     0,  0, 10, 50, 50, 50,  0, 0,
-     0, 10, 50, 50, 50, 50, 10, 0,
-    60, 60, 60, 60, 60, 60, 60, 60,
-    60, 60, 60, 60, 60, 60, 60, 60,
-    60, 60, 60, 60, 60, 60, 60, 60,
-    60, 60, 60, 60, 60, 60, 60, 60,
-     0, 10, 50, 50, 50, 50, 10, 0,
-     0,  0, 10, 50, 50, 50,  0, 0,
-};
-
-
-// initialize all evaluation masks
-void init();
-
-// calculate endgame phase weight 
-float endgamePhaseWeight(int materialWithoutPawns);
-
-// check whether given pawn is a backwards pawn or not
-bool isBackwardsPawn(Square sq, Bitboard ourPawnsBB, Color c);
-
-template<Color c>
-int mopUpEval(Square ourKingSq, Square theirKingSq, int ourMaterial, int theirMaterial, float endgameWeight) {
-    int mopUpScore = 0;
-	if ((ourMaterial > theirMaterial + PieceValue[Pawn] * 2) && endgameWeight > 0) {
-        mopUpScore += CenterManhattanDistance[theirKingSq] * 10;
-        return (int)(mopUpScore * endgameWeight);
-	}
-    return 0;
-}
-
-// evaluate pawns
-template<Color c>
-void evalPawn(Position& pos, Square sq, EvalInfo &eval) {
-    // add material + piece square table scores
-    eval.MGScores[c] += PieceValueMG[Pawn] + PSQT_MG[Pawn][FLIP_SQ[c][sq]];
-    eval.EGScores[c] += PieceValueEG[Pawn] + PSQT_EG[Pawn][FLIP_SQ[c][sq]];
-
-    // retrieve our pawns bitboard
-    Bitboard ourPawnsBB = pos.Pawns<c>();
-    int file = file_of(sq);
-
-    // evaluate doubled pawn
-    int doubledPawns = popCount(ourPawnsBB & MASK_FILE[file]);
-    if (doubledPawns > 1) {
-        eval.MGScores[c] -= (doubledPawns - 1) * doubledPawnPenalityMG;
-        eval.EGScores[c] -= (doubledPawns - 1) * doubledPawnPenalityEG;
-    }
-
-    // evaluate isolated pawn
-    if ((isolatedPawnMasks[file] & ourPawnsBB) == 0) {
-        eval.MGScores[c] -= isolatedPawnPenalityMG;
-        eval.EGScores[c] -= isolatedPawnPenalityEG;
-    }
-
-    // evaluate backward pawn (only check if both adjacent files have pawns)
-    if (file > 0 && file < 7) {
-        if ((MASK_FILE[file-1] & ourPawnsBB) && (MASK_FILE[file+1] & ourPawnsBB)) {
-            if (isBackwardsPawn(sq, ourPawnsBB, c)) {
-                eval.MGScores[c] -= backwardPawnPenalityMG;
-                eval.EGScores[c] -= backwardPawnPenalityEG;
-            }
+    // mop up evaluation (used for late endgame positions)
+    template<Color c>
+    int mopUpEval(Square theirKingSq, int ourMaterial, int theirMaterial, float endgameWeight) {
+        int mopUpScore = 0;
+        if ((ourMaterial > theirMaterial + PieceValue[Pawn] * 2) && endgameWeight > 0) {
+            mopUpScore += CenterManhattanDistance[theirKingSq] * 10;
+            return (int)(mopUpScore * endgameWeight);
         }
+        return 0;
     }
 
-}
+   // static evaluation function. Returns 
+   // the score relative to the side to move 
+   template<Color c>
+   int evaluate(Position& pos) {
+       // initialize evaluation scores
+       EvalInfo eval = {};
 
-// evaluate knights
-template<Color c>
-void evalKnight(Position& pos, Square sq, EvalInfo &eval) {
-    // add material + piece square table scores
-    eval.MGScores[c] += PieceValueMG[Knight] + PSQT_MG[Knight][FLIP_SQ[c][sq]];
-    eval.EGScores[c] += PieceValueEG[Knight] + PSQT_EG[Knight][FLIP_SQ[c][sq]];   
+        // phase for tappered evaluation and material values
+        int phase = 0, ourMaterial = 0, theirMaterial = 0;
+        
+        // retrieve bitboard of both occupancies
+        Bitboard allBB = pos.allPieces<White>() | pos.allPieces<Black>();
+        
+        // loop over allBB to retrieve each piece 
+        // and procede to evaluate them individually
+        while (allBB) {
+            // retrieve current piece info
+            Square sq   = poplsb(allBB);
+            Piece p     = pos.board[sq];
+            Color color = (Color)(p / 6);
 
-    // evaluate piece mobility
-    Bitboard usBB = pos.allPieces<c>();
-    int mobility = popCount(pos.GetKnightAttacks(sq) & ~usBB);
+            // evaluate current piece
+            eval.MGScores[color] += MGTable[p][sq];
+            eval.EGScores[color] += EGTable[p][sq];
 
-    // add mobility bonuses
-    eval.MGScores[c] += ((mobility - KnightMobilityUnit) * PieceMobilityMG[Knight - 1]) / 2;
-    eval.EGScores[c] += ((mobility - KnightMobilityUnit) * PieceMobilityEG[Knight - 1]) / 2;
-}
+            // update game phase
+            PieceType pt = (PieceType)(p % 6);
+            phase += PhaseValues[pt];
 
-// evaluate bishops
-template<Color c>
-void evalBishop(Position& pos, Square sq, EvalInfo &eval) {
-    eval.MGScores[c] += PieceValueMG[Bishop] + PSQT_MG[Bishop][FLIP_SQ[c][sq]];
-    eval.EGScores[c] += PieceValueEG[Bishop] + PSQT_EG[Bishop][FLIP_SQ[c][sq]];
-
-    // retrieve important bitboards
-    Bitboard usBB  = pos.allPieces<c>();
-    Bitboard allBB = pos.allPieces<c>() | pos.allPieces<~c>();
-
-    // evaluate piece mobility
-    Bitboard moves = pos.GetBishopAttacks(sq, allBB) & ~usBB;
-    int mobility   = popCount(moves);
-
-    // add mobility bonuses
-    eval.MGScores[c] += ((mobility - BishopMobilityUnit) * PieceMobilityMG[Bishop - 1]) / 2;
-    eval.EGScores[c] += ((mobility - BishopMobilityUnit) * PieceMobilityEG[Bishop - 1]) / 2;
-    
-}
-
-// evaluate rooks
-template<Color c>
-void evalRook(Position& pos, Square sq, EvalInfo &eval) {
-    eval.MGScores[c] += PieceValueMG[Rook] + PSQT_MG[Rook][FLIP_SQ[c][sq]];
-    eval.EGScores[c] += PieceValueEG[Rook] + PSQT_EG[Rook][FLIP_SQ[c][sq]];
-
-    // evaluate semi open files
-    if ((pos.Pawns<c>() & MASK_FILE[file_of(sq)]) == 0) {
-        eval.MGScores[c] += semiOpenFileBonus;
-        eval.EGScores[c] += semiOpenFileBonus;
-    }
-
-    // evaluate open files
-    if (((pos.Pawns<c>() | pos.Pawns<~c>()) & MASK_FILE[file_of(sq)]) == 0) {
-        eval.MGScores[c] += openFileBonus;
-        eval.EGScores[c] += openFileBonus;
-    }
-
-    // retrieve important bitboards
-    Bitboard usBB  = pos.allPieces<c>();
-    Bitboard allBB = pos.allPieces<c>() | pos.allPieces<~c>();
-
-    // evaluate piece mobility
-    Bitboard moves = pos.GetRookAttacks(sq, allBB) & ~usBB;
-    int mobility   = popCount(moves);
-
-    // add mobility bonuses
-    eval.MGScores[c] += ((mobility - RookMobilityUnit) * PieceMobilityMG[Rook - 1]) / 2;
-    eval.EGScores[c] += ((mobility - RookMobilityUnit) * PieceMobilityEG[Rook - 1]) / 2;
-}
-
-// evaluate queens
-template<Color c>
-void evalQueen(Position& pos, Square sq, EvalInfo &eval) {
-    eval.MGScores[c] += PieceValueMG[Queen] + PSQT_MG[Queen][FLIP_SQ[c][sq]];
-    eval.EGScores[c] += PieceValueEG[Queen] + PSQT_EG[Queen][FLIP_SQ[c][sq]];
-
-    
-    // retrieve important bitboards
-    Bitboard usBB  = pos.allPieces<c>();
-    Bitboard allBB = pos.allPieces<c>() | pos.allPieces<~c>();
-
-    // evaluate piece mobility
-    Bitboard moves = (pos.GetRookAttacks(sq, allBB) | pos.GetBishopAttacks(sq, allBB)) & ~usBB;
-    int mobility   = popCount(moves);
-
-    // add mobility bonuses
-    eval.MGScores[c] += ((mobility - QueenMobilityUnit) * PieceMobilityMG[Queen - 1]) / 2;
-    eval.EGScores[c] += ((mobility - QueenMobilityUnit) * PieceMobilityEG[Queen - 1]) / 2;
-    
-}
-
-// evaluate kings
-template<Color c>
-void evalKing(Position& pos, Square sq, int material, EvalInfo &eval) {
-    eval.MGScores[c] += PieceValueMG[King] + PSQT_MG[King][FLIP_SQ[c][sq]];
-    eval.EGScores[c] += PieceValueEG[King] + PSQT_EG[King][FLIP_SQ[c][sq]];
-
-    // king safety. count the amount of pawns of own side
-    // that are shielding the king (touching it)
-    eval.MGScores[c] += popCount(pos.GetKingAttacks(sq) & pos.Pawns<c>()) * kingSafetyBonus;
-    eval.EGScores[c] += popCount(pos.GetKingAttacks(sq) & pos.Pawns<c>()) * kingSafetyBonus;
-
-    // evaluate semi open files
-    if ((pos.Pawns<c>() & MASK_FILE[file_of(sq)]) == 0) {
-        eval.MGScores[c] -= semiOpenFileBonus;
-        eval.EGScores[c] -= semiOpenFileBonus;
-    }
-
-    // evaluate open files
-    if (((pos.Pawns<c>() | pos.Pawns<~c>()) & MASK_FILE[file_of(sq)]) == 0) {
-        eval.MGScores[c] -= openFileBonus;
-        eval.EGScores[c] -= openFileBonus;
-    }
-
-    // add king danger zone penalty 
-    if (material > minMiddlegameMaterial) 
-        eval.MGScores[c] -= kingDangerZonesTable[sq];
-
-}
-
-template<Color c>
-void evalBishopPair(Position& pos, EvalInfo& eval) {
-    int bishopsCount = popCount(pos.Bishops<c>());
-    if (bishopsCount >= 2) {
-        eval.MGScores[c] += bishopPairBonus;
-        eval.EGScores[c] += bishopPairBonus;
-    }
-} 
-
-template<Color c>
-void evalPiece(Position& pos, PieceType pt, Square sq, EvalInfo &eval) {
-    switch (pt) {
-        case Pawn:
-            evalPawn<c>(pos, sq, eval);
-            break;
-        case Knight:
-            evalKnight<c>(pos, sq, eval);
-            break;
-        case Bishop:
-            evalBishop<c>(pos, sq, eval);
-            break;
-        case Rook:
-            evalRook<c>(pos, sq, eval);
-            break;
-        case Queen:
-            evalQueen<c>(pos, sq, eval);
-            break;
-        default: 
-            break;
+            // update material values
+            if (color == c) ourMaterial += PieceValue[pt];
+            else theirMaterial += PieceValue[pt];
         }
-}
+        // total material
+        int totalMaterial = ourMaterial + theirMaterial;
 
-// main evaluation function. Returns score relative to the side to move
-template<Color c>
-int evaluate(Position& pos) {
-    EvalInfo eval;
+        // peform mop up evaluation if in endgame position
+        if (totalMaterial <= materialEndgameStart) {
+            // material without pawns for calculating endgame phase weight
+            int ourMaterialWithoutPawns   = ourMaterial   - popCount(pos.Pawns<c>()) * PieceValue[Pawn];
+            int theirMaterialWithoutPawns = theirMaterial - popCount(pos.Pawns<~c>()) * PieceValue[Pawn];
+            float ourEndgamePhaseWeight   = endgamePhaseWeight(ourMaterialWithoutPawns);
+            float theirEndgamePhaseWeight = endgamePhaseWeight(theirMaterialWithoutPawns);
 
-    // PawnPhase*16 + KnightPhase*4 + BishopPhase*4 + RookPhase*4 + QueenPhase*2
-    int phase = TotalPhase;
-    
-    // retrieve bitboard of both occupancies
-    Bitboard allBB = pos.allPieces<White>() | pos.allPieces<Black>();
+            // mop up eval
+            eval.EGScores[c]  += mopUpEval<c>(bsf(pos.Kings<~c>()), ourMaterial, theirMaterial, ourEndgamePhaseWeight);
+            eval.EGScores[~c] += mopUpEval<~c>(bsf(pos.Kings<c>()), theirMaterial, ourMaterial, theirEndgamePhaseWeight);
+        }
 
-    // evaluate bishop pair
-    evalBishopPair<c>(pos, eval);
-    evalBishopPair<~c>(pos, eval);
+        // get total midgame and endgame scores
+        int MGScore = eval.MGScores[c] - eval.MGScores[~c];
+        int EGScore = eval.EGScores[c] - eval.EGScores[~c];
 
-    // count material
-    int ourMaterial = 0;
-    int theirMaterial = 0;
-    
-    // loop over allBB to retrieve each piece 
-    // and procede to evaluate them individually
-    while (allBB) {
-        // retrieve square
-        Square sq = poplsb(allBB);
-
-        // retrieve piece 
-        PieceType pt = (PieceType)(pos.board[sq] % 6);
-        Color color  = (Color)(pos.board[sq] / 6);
-        
-        // skip if piece is a king
-        if (pt == King) continue;
-
-        // incrementally update materials count
-        if (color == c) ourMaterial += PieceValue[pt];
-        else theirMaterial += PieceValue[pt];
-
-        // evaluate piece
-        if (color == White) 
-            evalPiece<White>(pos, pt, sq, eval);
-        else 
-            evalPiece<Black>(pos, pt, sq, eval);
-        
-        // update phase value
-        phase -= PhaseValues[pt];
+        // interpolate midgame and endgame scores (tappered eval)
+        int MGPhase = phase;
+        if (MGPhase > 24) MGPhase = 24;
+        int EGPhase = 24 - MGPhase;
+        return (MGScore * MGPhase + EGScore * EGPhase) / 24;
     }
-    
-    // material without pawns for calculating endgame phase weight
-    int ourMaterialWithoutPawns   = ourMaterial - popCount(pos.Pawns<c>()) * PieceValue[Pawn];
-    int theirMaterialWithoutPawns = theirMaterial - popCount(pos.Pawns<~c>()) * PieceValue[Pawn];
-    float ourEndgamePhaseWeight   = endgamePhaseWeight(ourMaterialWithoutPawns);
-    float theirEndgamePhaseWeight = endgamePhaseWeight(theirMaterialWithoutPawns);
 
-    // retrieve king squares
-    Square ourKingSq   = bsf(pos.Kings<c>());
-    Square theirKingSq = bsf(pos.Kings<~c>());
-
-    // evaluate king
-    evalKing<c>(pos, ourKingSq, ourMaterial + theirMaterial, eval);
-    evalKing<~c>(pos, theirKingSq, ourMaterial + theirMaterial, eval);
-
-    // mop up eval
-    eval.EGScores[c] += mopUpEval<c>(ourKingSq, theirKingSq, ourMaterial, theirMaterial, ourEndgamePhaseWeight);
-    eval.EGScores[~c] += mopUpEval<~c>(theirKingSq, ourKingSq, theirMaterial, ourMaterial, theirEndgamePhaseWeight);
-
-    // get total midgame and endgame scores
-    int MGScore = eval.MGScores[c] - eval.MGScores[~c];
-    int EGScore = eval.EGScores[c] - eval.EGScores[~c];
-
-    // interpolate midgame and endgame scores (tappered eval)
-    phase = (phase*256 + (TotalPhase / 2)) / TotalPhase;
-    return ((MGScore * (256 - phase)) + EGScore * phase) / 256;
-}
-
-
-}; // end if evaluation namespace
+} // end of namespace eval
