@@ -20,8 +20,6 @@
 
 int main() {
     UCIInterface uci;
-    uci.bootEngine();
-    //uci.UCILoop();
-    Eval::printTables();
+    uci.UCILoop();
 }
 

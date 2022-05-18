@@ -33,6 +33,7 @@ static constexpr int windowSize      = 50;
 static constexpr int fullDepthMoves  = 4;
 static constexpr int reductionLimit  = 3;
 static constexpr int staticNMPMargin = 120;
+static constexpr int deltaMargin     = 1000;
 
 // margins for futility pruning and late move pruning
 static constexpr int futilityMargins[9] = {0, 100, 160, 220, 280, 340, 400, 460, 520};
@@ -122,6 +123,11 @@ int Search::quiescence(int alpha, int beta) {
     
     if (evaluation >= beta)
         return beta;
+
+    // delta pruning
+    if (evaluation < alpha - deltaMargin) 
+        return alpha;
+    
 
     if (evaluation > alpha)
         alpha = evaluation;
