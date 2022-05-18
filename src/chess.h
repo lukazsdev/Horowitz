@@ -495,11 +495,6 @@ struct Moves {
         moves[count] = move;
         count++;
     }
-
-    void Clear() {
-        memset(moves, 0, sizeof(moves));
-        count = 0;
-    }
 };
 
 void printMove(Move move);
