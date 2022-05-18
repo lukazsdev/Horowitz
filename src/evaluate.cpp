@@ -36,6 +36,12 @@ namespace Eval {
 		}
 	}
 
+	// mop up evaluation functions
+	float endgamePhaseWeight(int materialWithoutPawns) {
+		float multiplier = 1 / materialEndgameStart;
+		return 1 - std::min((float)1, (float)materialWithoutPawns * multiplier);
+	}
+
 	void printTables() {
 		std::cout << "Middlegame:\n";
 		for (int p = 0; p < 12; p++) {
@@ -45,12 +51,6 @@ namespace Eval {
 			}
 			std::cout << "\n";
 		}
-	}
-
-	// mop up evaluation functions
-	float endgamePhaseWeight(int materialWithoutPawns) {
-		float multiplier = 1 / materialEndgameStart;
-		return 1 - std::min((float)1, (float)materialWithoutPawns * multiplier);
 	}
 
 } // end of namespace eval
