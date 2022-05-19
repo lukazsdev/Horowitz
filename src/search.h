@@ -99,6 +99,9 @@ public:
     int scoreMove(Move move);
     void sortMoves(Moves &moveList);
     void enablePVScoring(Moves moveList);
+    
+    // print the best move
+    void printBestMove(Move bestMove);
 };
 
 
@@ -487,6 +490,9 @@ void Search::search(int depth) {
     // initialize best move to null (no move)
     Move bestMove = nullMove;
 
+    // previous best move
+    Move prevBestMove = nullMove;
+
     // last iteration score
     int lastScore = 0;
 
@@ -521,6 +527,8 @@ void Search::search(int depth) {
         if (timer.Stop) {
             if (bestMove == nullMove && currentDepth == 1) 
                 bestMove = pvTable[0][0];
+            else 
+                bestMove = prevBestMove;
             break;
         }
         
@@ -553,6 +561,8 @@ void Search::search(int depth) {
                           << " nps " << signed((nodes / (ms.count() + 1)) * 1000)
                           << " time " << ms.count() 
                           << " pv ";
+                printBestMove(bestMove);
+                break;
             }
             else if (score > (checkmate-100) && score < checkmate) {
                 std::cout << "info score mate " << (checkmate - score) / 2 + 1 << " depth " << currentDepth;
@@ -560,6 +570,8 @@ void Search::search(int depth) {
                           << " nps " << signed((nodes / (ms.count() + 1)) * 1000)
                           << " time " << ms.count() 
                           << " pv ";
+                printBestMove(bestMove);
+                break;
             }
             else {
                 std::cout << "info score cp " << score << " depth " << currentDepth;
@@ -583,12 +595,11 @@ void Search::search(int depth) {
 
         // set previous score to current score
         lastScore = score;
+
+        // set previous best move to current best move
+        prevBestMove = bestMove;
     }
 
     // print best move
-    std::cout << "bestmove" << " ";
-    if (bestMove.promoted()) {
-         std::cout << bestMove.toUci() << promotedPieceToChar[bestMove.piece()] << std::endl;
-    }
-    else std::cout << bestMove.toUci() << std::endl;
+    printBestMove(bestMove);
 }

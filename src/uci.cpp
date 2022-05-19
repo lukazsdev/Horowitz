@@ -21,7 +21,7 @@
 #include "tt.h"
 
 // engine version
-#define VERSION "2.0"
+#define VERSION "v2.0"
 
 // main UCI loop
 void UCIInterface::UCILoop() {
@@ -187,7 +187,7 @@ void UCIInterface::bootEngine() {
     search.timer.Stop = false;
     search.repetitions.Reset();
 
-    std::cout << "Horowitz v" << VERSION << ": UCI-Compatible chess engine\n";
+    std::cout << "Horowitz " << VERSION << ": UCI-Compatible chess engine\n";
 }
 
 void UCIInterface::beginThread(int depth) {

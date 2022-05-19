@@ -123,3 +123,11 @@ bool Repetition::isRepetition(Position& pos) {
     }
     return false;
 } 
+
+void Search::printBestMove(Move bestMove) {
+    std::cout << "bestmove" << " ";
+    if (bestMove.promoted()) {
+         std::cout << bestMove.toUci() << promotedPieceToChar[bestMove.piece()] << std::endl;
+    }
+    else std::cout << bestMove.toUci() << std::endl;
+}
