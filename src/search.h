@@ -96,7 +96,7 @@ public:
     template<Color c> int negamax(int alpha, int beta, int depth);
 
     // move ordering/scoring functions
-    int scoreMove(Move move);
+    void scoreMove(Move& move);
     void sortMoves(Moves &moveList);
     void enablePVScoring(Moves moveList);
     
@@ -110,8 +110,6 @@ template<Color c>
 int Search::quiescence(int alpha, int beta) {
     // static evaluation
     int evaluation = Eval::evaluate<c>(pos);
-
-    nodes++;
 
     if (ply > maxPly - 1)
         return evaluation;
@@ -157,6 +155,9 @@ int Search::quiescence(int alpha, int beta) {
         // add current position to repetitions table
         repetitions.Add(pos.hashKey);
 
+        // increment nodes
+        nodes++;
+
         // make move
         pos.makemove<c>(move);
 
@@ -193,9 +194,6 @@ template<Color c>
 int Search::negamax(int alpha, int beta, int depth) {
     // score of current position
     int score = 0;
-
-    // increment nodes
-    nodes++;
 
     // initialize pv length
     pvLength[ply] = ply;
@@ -264,7 +262,6 @@ int Search::negamax(int alpha, int beta, int depth) {
     
     // null move pruning (only done if we don't have non pawn material)
     if (depth >= 3 && !inCheck && ply > 0 && pos.hasNonPawnMaterial()) {
-
         // make null move
         pos.makemove<c>(nullMove);
 
@@ -351,6 +348,9 @@ int Search::negamax(int alpha, int beta, int depth) {
 
         // add current position to repetitions table
         repetitions.Add(pos.hashKey);
+
+        // increment nodes
+        nodes++;
 
         // make move
         pos.makemove<c>(move);

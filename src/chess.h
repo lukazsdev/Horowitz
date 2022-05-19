@@ -442,6 +442,10 @@ private:
     uint16_t move;
 
 public:
+    // move score
+    int score;
+
+public:
     // constructor for encoding a move
     inline Move(
         // main move info

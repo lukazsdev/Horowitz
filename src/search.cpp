@@ -19,8 +19,8 @@
 #include <vector>
 #include "search.h"
 
-int Search::scoreMove(Move move) {
-    int moveScore = 0;
+void Search::scoreMove(Move& move) {
+    move.score = 0;
 
     // if PV move scoring is allowed
     if (scorePV == 1) {
@@ -30,7 +30,8 @@ int Search::scoreMove(Move move) {
             scorePV = 0;
 
             // give PV move highest score to search it first
-            return 20000;
+            move.score = 20000;
+            return;
         }
     }
 
@@ -38,25 +39,23 @@ int Search::scoreMove(Move move) {
     if (pos.board[move.target()] != None) {
         int attacker = makePiece(pos.sideToMove, move.piece());
         int victim   = pos.board[move.target()];
-        moveScore += MVV_LVA[attacker][victim] + 10000;
+        move.score += MVV_LVA[attacker][victim] + 10000;
     }
     // if move is enpassant capture
     else if (move.target() == pos.enpassantSquare && move.piece() == Pawn) {
         int attacker = makePiece(pos.sideToMove, Pawn);
         int victim = makePiece(~pos.sideToMove, Pawn);
-        moveScore += MVV_LVA[attacker][victim] + 10000;
+        move.score += MVV_LVA[attacker][victim] + 10000;
     }
     // score first killer move
     else if (killers[0][ply] == move) 
-        moveScore += 9000;
+        move.score += 9000;
     // score second killer move
     else if (killers[1][ply] == move) 
-        moveScore += 8000;
+        move.score += 8000;
     // score history move
     else 
-        moveScore += history[makePiece(pos.sideToMove, move.piece())][move.target()];
-
-    return moveScore;
+        move.score += history[makePiece(pos.sideToMove, move.piece())][move.target()];
 }
 
 void Search::enablePVScoring(Moves moveList) {
@@ -77,30 +76,17 @@ void Search::enablePVScoring(Moves moveList) {
 }
 
 void Search::sortMoves(Moves &moveList) {
-    // move scores
-    std::vector<int> moveScores;
-
-    // score each move in move list
-    for (int count = 0; count < moveList.count; count++) {
-        moveScores.push_back(scoreMove(moveList.moves[count]));
+    // asign score to each move
+    for (int i = 0; i < moveList.count; i++) {
+        scoreMove(moveList.moves[i]);
     }
 
-    // sort moves based on scores
-    for (int currentMove = 0; currentMove < moveList.count; currentMove++) {
-        for (int nextMove = currentMove + 1; nextMove < moveList.count; nextMove++) {
-            // compare current and next move scores 
-            if (moveScores[currentMove] < moveScores[nextMove]) {
-                // swap scores
-                int tempScore = moveScores[currentMove];
-                moveScores[currentMove] = moveScores[nextMove];
-                moveScores[nextMove] = tempScore;
-
-                // swap moves
-                Move tempMove = moveList.moves[currentMove];
-                moveList.moves[currentMove] = moveList.moves[nextMove];
-                moveList.moves[nextMove] = tempMove;
-            }
-        }
+    int i = moveList.count;
+    for (int cmove = 1; cmove < moveList.count; cmove++) {
+        Move temp = moveList.moves[cmove];
+        for (i = cmove-1; i>=0 && (moveList.moves[i].score < temp.score); i--) 
+            moveList.moves[i+1] = moveList.moves[i];
+        moveList.moves[i+1] = temp;
     }
 }
 
