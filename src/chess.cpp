@@ -193,10 +193,11 @@ void Position::parseFEN(std::string FEN) {
     // reset board info
     memset(PiecesBB, 0ULL, sizeof(PiecesBB));
     memset(board, None, sizeof(board));
-    materialCountScore    = 0;
-    pieceSquareTableScore = 0;
-    storeCount            = 0;
 
+    memset(mat_mg, 0, sizeof(mat_mg));
+    memset(mat_eg, 0, sizeof(mat_eg));
+    memset(psqt_mg, 0, sizeof(psqt_mg));
+    memset(psqt_eg, 0, sizeof(psqt_eg));
 
     // reset enpassant square
     enpassantSquare = NO_SQ;
@@ -273,6 +274,30 @@ void Position::parseFEN(std::string FEN) {
             break;
         }
     }
+    /*
+    mat_mg = 0;
+    mat_eg = 0;
+    psqt_mg = 0;
+    psqt_eg = 0;
+    Bitboard whitePieces = allPieces<White>();
+    Bitboard blackPieces = allPieces<Black>();
+    while (whitePieces) {
+        Square sq = poplsb(whitePieces);
+        PieceType pt = piece_type(board[sq]);
+        mat_mg += PieceValueMG[pt];
+        mat_eg += PieceValueEG[pt];
+        psqt_mg += PSQT_MG[pt][FLIP_SQ[White][sq]];
+        psqt_eg += PSQT_EG[pt][FLIP_SQ[White][sq]];
+    }
+    while (blackPieces) {
+        Square sq = poplsb(blackPieces);
+        PieceType pt = piece_type(board[sq]);
+        mat_mg -= PieceValueMG[pt];
+        mat_eg -= PieceValueEG[pt];
+        psqt_mg -= PSQT_MG[pt][FLIP_SQ[Black][sq]];
+        psqt_eg -= PSQT_EG[pt][FLIP_SQ[Black][sq]];
+    }
+    */
 
     // set hash key to current position
     hashKey = generateHashKey();
@@ -372,12 +397,40 @@ PieceType Position::piece_type_at(Square sq){
 void Position::placePiece(Piece piece, Square sq) {
     PiecesBB[piece] |= SQUARE_BB[sq];
     board[sq] = piece;
+    PieceType pt = piece_type(piece);
+    Color color = piece_color(piece);
+    if (color == White) {
+        mat_mg[White] += PieceValueMG[pt];
+        mat_eg[White] += PieceValueEG[pt];
+        psqt_mg[White] += PSQT_MG[pt][FLIP_SQ[White][sq]];
+        psqt_eg[White] += PSQT_EG[pt][FLIP_SQ[White][sq]];
+    }
+    else {
+        mat_mg[Black] += PieceValueMG[pt];
+        mat_eg[Black] += PieceValueEG[pt];
+        psqt_mg[Black] += PSQT_MG[pt][FLIP_SQ[Black][sq]];
+        psqt_eg[Black] += PSQT_EG[pt][FLIP_SQ[Black][sq]];
+    }
 }
 
 // remove a piece from a particular square
 void Position::removePiece(Piece piece, Square sq) {
     PiecesBB[piece] &= ~SQUARE_BB[sq];
     board[sq] = None;
+    PieceType pt = piece_type(piece);
+    Color color = piece_color(piece);
+    if (color == White) {
+        mat_mg[White] -= PieceValueMG[pt];
+        mat_eg[White] -= PieceValueEG[pt];
+        psqt_mg[White] -= PSQT_MG[pt][FLIP_SQ[White][sq]];
+        psqt_eg[White] -= PSQT_EG[pt][FLIP_SQ[White][sq]];
+    }
+    else {
+        mat_mg[Black] -= PieceValueMG[pt];
+        mat_eg[Black] -= PieceValueEG[pt];
+        psqt_mg[Black] -= PSQT_MG[pt][FLIP_SQ[Black][sq]];
+        psqt_eg[Black] -= PSQT_EG[pt][FLIP_SQ[Black][sq]];
+    }
 }
 
 bool Position::hasNonPawnMaterial() {

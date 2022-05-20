@@ -29,6 +29,8 @@
 #include <chrono>
 #include <algorithm>
 
+#include "psqt.h"
+
 /**********************************\
  ==================================
                Types 
@@ -156,6 +158,11 @@ const std::string squareToString[64] = {
     "a7", "b7", "c7", "d7", "e7", "f7", "g7", "h7",
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
 };
+
+// material piece values for midgame and endgame
+static constexpr int PieceValueMG[6] = {102, 337, 365, 477, 1025,  0};
+static constexpr int PieceValueEG[6] = {94, 281, 297, 512,  936,  0};
+static constexpr int PieceValue[6] = {100, 320, 320, 500, 900, 0};
 
 /**********************************\
  ==================================
@@ -576,8 +583,10 @@ public:
 
     // incrementally updatable PSQT
     // and material count scores
-    int pieceSquareTableScore;
-    int materialCountScore;
+    int mat_mg[2];
+    int mat_eg[2];
+    int psqt_mg[2];
+    int psqt_eg[2];
 
     // pawn half moves
     uint8_t ply();

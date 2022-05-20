@@ -25,13 +25,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace Eval {
 
-void init();
-void printTables();
-
-// lookup tables for midgame and endgame scores
-extern int MGTable[12][64];
-extern int EGTable[12][64];
-
 // struct for holding opening 
 // and endgame scores
 struct EvalInfo {
@@ -54,11 +47,6 @@ static constexpr int PhaseValues[6] = {
     RookPhase,
     QueenPhase
 };
-
-// material piece values for midgame and endgame
-static constexpr int PieceValueMG[6] = {102, 337, 365, 477, 1025,  0};
-static constexpr int PieceValueEG[6] = {94, 281, 297, 512,  936,  0};
-static constexpr int PieceValue[6] = {100, 320, 320, 500, 900, 0};
 
 // doubled pawn penalties
 static constexpr int doubledPawnsPenaltyMG = 5;
@@ -183,10 +171,6 @@ int evaluate(Position& pos) {
         Piece p     = pos.board[sq];
         Color color = (Color)(p / 6);
 
-        // evaluate current piece
-        eval.MGScores[color] += MGTable[p][sq];
-        eval.EGScores[color] += EGTable[p][sq];
-
         // update game phase
         PieceType pt = (PieceType)(p % 6);
         phase += PhaseValues[pt];
@@ -201,6 +185,8 @@ int evaluate(Position& pos) {
         if (color == c) ourMaterial += PieceValue[pt];
         else theirMaterial += PieceValue[pt];
     }
+
+    
     // total material
     int totalMaterial = ourMaterial + theirMaterial;
 
@@ -216,6 +202,13 @@ int evaluate(Position& pos) {
         eval.EGScores[c]  += mopUpEval<c>(bsf(pos.Kings<~c>()), ourMaterial, theirMaterial, ourEndgamePhaseWeight);
         eval.EGScores[~c] += mopUpEval<~c>(bsf(pos.Kings<c>()), theirMaterial, ourMaterial, theirEndgamePhaseWeight);
     }
+    
+
+    eval.MGScores[c] += pos.mat_mg[c] + pos.psqt_mg[c]; 
+    eval.EGScores[c] += pos.mat_eg[c] + pos.psqt_eg[c]; 
+
+    eval.MGScores[~c] += pos.mat_mg[~c] + pos.psqt_mg[~c]; 
+    eval.EGScores[~c] += pos.mat_eg[~c] + pos.psqt_eg[~c]; 
 
     // get total midgame and endgame scores
     int MGScore = eval.MGScores[c] - eval.MGScores[~c];
