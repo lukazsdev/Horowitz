@@ -274,30 +274,6 @@ void Position::parseFEN(std::string FEN) {
             break;
         }
     }
-    /*
-    mat_mg = 0;
-    mat_eg = 0;
-    psqt_mg = 0;
-    psqt_eg = 0;
-    Bitboard whitePieces = allPieces<White>();
-    Bitboard blackPieces = allPieces<Black>();
-    while (whitePieces) {
-        Square sq = poplsb(whitePieces);
-        PieceType pt = piece_type(board[sq]);
-        mat_mg += PieceValueMG[pt];
-        mat_eg += PieceValueEG[pt];
-        psqt_mg += PSQT_MG[pt][FLIP_SQ[White][sq]];
-        psqt_eg += PSQT_EG[pt][FLIP_SQ[White][sq]];
-    }
-    while (blackPieces) {
-        Square sq = poplsb(blackPieces);
-        PieceType pt = piece_type(board[sq]);
-        mat_mg -= PieceValueMG[pt];
-        mat_eg -= PieceValueEG[pt];
-        psqt_mg -= PSQT_MG[pt][FLIP_SQ[Black][sq]];
-        psqt_eg -= PSQT_EG[pt][FLIP_SQ[Black][sq]];
-    }
-    */
 
     // set hash key to current position
     hashKey = generateHashKey();
@@ -399,18 +375,10 @@ void Position::placePiece(Piece piece, Square sq) {
     board[sq] = piece;
     PieceType pt = piece_type(piece);
     Color color = piece_color(piece);
-    if (color == White) {
-        mat_mg[White] += PieceValueMG[pt];
-        mat_eg[White] += PieceValueEG[pt];
-        psqt_mg[White] += PSQT_MG[pt][FLIP_SQ[White][sq]];
-        psqt_eg[White] += PSQT_EG[pt][FLIP_SQ[White][sq]];
-    }
-    else {
-        mat_mg[Black] += PieceValueMG[pt];
-        mat_eg[Black] += PieceValueEG[pt];
-        psqt_mg[Black] += PSQT_MG[pt][FLIP_SQ[Black][sq]];
-        psqt_eg[Black] += PSQT_EG[pt][FLIP_SQ[Black][sq]];
-    }
+    mat_mg[color]  += PieceValueMG[pt];
+    mat_eg[color]  += PieceValueEG[pt];
+    psqt_mg[color] += PSQT_MG[pt][FLIP_SQ[color][sq]];
+    psqt_eg[color] += PSQT_EG[pt][FLIP_SQ[color][sq]];
 }
 
 // remove a piece from a particular square
@@ -419,18 +387,11 @@ void Position::removePiece(Piece piece, Square sq) {
     board[sq] = None;
     PieceType pt = piece_type(piece);
     Color color = piece_color(piece);
-    if (color == White) {
-        mat_mg[White] -= PieceValueMG[pt];
-        mat_eg[White] -= PieceValueEG[pt];
-        psqt_mg[White] -= PSQT_MG[pt][FLIP_SQ[White][sq]];
-        psqt_eg[White] -= PSQT_EG[pt][FLIP_SQ[White][sq]];
-    }
-    else {
-        mat_mg[Black] -= PieceValueMG[pt];
-        mat_eg[Black] -= PieceValueEG[pt];
-        psqt_mg[Black] -= PSQT_MG[pt][FLIP_SQ[Black][sq]];
-        psqt_eg[Black] -= PSQT_EG[pt][FLIP_SQ[Black][sq]];
-    }
+    mat_mg[color]  -= PieceValueMG[pt];
+    mat_eg[color]  -= PieceValueEG[pt];
+    psqt_mg[color] -= PSQT_MG[pt][FLIP_SQ[color][sq]];
+    psqt_eg[color] -= PSQT_EG[pt][FLIP_SQ[color][sq]];
+    
 }
 
 bool Position::hasNonPawnMaterial() {
