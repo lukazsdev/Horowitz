@@ -48,21 +48,8 @@ static constexpr int PhaseValues[6] = {
     QueenPhase
 };
 
-// doubled pawn penalties
-static constexpr int doubledPawnsPenaltyMG = 5;
-static constexpr int doubledPawnsPenaltyEG = 10;
-
-// rook on open and semi-open file bonuses
-static constexpr int openFileBonusMG     = 10;
-static constexpr int semiOpenFileBonusMG = 5;
-static constexpr int openFileBonusEG     = 10;
-static constexpr int semiOpenFileBonusEG = 5;
-
-// king safety bonuses
-static constexpr int kingShieldBonus = 5;
-
 // maximum material to consider position as an endgame
-static constexpr float materialEndgameStart = 1620;
+static constexpr float materialEndgameStart = 1500;
 
 // lookup table for center manhattan distance
 static constexpr int CenterManhattanDistance[64] = { 
@@ -90,66 +77,6 @@ int mopUpEval(Square theirKingSq, int ourMaterial, int theirMaterial, float endg
     return 0;
 }
 
-
-// pawn evaluation
-template<Color c>
-void evaluatePawn(Position& pos, Square sq, EvalInfo& eval) {
-    Bitboard usPawns = pos.Pawns<c>();
-    int file = file_of(sq);
-    int doubledPawns = popCount(usPawns & MASK_FILE[file]);
-    if (doubledPawns > 1) {
-        eval.MGScores[c] -= (doubledPawns - 1) * doubledPawnsPenaltyMG;
-        eval.EGScores[c] -= (doubledPawns - 1) * doubledPawnsPenaltyEG;
-    }
-}
-
-// rook evaluation
-template<Color c>
-void evaluateRook(Position& pos, Square sq, EvalInfo& eval) {
-    Bitboard usPawns    = pos.Pawns<c>();
-    Bitboard theirPawns = pos.Pawns<~c>();
-    int file = file_of(sq);
-    if ((usPawns & MASK_FILE[file]) == 0) {
-        eval.MGScores[c] += semiOpenFileBonusMG;
-        eval.EGScores[c] += semiOpenFileBonusEG;
-    }
-    if (((usPawns | theirPawns) & MASK_FILE[file]) == 0) {
-        eval.MGScores[c] += openFileBonusMG;
-        eval.EGScores[c] += openFileBonusEG;
-    }
-}
-
-// king evaluation
-template<Color c>
-void evaluateKing(Position& pos, Square sq, EvalInfo& eval) {
-    Bitboard usPawns    = pos.Pawns<c>();
-    Bitboard theirPawns = pos.Pawns<~c>();
-    int file = file_of(sq);
-    if ((usPawns & MASK_FILE[file]) == 0) 
-        eval.MGScores[c] -= semiOpenFileBonusMG;
-    if (((usPawns | theirPawns) & MASK_FILE[file]) == 0) 
-        eval.MGScores[c] -= openFileBonusMG;
-
-    eval.MGScores[c] += popCount(pos.GetKingAttacks(sq) & usPawns) * kingShieldBonus;
-}
-
-template<Color c>
-void evaluatePiece(Position& pos, PieceType pt, Square sq, EvalInfo& eval) {
-    switch (pt) {
-    case Pawn:
-        evaluatePawn<c>(pos, sq, eval);
-        break;
-    case Rook:
-        evaluateRook<c>(pos, sq, eval);
-        break;
-    case King:
-        evaluateKing<c>(pos, sq, eval);
-        break;
-    default:
-        break;
-    }
-}
-
 // static evaluation function. Returns 
 // the score relative to the side to move 
 template<Color c>
@@ -158,34 +85,18 @@ int evaluate(Position& pos) {
     EvalInfo eval = {};
 
     // phase for tappered evaluation and material values
-    int phase = 0, ourMaterial = 0, theirMaterial = 0;
-    
-    // retrieve bitboard of both occupancies
-    Bitboard allBB = pos.allPieces<White>() | pos.allPieces<Black>();
-    
-    // loop over allBB to retrieve each piece 
-    // and procede to evaluate them individually
-    while (allBB) {
-        // retrieve current piece info
-        Square sq   = poplsb(allBB);
-        Piece p     = pos.board[sq];
-        Color color = (Color)(p / 6);
+    int phase = 0;
 
-        // update game phase
-        PieceType pt = (PieceType)(p % 6);
-        phase += PhaseValues[pt];
+    // increment phase 
+    phase += popCount(pos.Pawns<c>() | pos.Pawns<~c>()) * PhaseValues[Pawn];
+    phase += popCount(pos.Knights<c>() | pos.Knights<~c>()) * PhaseValues[Knight];
+    phase += popCount(pos.Bishops<c>() | pos.Bishops<~c>()) * PhaseValues[Bishop];
+    phase += popCount(pos.Rooks<c>() | pos.Rooks<~c>()) * PhaseValues[Rook];
+    phase += popCount(pos.Queens<c>() | pos.Queens<~c>()) * PhaseValues[Queen];
 
-        // evaluate other piece factors 
-        if (color == White) 
-            evaluatePiece<White>(pos, pt, sq, eval);
-        else 
-            evaluatePiece<Black>(pos, pt, sq, eval);
-
-        // update material values
-        if (color == c) ourMaterial += PieceValue[pt];
-        else theirMaterial += PieceValue[pt];
-    }
-
+    // material scores for both sides
+    int ourMaterial   = pos.mat_eg[c];
+    int theirMaterial = pos.mat_eg[~c];
     
     // total material
     int totalMaterial = ourMaterial + theirMaterial;
