@@ -93,7 +93,7 @@ public:
     // main search functions
     template<Color c> void search(int depth);
     template<Color c> int quiescence(int alpha, int beta);
-    template<Color c> int negamax(int alpha, int beta, int depth);
+    template<Color c> int negamax(int alpha, int beta, int depth, bool nmp=true);
 
     // move ordering/scoring functions
     void scoreMove(Move& move);
@@ -191,7 +191,7 @@ int Search::quiescence(int alpha, int beta) {
 
 // Negamax search
 template<Color c> 
-int Search::negamax(int alpha, int beta, int depth) {
+int Search::negamax(int alpha, int beta, int depth, bool nmp) {
     // score of current position
     int score = 0;
 
@@ -261,7 +261,10 @@ int Search::negamax(int alpha, int beta, int depth) {
     }
     
     // null move pruning (only done if we don't have non pawn material)
-    if (depth >= 3 && !inCheck && ply > 0 && pos.hasNonPawnMaterial()) {
+    if (depth >= 3 && !inCheck && ply > 0 && pos.hasNonPawnMaterial() && nmp) {
+        // reduced depth
+        int R = 3 + depth / 6;
+
         // make null move
         pos.makemove<c>(nullMove);
 
@@ -285,7 +288,7 @@ int Search::negamax(int alpha, int beta, int depth) {
         pos.updateZobristSideToMove();
 
         // search moves with reduced depth to find beta cutoffs 
-        score = -negamax<~c>(-beta, -beta + 1, depth - 1 - 2);
+        score = -negamax<~c>(-beta, -beta + 1, depth - R - 1, false);
 
         // unmake null move (restore board state)
         pos.unmakemove<c>(nullMove); 
