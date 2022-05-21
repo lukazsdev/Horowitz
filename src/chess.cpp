@@ -199,6 +199,10 @@ void Position::parseFEN(std::string FEN) {
     memset(psqt_mg, 0, sizeof(psqt_mg));
     memset(psqt_eg, 0, sizeof(psqt_eg));
 
+    // assuming GUI uses "position moves ..." command
+    memset(storeInfo, 0, sizeof(storeInfo));
+    storeCount = 0;
+
     // reset enpassant square
     enpassantSquare = NO_SQ;
 
