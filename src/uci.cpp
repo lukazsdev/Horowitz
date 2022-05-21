@@ -21,7 +21,7 @@
 #include "tt.h"
 
 // engine version
-#define VERSION "v2.0"
+#define VERSION "v2.1"
 
 // main UCI loop
 void UCIInterface::UCILoop() {
