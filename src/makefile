@@ -13,8 +13,8 @@ ifeq ($(build), release)
     CFLAGS = -static-libgcc -static-libstdc++ -static
 endif
 
-horowitz.o: main.o chess.o search.o see.o evaluate.o uci.o timemanager.o zobrist.o tt.o psqt.o
-	g++ main.o chess.o search.o see.o evaluate.o uci.o timemanager.o zobrist.o tt.o psqt.o $(CFLAGS) -o horowitz -lpthread
+horowitz.o: main.o chess.o search.o evaluate.o uci.o timemanager.o zobrist.o tt.o psqt.o
+	g++ main.o chess.o search.o evaluate.o uci.o timemanager.o zobrist.o tt.o psqt.o $(CFLAGS) -o horowitz -lpthread
 
 main.o: main.cpp 
 	g++ -c -flto -O3 $(TARGET) -std=c++17 -static -Wall main.cpp
@@ -24,9 +24,6 @@ chess.o: chess.cpp chess.h
 
 search.o: search.cpp search.h 
 	g++ -c -flto -O3 $(TARGET) -std=c++17 -static -Wall search.cpp
-
-see.o: see.cpp see.h 
-	g++ -c -flto -O3 $(TARGET) -std=c++17 -static -Wall see.cpp
 
 evaluate.o: evaluate.cpp evaluate.h
 	g++ -c -flto -O3 $(TARGET) -std=c++17 -static -Wall evaluate.cpp

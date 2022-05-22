@@ -24,7 +24,6 @@
 #include "evaluate.h"
 #include "timemanager.h"
 #include "tt.h"
-#include "see.h"
 
 // search constants and pruning parameters
 static constexpr int maxPly          = 64;
@@ -147,8 +146,7 @@ int Search::quiescence(int alpha, int beta) {
 
         // check if move isn't a capture
         if (pos.board[move.target()] == None) 
-            continue;
-        
+            continue; 
 
         // increment ply
         ply++;
