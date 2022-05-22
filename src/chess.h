@@ -516,6 +516,22 @@ void printMove(Move move);
  ==================================
 \**********************************/
 
+// maps a piece to how much weight it should have on the phase of the game
+static constexpr int PawnPhase   = 1;
+static constexpr int KnightPhase = 1;
+static constexpr int BishopPhase = 1;
+static constexpr int RookPhase   = 2;
+static constexpr int QueenPhase  = 4;
+
+// array used for mapping piece to its phase
+static constexpr int PhaseValues[6] = {
+    PawnPhase, 
+    KnightPhase, 
+    BishopPhase, 
+    RookPhase,
+    QueenPhase
+};
+
 // struct for copying/storing previous states
 struct State {
     Square   enpassantCopy;
@@ -581,12 +597,13 @@ public:
     // current castling rights
     uint8_t castlingRights;
 
-    // incrementally updatable PSQT
-    // and material count scores
+    // incrementally updatable PSQT,
+    // material count scores and game phase
     int mat_mg[2];
     int mat_eg[2];
     int psqt_mg[2];
     int psqt_eg[2];
+    int phase;
 
     // pawn half moves
     uint8_t ply();

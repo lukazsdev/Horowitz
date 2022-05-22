@@ -198,6 +198,7 @@ void Position::parseFEN(std::string FEN) {
     memset(mat_eg, 0, sizeof(mat_eg));
     memset(psqt_mg, 0, sizeof(psqt_mg));
     memset(psqt_eg, 0, sizeof(psqt_eg));
+    phase = 0;
 
     // assuming GUI uses "position moves ..." command
     memset(storeInfo, 0, sizeof(storeInfo));
@@ -377,25 +378,33 @@ PieceType Position::piece_type_at(Square sq){
 void Position::placePiece(Piece piece, Square sq) {
     PiecesBB[piece] |= SQUARE_BB[sq];
     board[sq] = piece;
+
     PieceType pt = piece_type(piece);
     Color color = piece_color(piece);
+
     mat_mg[color]  += PieceValueMG[pt];
     mat_eg[color]  += PieceValueEG[pt];
     psqt_mg[color] += PSQT_MG[pt][FLIP_SQ[color][sq]];
     psqt_eg[color] += PSQT_EG[pt][FLIP_SQ[color][sq]];
+
+    phase += PhaseValues[pt];
+
 }
 
 // remove a piece from a particular square
 void Position::removePiece(Piece piece, Square sq) {
     PiecesBB[piece] &= ~SQUARE_BB[sq];
     board[sq] = None;
+
     PieceType pt = piece_type(piece);
     Color color = piece_color(piece);
+
     mat_mg[color]  -= PieceValueMG[pt];
     mat_eg[color]  -= PieceValueEG[pt];
     psqt_mg[color] -= PSQT_MG[pt][FLIP_SQ[color][sq]];
     psqt_eg[color] -= PSQT_EG[pt][FLIP_SQ[color][sq]];
     
+    phase -= PhaseValues[pt];
 }
 
 bool Position::hasNonPawnMaterial() {

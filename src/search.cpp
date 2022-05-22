@@ -81,6 +81,7 @@ void Search::sortMoves(Moves &moveList) {
         scoreMove(moveList.moves[i]);
     }
 
+    // insertion sort
     int i = moveList.count;
     for (int cmove = 1; cmove < moveList.count; cmove++) {
         Move temp = moveList.moves[cmove];

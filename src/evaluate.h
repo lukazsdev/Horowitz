@@ -32,22 +32,6 @@ struct EvalInfo {
     int EGScores[2]{};
 };
 
-// maps a piece to how much weight it should have on the phase of the game
-static constexpr int PawnPhase   = 1;
-static constexpr int KnightPhase = 1;
-static constexpr int BishopPhase = 1;
-static constexpr int RookPhase   = 2;
-static constexpr int QueenPhase  = 4;
-
-// array used for mapping piece to its phase
-static constexpr int PhaseValues[6] = {
-    PawnPhase, 
-    KnightPhase, 
-    BishopPhase, 
-    RookPhase,
-    QueenPhase
-};
-
 // maximum material to consider position as an endgame
 static constexpr float materialEndgameStart = 1500;
 
@@ -85,14 +69,7 @@ int evaluate(Position& pos) {
     EvalInfo eval = {};
 
     // phase for tappered evaluation and material values
-    int phase = 0;
-
-    // increment phase 
-    phase += popCount(pos.Pawns<c>() | pos.Pawns<~c>()) * PhaseValues[Pawn];
-    phase += popCount(pos.Knights<c>() | pos.Knights<~c>()) * PhaseValues[Knight];
-    phase += popCount(pos.Bishops<c>() | pos.Bishops<~c>()) * PhaseValues[Bishop];
-    phase += popCount(pos.Rooks<c>() | pos.Rooks<~c>()) * PhaseValues[Rook];
-    phase += popCount(pos.Queens<c>() | pos.Queens<~c>()) * PhaseValues[Queen];
+    int phase = pos.phase;
 
     // material scores for both sides
     int ourMaterial   = pos.mat_eg[c];
