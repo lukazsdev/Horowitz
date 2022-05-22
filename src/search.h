@@ -24,6 +24,7 @@
 #include "evaluate.h"
 #include "timemanager.h"
 #include "tt.h"
+#include "see.h"
 
 // search constants and pruning parameters
 static constexpr int maxPly          = 64;
@@ -311,6 +312,7 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
             // node (position) fails high
             return beta;
     }
+
 
     // futility pruning
     if (depth <= 8 && !isPVNode && !inCheck && alpha < checkmate) {

@@ -428,6 +428,10 @@ Bitboard Position::hyp_quint(Square square, Bitboard occ, Bitboard mask) {
 Bitboard Position::GetKnightAttacks(Square square) {
     return KNIGHT_ATTACKS_TABLE[square];
 }
+
+Bitboard Position::GetPawnAttacks(Color color, Square square) {
+    return PAWN_ATTACKS_TABLE[color][square];
+}
  
 // get bishop attacks using Hyperbola Quintessence
 Bitboard Position::GetBishopAttacks(Square square, Bitboard occ) {

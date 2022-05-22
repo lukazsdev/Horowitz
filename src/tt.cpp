@@ -61,14 +61,8 @@ void TranspositionTable::Init(int sizeInMB) {
         Init(sizeInMB / 2);
     }
 
-    // if allocation succeeded
-    else
-    {
-        // clear hash table
-        Clear();
-        
-        printf("Hash table is initialized with %d entries\n", hashTableEntries);
-    }
+    // if allocation succeeded, clear hash table
+    else Clear();
 }
 
 
