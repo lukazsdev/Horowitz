@@ -18,6 +18,9 @@
 
 #include "psqt.h"
 
+// Piece-square tables taken from Ronald Friederich's PeSTO engine.
+// https://www.chessprogramming.org/PeSTO%27s_Evaluation_Function
+
 extern const int PSQT_MG[6][64] = {
     // Piece-square table for pawns
     {
