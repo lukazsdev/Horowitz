@@ -96,7 +96,9 @@ public:
 
     // move ordering/scoring functions
     void scoreMove(Move& move);
-    void sortMoves(Moves &moveList);
+    void sortMoves(Moves& moveList);
+    void enablePVScoring(Moves& moveList);
+    void orderMoves(Moves& moveList, int currIndex);
     void ageHistoryTable();
     
     // print the best move
@@ -135,11 +137,16 @@ int Search::quiescence(int alpha, int beta) {
     // legal moves list
     Moves moveList = pos.generateLegalMoves<c>();
 
-    // sort moves
-    sortMoves(moveList);
+    // assign score to each move
+    for (int i = 0; i < moveList.count; i++) {
+        scoreMove(moveList.moves[i]);
+    }
 
     // iterate over legal moves
     for (int i = 0; i < moveList.count; i++) {
+        // order moves
+        orderMoves(moveList, i);
+
         // initialize current move
         Move move = moveList.moves[i];
 
@@ -326,8 +333,15 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
     // legal moves list
     Moves moveList = pos.generateLegalMoves<c>();
 
-    // sort moves
-    sortMoves(moveList);
+    // if we are following PV line
+    if (followPV == 1) 
+        // enable PV move scoring
+        enablePVScoring(moveList);
+
+    // assign score to each move
+    for (int i = 0; i < moveList.count; i++) {
+        scoreMove(moveList.moves[i]);
+    }
 
     // number of moves searched in the move list
     int movesSearched = 0;
@@ -337,6 +351,9 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
 
     // iterate over legal moves
     for (int i = 0; i < moveList.count; i++) {
+        // order moves
+        orderMoves(moveList, i);
+
         // initialize current move
         Move move = moveList.moves[i];
 

@@ -67,6 +67,40 @@ void Search::sortMoves(Moves &moveList) {
     }
 }
 
+void Search::orderMoves(Moves& moveList, int currIndex) {
+    int bestIndex = currIndex;
+    int bestScore = moveList.moves[bestIndex].score;
+
+    for (int index = bestIndex; index < moveList.count; index++) {
+        if (moveList.moves[index].score > bestScore) {
+            bestIndex = index;
+            bestScore = moveList.moves[index].score;
+        }
+    }
+
+    Move tempMove = moveList.moves[currIndex];
+    moveList.moves[currIndex] = moveList.moves[bestIndex];
+    moveList.moves[bestIndex] = tempMove;
+}
+
+void Search::enablePVScoring(Moves& moveList) {
+    // disable following PV line
+    followPV = 0;
+
+    // loop over moves in move list
+    for (int count = 0; count < moveList.count; count++) {
+        // make sure we did PV move
+        if (pvTable[0][ply] == moveList.moves[count]) {
+            // enable move scoring
+            scorePV = 1;
+
+            // enable following PV
+            followPV = 1;
+        }
+    }
+}
+
+
 void Search::ageHistoryTable() {
     for (int sq1 = 0; sq1 < 64; sq1++) {
 		for (int sq2 = 0; sq2 < 64; sq2++) {
