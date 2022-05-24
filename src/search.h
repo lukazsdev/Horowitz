@@ -28,34 +28,33 @@
 // search constants and pruning parameters
 static constexpr int maxPly          = 64;
 static constexpr int windowSize      = 50;
-
-//static constexpr int staticNMPMargin = 120;
 static constexpr int fullDepthMoves  = 4;
 static constexpr int reductionLimit  = 3;
 static constexpr int staticNMPMargin = 120;
 static constexpr int deltaMargin     = 1000;
+
+static constexpr int pvMoveScore     = 60;
+static constexpr int killerMoveScore = 10;
+static constexpr int maxKillers      = 2;
+static constexpr int mvvLvaOffset    = 65279;
+static constexpr int maxHistoryScore = 65249;
+
 
 // margins for futility pruning and late move pruning
 static constexpr int futilityMargins[9] = {0, 100, 160, 220, 280, 340, 400, 460, 520};
 static constexpr int lateMovePruningMargins[4] = {0, 8, 12, 24};
 
 // MVV LVA [attacker][victim]
-static constexpr int MVV_LVA[12][12] = {
-    {105, 205, 305, 405, 505, 605,  105, 205, 305, 405, 505, 605},
-    {104, 204, 304, 404, 504, 604,  104, 204, 304, 404, 504, 604},
-    {103, 203, 303, 403, 503, 603,  103, 203, 303, 403, 503, 603},
-    {102, 202, 302, 402, 502, 602,  102, 202, 302, 402, 502, 602},
-    {101, 201, 301, 401, 501, 601,  101, 201, 301, 401, 501, 601},
-    {100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600},
+static constexpr int MvvLva[7][6] = {
+    {15, 14, 13, 12, 11, 10}, 
+	{25, 24, 23, 22, 21, 20}, 
+	{35, 34, 33, 32, 31, 30},
+	{45, 44, 43, 42, 41, 40}, 
+	{55, 54, 53, 52, 51, 50}, 
 
-    {105, 205, 305, 405, 505, 605,  105, 205, 305, 405, 505, 605},
-    {104, 204, 304, 404, 504, 604,  104, 204, 304, 404, 504, 604},
-    {103, 203, 303, 403, 503, 603,  103, 203, 303, 403, 503, 603},
-    {102, 202, 302, 402, 502, 602,  102, 202, 302, 402, 502, 602},
-    {101, 201, 301, 401, 501, 601,  101, 201, 301, 401, 501, 601},
-    {100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600}
+	{0, 0, 0, 0, 0, 0}, 
+	{0, 0, 0, 0, 0, 0} 
 };
-
 
 // class for detecting repetitions
 class Repetition {
@@ -84,8 +83,8 @@ public:
     int  pvLength[maxPly];
     Move pvTable[maxPly][maxPly];
 
-    int  history[12][maxPly];
-    Move killers[2][maxPly];
+    int  history[2][64][64];
+    Move killers[maxPly + 1][2];
 
     int followPV, scorePV;
 
@@ -98,7 +97,7 @@ public:
     // move ordering/scoring functions
     void scoreMove(Move& move);
     void sortMoves(Moves &moveList);
-    void enablePVScoring(Moves moveList);
+    void ageHistoryTable();
     
     // print the best move
     void printBestMove(Move bestMove);
@@ -327,16 +326,14 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
     // legal moves list
     Moves moveList = pos.generateLegalMoves<c>();
 
-    // if we are following PV line
-    if (followPV == 1) 
-        // enable PV move scoring
-        enablePVScoring(moveList);
-
     // sort moves
     sortMoves(moveList);
 
     // number of moves searched in the move list
     int movesSearched = 0;
+
+    // best score
+    int bestScore = -infinity;
 
     // iterate over legal moves
     for (int i = 0; i < moveList.count; i++) {
@@ -421,16 +418,55 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
         // increment moves searched
         movesSearched++;
 
+        // update best score
+        if (score > bestScore)
+            bestScore = score;
+
+        // fail-hard beta cutoff
+        if (score >= beta) {
+            // store hash entry with the score equal to beta
+            TT.Store(pos.hashKey, (uint8_t)depth, HashFlagBeta, beta, ply);
+
+            // store killer moves
+            if (pos.board[move.target()] == None) {
+                if (!(move == killers[ply][0])) {
+                    killers[ply][1] = killers[ply][0];
+                    killers[ply][0] = move;
+                }
+            }
+
+            // update history table
+            if (pos.board[move.target()] == None) {
+                history[pos.sideToMove][move.source()][move.target()] += depth * depth;
+            }
+            if (history[pos.sideToMove][move.source()][move.target()] >= maxHistoryScore) {
+                ageHistoryTable();
+            }
+
+            return beta;
+
+        } else {
+
+            // decrement history score
+            if (pos.board[move.target()] == None) {
+                if (history[pos.sideToMove][move.source()][move.target()] > 0) {
+                    history[pos.sideToMove][move.source()][move.target()] -= 1;
+                }
+            }
+        }
+
         // found a better move
         if (score > alpha) {
             // switch hash flag from storing score of fail-low node
             // to the one storing score for PV node
             hashFlag = HashFlagExact;
 
-            // only quiet moves 
+            // update history table
             if (pos.board[move.target()] == None) {
-                // store history moves
-                history[makePiece(pos.sideToMove, move.piece())][move.target()] += depth;
+                history[pos.sideToMove][move.source()][move.target()] += depth * depth;
+            }
+            if (history[pos.sideToMove][move.source()][move.target()] >= maxHistoryScore) {
+                ageHistoryTable();
             }
 
             // PV node (move)
@@ -447,19 +483,13 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
             // adjust pv length
             pvLength[ply] = pvLength[ply + 1];
 
-            // fail-hard beta cutoff
-            if (score >= beta) {
-                // store hash entry with the score equal to beta
-                TT.Store(pos.hashKey, (uint8_t)depth, HashFlagBeta, beta, ply);
+        } else {
 
-                // only quiet moves
-                if (pos.board[move.target()] == None) {
-                    // store killer moves
-                    killers[1][ply] = killers[0][ply];
-                    killers[0][ply] = move;
+            // decrement history score
+            if (pos.board[move.target()] == None) {
+                if (history[pos.sideToMove][move.source()][move.target()] > 0) {
+                    history[pos.sideToMove][move.source()][move.target()] -= 1;
                 }
-
-                return beta;
             }
         }
     }
@@ -474,11 +504,11 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
             return 0;
     }
 
-    // store hash entry with the score equal to alpha
-    TT.Store(pos.hashKey, (uint8_t)depth, hashFlag, alpha, ply);
+    // store hash entry with the score equal to best score
+    TT.Store(pos.hashKey, (uint8_t)depth, hashFlag, bestScore, ply);
 
     // node (move) fails low
-    return alpha;
+    return bestScore;
 }
 
 // root search function (iterative deepening search)
@@ -507,8 +537,8 @@ void Search::search(int depth) {
 
     memset(pvLength, 0, sizeof(pvLength));
     memset(pvTable, 0, sizeof(pvTable));
-    memset(killers, 0, sizeof(killers));
-    memset(history, 0, sizeof(history));
+
+    ageHistoryTable();
 
     // initialize alpha beta bounds
     int alpha = -infinity;

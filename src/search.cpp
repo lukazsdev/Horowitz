@@ -22,58 +22,34 @@
 void Search::scoreMove(Move& move) {
     move.score = 0;
 
-    // if PV move scoring is allowed
-    if (scorePV == 1) {
-        // make sure we are dealing with PV move
-        if (pvTable[0][ply] == move) {
-            // disable score PV flag
-            scorePV = 0;
-
-            // give PV move highest score to search it first
-            move.score = 20000;
-            return;
-        }
+    if (move == pvTable[0][ply]) {
+        move.score += mvvLvaOffset + pvMoveScore;
     }
-
-    // if move is a capture
-    if (pos.board[move.target()] != None) {
-        int attacker = makePiece(pos.sideToMove, move.piece());
-        int victim   = pos.board[move.target()];
-        move.score += MVV_LVA[attacker][victim] + 10000;
+    else if (pos.board[move.target()] != None) {
+        PieceType moved    = (PieceType)(pos.board[move.source()] % 6);
+        PieceType captured = (PieceType)(pos.board[move.target()] % 6);
+        move.score += mvvLvaOffset + MvvLva[captured][moved];
     }
-    // if move is enpassant capture
     else if (move.target() == pos.enpassantSquare && move.piece() == Pawn) {
-        int attacker = makePiece(pos.sideToMove, Pawn);
-        int victim = makePiece(~pos.sideToMove, Pawn);
-        move.score += MVV_LVA[attacker][victim] + 10000;
+        move.score += mvvLvaOffset + MvvLva[Pawn][Pawn];
     }
-    // score first killer move
-    else if (killers[0][ply] == move) 
-        move.score += 9000;
-    // score second killer move
-    else if (killers[1][ply] == move) 
-        move.score += 8000;
-    // score history move
-    else 
-        move.score += history[makePiece(pos.sideToMove, move.piece())][move.target()];
-}
-
-void Search::enablePVScoring(Moves moveList) {
-    // disable following PV line
-    followPV = 0;
-
-    // loop over moves in move list
-    for (int count = 0; count < moveList.count; count++) {
-        // make sure we did PV move
-        if (pvTable[0][ply] == moveList.moves[count]) {
-            // enable move scoring
-            scorePV = 1;
-
-            // enable following PV
-            followPV = 1;
+    else {
+        int moveScore = 0;
+        for (int i = 0; i < maxKillers; i++) {
+            if (move == killers[ply][i]) {
+                moveScore = mvvLvaOffset - (i + 1) * killerMoveScore;
+                break;
+            }
         }
+
+        if (moveScore == 0) {
+            moveScore = history[pos.sideToMove][move.source()][move.target()];
+        }
+
+        move.score += moveScore;
     }
 }
+
 
 void Search::sortMoves(Moves &moveList) {
     // asign score to each move
@@ -89,6 +65,14 @@ void Search::sortMoves(Moves &moveList) {
             moveList.moves[i+1] = moveList.moves[i];
         moveList.moves[i+1] = temp;
     }
+}
+
+void Search::ageHistoryTable() {
+    for (int sq1 = 0; sq1 < 64; sq1++) {
+		for (int sq2 = 0; sq2 < 64; sq2++) {
+			history[pos.sideToMove][sq1][sq2] /= 2;
+		}
+	}
 }
 
 // add a hash key (position) to table

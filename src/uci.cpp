@@ -43,6 +43,7 @@ void UCIInterface::UCILoop() {
             search.TT.Clear();
             search.pos = Position();
             search.repetitions.Reset();
+            memset(search.history, 0, sizeof(search.history));
         }
         else if (command == "position") {
             search.repetitions.Reset();
@@ -182,6 +183,8 @@ void UCIInterface::parseGoCommand() {
 void UCIInterface::bootEngine() {
     zobrist.initRandomKeys();
     search.TT.Init(64);
+    memset(search.killers, 0, sizeof(search.killers));
+    memset(search.history, 0, sizeof(search.history));
     search.pos = Position(defaultFEN);
     search.timer.Stop = false;
     search.repetitions.Reset();
