@@ -44,16 +44,16 @@ static constexpr int maxHistoryScore = 65249;
 static constexpr int futilityMargins[9] = {0, 100, 160, 220, 280, 340, 400, 460, 520};
 static constexpr int lateMovePruningMargins[4] = {0, 8, 12, 24};
 
-// MVV LVA [attacker][victim]
+// MVV LVA [victim][attacker]
 static constexpr int MvvLva[7][6] = {
     {15, 14, 13, 12, 11, 10}, 
-	{25, 24, 23, 22, 21, 20}, 
-	{35, 34, 33, 32, 31, 30},
-	{45, 44, 43, 42, 41, 40}, 
-	{55, 54, 53, 52, 51, 50}, 
+    {25, 24, 23, 22, 21, 20}, 
+    {35, 34, 33, 32, 31, 30},
+    {45, 44, 43, 42, 41, 40}, 
+    {55, 54, 53, 52, 51, 50}, 
 
-	{0, 0, 0, 0, 0, 0}, 
-	{0, 0, 0, 0, 0, 0} 
+    {0, 0, 0, 0, 0, 0}, 
+    {0, 0, 0, 0, 0, 0} 
 };
 
 // class for detecting repetitions
