@@ -16,6 +16,8 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+// https://github.com/algerbrex/blunder/blob/main/engine/timemanager.go
+
 #include "timemanager.h"
 
 void TimeManager::Start() {
