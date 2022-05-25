@@ -44,19 +44,6 @@ static constexpr int maxHistoryScore = 65249;
 static constexpr int futilityMargins[9] = {0, 100, 160, 220, 280, 340, 400, 460, 520};
 static constexpr int lateMovePruningMargins[4] = {0, 8, 12, 24};
 
-/*var LateMoveReductions = [10]Reduction{
-	{4, 2},
-	{8, 3},
-	{12, 4},
-	{16, 5},
-	{20, 6},
-	{24, 7},
-	{28, 8},
-	{32, 9},
-	{34, 10},
-	{100, 12},
-}*/
-
 struct Reduction {
     int moveLimit;
     int reduction;
@@ -157,10 +144,6 @@ int Search::quiescence(int alpha, int beta) {
     
     if (bestScore >= beta)
         return bestScore;
-
-    // delta pruning
-    if (bestScore < alpha - deltaMargin) 
-        return alpha;
     
     if (bestScore > alpha)
         alpha = bestScore;
@@ -471,35 +454,6 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
                 score = -negamax<~c>(-beta, -alpha, depth - 1);
             }
         }
-
-
-        /*
-       // full depth search
-        if (movesSearched == 0) 
-            // recursively call negamax normally
-            score = -negamax<~c>(-beta, -alpha, depth - 1);
-        else {
-            // condition to consider LMR
-            if (movesSearched >= fullDepthMoves && depth >= reductionLimit &&
-            !inCheck && !isCapture && !move.promoted()) {
-                // search current move with reduced depth
-                score = -negamax<~c>(-alpha - 1, -alpha, depth - 2);
-            }
-            else 
-                // hack to ensure that full-depth search is done
-                score = alpha + 1;
-            
-            // PV search
-            if (score > alpha) {
-                score = -negamax<~c>(-alpha - 1, -alpha, depth - 1);
-                // check for failure
-                if ((score > alpha) && score < beta) {
-                    score = -negamax<~c>(-beta, -alpha, depth - 1);
-                }
-            }
-        }
-        */
-
 
         // unmake move
         pos.unmakemove<c>(move);
