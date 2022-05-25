@@ -441,8 +441,8 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
 
         // fail-hard beta cutoff
         if (score >= beta) {
-            // store hash entry with the score equal to beta
-            TT.Store(pos.hashKey, (uint8_t)depth, HashFlagBeta, beta, ply);
+            // switch hash flag to beta flag
+            hashFlag = HashFlagBeta;
 
             // store killer moves
             if (pos.board[move.target()] == None) {
@@ -460,7 +460,7 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
                 ageHistoryTable();
             }
 
-            return beta;
+            break;
 
         } else {
 
@@ -474,8 +474,7 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
 
         // found a better move
         if (score > alpha) {
-            // switch hash flag from storing score of fail-low node
-            // to the one storing score for PV node
+            // switch hash flag to exact flag
             hashFlag = HashFlagExact;
 
             // update history table
@@ -607,28 +606,28 @@ void Search::search(int depth) {
         if (pvLength[0] > 0) {
             if (score > -checkmate && score < -(checkmate-100)) {
                 std::cout << "info score mate " << -(score + checkmate) / 2 - 1 << " depth " << currentDepth;
-                std::cout << " nodes " << nodes 
-                          << " nps " << signed((nodes / (ms.count() + 1)) * 1000)
-                          << " time " << ms.count() 
-                          << " pv ";
+                std::cout << " nodes " << nodes;
+                std::cout << " nps "   << (nodes / (ms.count() + 1)) * 1000;
+                std::cout << " time "  << ms.count();
+                std::cout << " pv ";
                 printBestMove(bestMove);
                 break;
             }
             else if (score > (checkmate-100) && score < checkmate) {
                 std::cout << "info score mate " << (checkmate - score) / 2 + 1 << " depth " << currentDepth;
-                std::cout << " nodes " << nodes 
-                          << " nps " << signed((nodes / (ms.count() + 1)) * 1000)
-                          << " time " << ms.count() 
-                          << " pv ";
+                std::cout << " nodes " << nodes;
+                std::cout << " nps "   << (nodes / (ms.count() + 1)) * 1000;
+                std::cout << " time "  << ms.count();
+                std::cout << " pv ";
                 printBestMove(bestMove);
                 break;
             }
             else {
                 std::cout << "info score cp " << score << " depth " << currentDepth;
-                std::cout << " nodes " << nodes 
-                          << " nps " << signed((nodes / (ms.count() + 1)) * 1000)
-                          << " time " << ms.count() 
-                          << " pv ";
+                std::cout << " nodes " << nodes;
+                std::cout << " nps "   << (nodes / (ms.count() + 1)) * 1000;
+                std::cout << " time "  << ms.count();
+                std::cout << " pv ";
             }
         }
 
