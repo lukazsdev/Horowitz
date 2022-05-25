@@ -113,8 +113,7 @@ public:
     template<Color c> int negamax(int alpha, int beta, int depth, bool nmp=true);
 
     // move ordering/scoring functions
-    void scoreMove(Move& move);
-    void sortMoves(Moves& moveList);
+    void scoreMoves(Moves& moveList);
     void enablePVScoring(Moves& moveList);
     void orderMoves(Moves& moveList, int currIndex);
     void ageHistoryTable();
@@ -152,9 +151,7 @@ int Search::quiescence(int alpha, int beta) {
     Moves moveList = pos.generateLegalMoves<c>();
 
     // assign score to each move
-    for (int i = 0; i < moveList.count; i++) {
-        scoreMove(moveList.moves[i]);
-    }
+    scoreMoves(moveList);
 
     // iterate over legal moves
     for (int i = 0; i < moveList.count; i++) {
@@ -354,9 +351,7 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
         enablePVScoring(moveList);
 
     // assign score to each move
-    for (int i = 0; i < moveList.count; i++) {
-        scoreMove(moveList.moves[i]);
-    }
+    scoreMoves(moveList);
 
     // number of moves searched in the move list
     int movesSearched = 0;

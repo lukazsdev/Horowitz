@@ -19,51 +19,40 @@
 #include <vector>
 #include "search.h"
 
-void Search::scoreMove(Move& move) {
-    move.score = 0;
+void Search::scoreMoves(Moves& moveList) {
+    for (int index = 0; index < moveList.count; index++) {
+        Move move = moveList.moves[index];
 
-    if (move == pvTable[0][ply]) {
-        move.score += mvvLvaOffset + pvMoveScore;
-    }
-    else if (pos.board[move.target()] != None) {
-        PieceType moved    = (PieceType)(pos.board[move.source()] % 6);
-        PieceType captured = (PieceType)(pos.board[move.target()] % 6);
-        move.score += mvvLvaOffset + MvvLva[captured][moved];
-    }
-    else if (move.target() == pos.enpassantSquare && move.piece() == Pawn) {
-        move.score += mvvLvaOffset + MvvLva[Pawn][Pawn];
-    }
-    else {
-        int moveScore = 0;
-        for (int i = 0; i < maxKillers; i++) {
-            if (move == killers[ply][i]) {
-                moveScore = mvvLvaOffset - (i + 1) * killerMoveScore;
-                break;
+        int score = 0;
+
+        if (move == pvTable[0][ply]) {
+            score += mvvLvaOffset + pvMoveScore;
+        }
+        else if (pos.board[move.target()] != None) {
+            PieceType moved    = (PieceType)(pos.board[move.source()] % 6);
+            PieceType captured = (PieceType)(pos.board[move.target()] % 6);
+            score += mvvLvaOffset + MvvLva[captured][moved];
+        }
+        else if (move.target() == pos.enpassantSquare && move.piece() == Pawn) {
+            score += mvvLvaOffset + MvvLva[Pawn][Pawn];
+        }
+        else {
+            int moveScore = 0;
+            for (int i = 0; i < maxKillers; i++) {
+                if (move == killers[ply][i]) {
+                    moveScore = mvvLvaOffset - (i + 1) * killerMoveScore;
+                    break;
+                }
             }
+
+            if (moveScore == 0) {
+                moveScore = history[pos.sideToMove][move.source()][move.target()];
+            }
+
+            score += moveScore;
         }
 
-        if (moveScore == 0) {
-            moveScore = history[pos.sideToMove][move.source()][move.target()];
-        }
-
-        move.score += moveScore;
-    }
-}
-
-
-void Search::sortMoves(Moves &moveList) {
-    // asign score to each move
-    for (int i = 0; i < moveList.count; i++) {
-        scoreMove(moveList.moves[i]);
-    }
-
-    // insertion sort
-    int i = moveList.count;
-    for (int cmove = 1; cmove < moveList.count; cmove++) {
-        Move temp = moveList.moves[cmove];
-        for (i = cmove-1; i>=0 && (moveList.moves[i].score < temp.score); i--) 
-            moveList.moves[i+1] = moveList.moves[i];
-        moveList.moves[i+1] = temp;
+        moveList.moves[index].score = score;
     }
 }
 
