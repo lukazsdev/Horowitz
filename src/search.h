@@ -44,6 +44,37 @@ static constexpr int maxHistoryScore = 65249;
 static constexpr int futilityMargins[9] = {0, 100, 160, 220, 280, 340, 400, 460, 520};
 static constexpr int lateMovePruningMargins[4] = {0, 8, 12, 24};
 
+/*var LateMoveReductions = [10]Reduction{
+	{4, 2},
+	{8, 3},
+	{12, 4},
+	{16, 5},
+	{20, 6},
+	{24, 7},
+	{28, 8},
+	{32, 9},
+	{34, 10},
+	{100, 12},
+}*/
+
+struct Reduction {
+    int moveLimit;
+    int reduction;
+};
+
+static constexpr Reduction LateMoveReductions[10] = {
+    {4, 2},
+    {8, 3},
+    {12, 4},
+    {16, 5},
+    {20, 6},
+    {24, 7},
+    {28, 8},
+    {32, 9},
+    {34, 10},
+    {100, 12}
+};
+
 // MVV LVA [victim][attacker]
 static constexpr int MvvLva[7][6] = {
     {15, 14, 13, 12, 11, 10}, 
@@ -109,12 +140,6 @@ public:
 // Quiescence search
 template<Color c> 
 int Search::quiescence(int alpha, int beta) {
-    // static evaluation
-    int evaluation = Eval::evaluate<c>(pos);
-
-    if (ply > maxPly - 1)
-        return evaluation;
-
     // every 2048 nodes, check if time is up
     if ((nodes & 2047) == 0 )
         timer.Check();
@@ -122,17 +147,23 @@ int Search::quiescence(int alpha, int beta) {
     // stop search if time is up
     if (timer.Stop)
         return 0;
+
+    // static evaluation
+    int bestScore = Eval::evaluate<c>(pos);
+
+    // stop if depth exceeds ply limit
+    if (ply > maxPly - 1)
+        return bestScore;
     
-    if (evaluation >= beta)
-        return beta;
+    if (bestScore >= beta)
+        return bestScore;
 
     // delta pruning
-    if (evaluation < alpha - deltaMargin) 
+    if (bestScore < alpha - deltaMargin) 
         return alpha;
     
-
-    if (evaluation > alpha)
-        alpha = evaluation;
+    if (bestScore > alpha)
+        alpha = bestScore;
 
     // legal moves list
     Moves moveList = pos.generateLegalMoves<c>();
@@ -178,6 +209,10 @@ int Search::quiescence(int alpha, int beta) {
         // decrement repetitions index
         repetitions.count--;
 
+        // update best score
+        if (score > bestScore) 
+            bestScore = score;
+
         // fail-hard beta cutoff
         if (score >= beta) {
             return beta;
@@ -190,7 +225,7 @@ int Search::quiescence(int alpha, int beta) {
         }
     }
 
-    return alpha;
+    return bestScore;
  
 }
 
@@ -222,9 +257,7 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
     int hashFlag = HashFlagAlpha;
     
 
-    // check if king is in check 
-    // check if current node is PV node 
-    // can futility prune
+    // search/pruning conditions
     bool inCheck = pos.isSquareAttacked<~c>(pos.KingSq<c>());
     bool isPVNode = beta - alpha > 1;
     bool canFutilityPrune = false;
@@ -236,7 +269,6 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
     // check if we have reached the depth limit
     // then search all possible captures 
     if (depth <= 0) {
-        //return Eval::evaluate<c>(pos);
         return quiescence<c>(alpha, beta);
     }
 
@@ -397,6 +429,51 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
             }
         }
 
+        // late move reductions
+        score = 0;
+
+        if (legalMoves == 1) {
+            // peform full-depth search
+            score = -negamax<~c>(-beta, -alpha, depth - 1);
+        }
+        else {
+            bool tactical = inCheck || isCapture ||
+                killers[ply][0] == move ||
+                killers[ply][1] == move ||
+                move.promoted();
+            
+            int reduction = 0;
+
+            if (!isPVNode && legalMoves >= fullDepthMoves && depth >= reductionLimit && !tactical) {
+                for (int index = 0; index < 10; index++) {
+                    Reduction red = LateMoveReductions[index];
+                    if (red.moveLimit >= legalMoves) {
+                        reduction = red.reduction;
+                        break;
+                    }
+                }
+            }
+
+            int reducedDepth = std::max(depth - 1 - reduction, 1);
+            if (depth == 1) {
+                reducedDepth = depth - 1;
+            }
+
+            score = -negamax<~c>(-alpha - 1, -alpha, reducedDepth);
+
+            if (score > alpha && reduction > 0) {
+                score = -negamax<~c>(-beta, -alpha, reducedDepth);
+                if (score > alpha) {
+                    score = -negamax<~c>(-beta, -alpha, depth - 1);
+                }
+            }
+            else if (score > alpha && score < beta) {
+                score = -negamax<~c>(-beta, -alpha, depth - 1);
+            }
+        }
+
+
+        /*
        // full depth search
         if (movesSearched == 0) 
             // recursively call negamax normally
@@ -421,6 +498,7 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
                 }
             }
         }
+        */
 
 
         // unmake move
@@ -460,7 +538,7 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
                 ageHistoryTable();
             }
 
-            break;
+            break; 
 
         } else {
 

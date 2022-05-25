@@ -74,17 +74,6 @@ int evaluate(Position& pos) {
     // material scores for both sides
     int ourMaterial   = pos.mat_eg[c];
     int theirMaterial = pos.mat_eg[~c];
-
-    // evaluate pawns
-    Bitboard usPawns = pos.Pawns<c>();
-    while (usPawns) {
-        Square sq = poplsb(usPawns);
-        int doubled = popCount(usPawns & MASK_FILE[file_of(sq)]);
-        if (doubled > 1) {
-            eval.MGScores[c] -= (doubled - 1) * 5;
-            eval.EGScores[c] -= (doubled - 1) * 10;
-        }
-    }
     
     // total material
     int totalMaterial = ourMaterial + theirMaterial;
