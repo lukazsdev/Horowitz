@@ -32,6 +32,10 @@ struct EvalInfo {
     int EGScores[2]{};
 };
 
+// evaluation bonuses
+static constexpr int tempoBonus = 5;
+static constexpr int bishopPairBonus = 10;
+
 // maximum material to consider position as an endgame
 static constexpr float materialEndgameStart = 1500;
 
@@ -74,7 +78,24 @@ int evaluate(Position& pos) {
     // material scores for both sides
     int ourMaterial   = pos.mat_eg[c];
     int theirMaterial = pos.mat_eg[~c];
-    
+
+    // add tempo bonus to side to move
+    eval.MGScores[c] += tempoBonus;
+
+    // add bishop pair bonus 
+    Bitboard usBishops    = pos.Bishops<c>();
+    Bitboard theirBishops = pos.Bishops<~c>();
+
+    if (popCount(usBishops) > 1) {
+        eval.MGScores[c] += bishopPairBonus;
+        eval.EGScores[c] += bishopPairBonus;
+    }
+
+    if (popCount(theirBishops) > 1) {
+        eval.MGScores[~c] += bishopPairBonus;
+        eval.EGScores[~c] += bishopPairBonus;
+    }
+
     // total material
     int totalMaterial = ourMaterial + theirMaterial;
 

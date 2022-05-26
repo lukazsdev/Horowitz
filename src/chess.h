@@ -160,7 +160,7 @@ const std::string squareToString[64] = {
 };
 
 // material piece values for midgame and endgame
-static constexpr int PieceValueMG[6] = {102, 337, 365, 477, 1025,  0};
+static constexpr int PieceValueMG[6] = {102, 337, 365, 625, 1125,  0};
 static constexpr int PieceValueEG[6] = {94, 281, 297, 512,  936,  0};
 static constexpr int PieceValue[7] = {100, 300, 300, 500, 900, infinity, 0};
 

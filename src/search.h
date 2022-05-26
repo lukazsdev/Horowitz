@@ -23,6 +23,7 @@
 #include "search.h"
 #include "evaluate.h"
 #include "timemanager.h"
+#include "see.h"
 #include "tt.h"
 
 // search constants and pruning parameters
@@ -165,6 +166,10 @@ int Search::quiescence(int alpha, int beta) {
         if (pos.board[move.target()] == None) 
             continue; 
 
+        // SEE (static exchange evaluator)
+		if (See(pos, move) < 0) 
+            continue;
+
         // increment ply
         ply++;
 
@@ -194,15 +199,15 @@ int Search::quiescence(int alpha, int beta) {
             bestScore = score;
 
         // fail-hard beta cutoff
-        if (score >= beta) {
+        if (score >= beta) 
             return beta;
-        }
+        
 
         // found a better move
-        if (score > alpha) {
+        if (score > alpha) 
             // PV node (move)
             alpha = score;
-        }
+        
     }
 
     return bestScore;
@@ -328,7 +333,6 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
             // node (position) fails high
             return beta;
     }
-
 
     // futility pruning
     if (depth <= 8 && !isPVNode && !inCheck && alpha < checkmate) {
