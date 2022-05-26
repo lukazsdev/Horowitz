@@ -16,11 +16,27 @@
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "uci.h"
+#pragma once
 
-int main() {
-    UCIInterface uci;
-    uci.bootEngine();
-    //uci.UCILoop();
-}
+#include "chess.h"
 
+// struct for a transposition table entry
+struct Entry {
+    uint64_t hashKey;
+    uint64_t score;
+};
+
+// struct for a transposition table
+class PawnHashTable {
+public:
+    int hashTableEntries = 0;
+    Entry *entries = NULL;
+
+public: 
+    void Init(int sizeInMB);
+    void Clear();
+
+public:
+    void Store(uint64_t hashKey, int score);
+    int Read(uint64_t hashKey);
+};

@@ -323,6 +323,27 @@ uint64_t Position::generateHashKey() {
     return hashKey;
 }
 
+uint64_t Position::generatePawnHashKey() {
+    // final hash key
+    uint64_t hashKey = 0ULL;
+
+    // general purpose bitboard
+    Bitboard pawns = Pawns<White>() | Pawns<Black>();
+
+    while (pawns) {
+        // get current square
+        Square sq = poplsb(pawns);
+
+        // get current piece (pawn)
+        Piece piece = board[sq];
+
+        // add piece key to hash key
+        hashKey ^= zobrist.pieceKeys[piece][sq];
+    }
+
+    return hashKey;
+}
+
 void Position::updateZobristPiece(Piece piece, Square sq) {
     hashKey ^= zobrist.pieceKeys[piece][sq];
 }

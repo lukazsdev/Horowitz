@@ -22,9 +22,6 @@
 
 // 8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - - 0 1 (test position)
 
-// no hash entry found constant
-static constexpr int NoHashEntry = 100000;
-
 // transposition table hash flags
 static constexpr int HashFlagExact = 0;
 static constexpr int HashFlagAlpha = 1;

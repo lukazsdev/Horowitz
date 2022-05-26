@@ -159,6 +159,9 @@ const std::string squareToString[64] = {
     "a8", "b8", "c8", "d8", "e8", "f8", "g8", "h8",
 };
 
+// no hash entry found constant
+static constexpr int NoHashEntry = 100000;
+
 // material piece values for midgame and endgame
 static constexpr int PieceValueMG[6] = {102, 337, 365, 625, 1125,  0};
 static constexpr int PieceValueEG[6] = {94, 281, 297, 512,  936,  0};
@@ -631,6 +634,9 @@ public:
 
     // generate zobrist hash for position
     uint64_t generateHashKey();
+
+    // generate zobrist hash for pawn structure
+    uint64_t generatePawnHashKey();
 
     // incrementally update zobrist hash functions
     void updateZobristPiece(Piece piece, Square sq);
