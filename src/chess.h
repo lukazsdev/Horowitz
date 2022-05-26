@@ -542,8 +542,9 @@ struct State {
     Piece  capturedPiece;
     uint8_t halfmoves;
     uint64_t hashKeyCopy;
-    State (Square enpassantCopy={}, uint8_t castlingRightsCopy={}, Piece capturedPieceCopy={}, uint8_t halfmovesCopy={}, uint64_t hashKeyCopy={}) :
-        enpassantCopy(enpassantCopy), castlingRightsCopy(castlingRightsCopy), capturedPiece(capturedPieceCopy), halfmoves(halfmovesCopy), hashKeyCopy(hashKeyCopy) {}
+    uint64_t pawnHashKeyCopy;
+    State (Square enpassantCopy={}, uint8_t castlingRightsCopy={}, Piece capturedPieceCopy={}, uint8_t halfmovesCopy={}, uint64_t hashKeyCopy={}, uint64_t pawnHashKeyCopy={}) :
+        enpassantCopy(enpassantCopy), castlingRightsCopy(castlingRightsCopy), capturedPiece(capturedPieceCopy), halfmoves(halfmovesCopy), hashKeyCopy(hashKeyCopy), pawnHashKeyCopy(pawnHashKeyCopy) {}
 };
 
 class Position {
@@ -556,6 +557,9 @@ public:
 
     // zobrist hash key of position
     uint64_t hashKey;
+
+    // zobrist hash of pawn structure
+    uint64_t pawnHashKey;
 
     // store previous states
     State storeInfo[1024];
@@ -739,7 +743,7 @@ void Position::makemove(Move move){
 
     Piece capturedPiece = board[target];
     // Safe important board information
-    storeInfo[storeCount] = State(enpassantSquare, castlingRights, capturedPiece, halfMoveClock, hashKey);
+    storeInfo[storeCount] = State(enpassantSquare, castlingRights, capturedPiece, halfMoveClock, hashKey, pawnHashKey);
     storeCount++;
 
     if (move == nullMove) 
@@ -924,6 +928,7 @@ void Position::unmakemove(Move move){
     castlingRights = safeState.castlingRightsCopy;
     halfMoveClock = safeState.halfmoves;
     hashKey = safeState.hashKeyCopy;
+    pawnHashKey = safeState.pawnHashKeyCopy;
 
     if (move == nullMove) 
         return;

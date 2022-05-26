@@ -170,6 +170,7 @@ uint16_t Position::fullmoves() {
 Position::Position(std::string FEN) {
     // initialie hash key to zero
     hashKey = 0;
+    pawnHashKey = 0;
 
     // init lookup tables used for movegen
     initializeLookupTables();
@@ -282,6 +283,7 @@ void Position::parseFEN(std::string FEN) {
 
     // set hash key to current position
     hashKey = generateHashKey();
+    pawnHashKey = generatePawnHashKey();
 }
 
 uint64_t Position::generateHashKey() {
@@ -346,6 +348,10 @@ uint64_t Position::generatePawnHashKey() {
 
 void Position::updateZobristPiece(Piece piece, Square sq) {
     hashKey ^= zobrist.pieceKeys[piece][sq];
+
+    if (piece == WhitePawn || piece == BlackPawn) {
+        pawnHashKey ^= zobrist.pieceKeys[piece][sq];
+    }
 }
 
 void Position::updateZobristEnpassant(Square sq) {

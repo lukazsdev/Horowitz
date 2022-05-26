@@ -22,5 +22,18 @@ int main() {
     UCIInterface uci;
     uci.bootEngine();
     //uci.UCILoop();
+
+    Moves moveList = uci.search.pos.generateLegalMoves<White>();
+    for (int i = 0; i < moveList.count; i++) {
+      Move move = moveList.moves[i];
+      PieceType piece = move.piece();
+      std::cout << "Piece Type: " << (int)piece << "\n";
+
+      uci.search.pos.makemove<White>(move);
+      uint64_t goodHashKey = uci.search.pos.generatePawnHashKey();
+      std::cout << uci.search.pos.pawnHashKey << " should be " << goodHashKey << "\n\n";
+
+      uci.search.pos.unmakemove<White>(move);
+    }
 }
 
