@@ -41,7 +41,7 @@ void UCIInterface::UCILoop() {
         }
         else if (command == "ucinewgame") {
             search.TT.Clear();
-            search.PT.Clear();
+            Eval::PT.Clear();
             search.pos = Position();
             search.repetitions.Reset();
             memset(search.history, 0, sizeof(search.history));
@@ -184,7 +184,7 @@ void UCIInterface::parseGoCommand() {
 void UCIInterface::bootEngine() {
     zobrist.initRandomKeys();
     search.TT.Init(64);
-    search.PT.Init(20);
+    Eval::PT.Init(20);
     memset(search.killers, 0, sizeof(search.killers));
     memset(search.history, 0, sizeof(search.history));
     search.pos = Position(defaultFEN);

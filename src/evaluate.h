@@ -22,8 +22,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "chess.h"
 #include "psqt.h"
+#include "pawns.h"
 
 namespace Eval {
+
+// Pawn hash table
+PawnHashTable PT;
 
 // struct for holding opening 
 // and endgame scores
@@ -94,6 +98,18 @@ int evaluate(Position& pos) {
     if (popCount(theirBishops) > 1) {
         eval.MGScores[~c] += bishopPairBonus;
         eval.EGScores[~c] += bishopPairBonus;
+    }
+
+    // if current pawn structure is not in pawn hash table then store 
+    // current pawn structure eval in hash table. Else, retrieve the score.
+    int pawnScore = PT.Read(pos.pawnHashKey);
+    if (score == NoHashEntry) { 
+        // evaluate pawns
+
+        // store pawn score in PT
+
+        // set pawn score to 0
+        pawnScore = 0;
     }
 
     // total material

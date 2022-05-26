@@ -23,7 +23,6 @@
 #include "search.h"
 #include "evaluate.h"
 #include "timemanager.h"
-#include "pawns.h"
 #include "see.h"
 #include "tt.h"
 
@@ -95,7 +94,6 @@ class Search {
 public:
     Position pos;
     TranspositionTable TT;
-    PawnHashTable PT;
     TimeManager timer;
     Repetition repetitions;
     uint64_t nodes;
