@@ -51,7 +51,7 @@ static constexpr int bishopPairBonus = 10;
 static constexpr float materialEndgameStart = 1500;
 
 // passed pawn bonus for each rank (white's perspective)
-static constexpr int passedPawnBonus[8] = { 0, 10, 30, 50, 75, 100, 150, 200 };
+static constexpr int passedPawnBonus[8] = { 0, 5, 15, 25, 37, 50, 75, 100 };
 
 // lookup table for center manhattan distance
 static constexpr int CenterManhattanDistance[64] = { 
