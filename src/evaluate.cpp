@@ -19,11 +19,22 @@
 #include "evaluate.h"
 
 namespace Eval {
+
+// defin pawn hash table
+PawnHashTable PT;
+
+// evaluation masks
+Bitboard whitePassedMasks[64];
+Bitboard blackPassedMasks[64];
 	
-	// mop up evaluation functions
-	float endgamePhaseWeight(int materialWithoutPawns) {
-		float multiplier = 1 / materialEndgameStart;
-		return 1 - std::min((float)1, (float)materialWithoutPawns * multiplier);
-	}
+// mop up evaluation functions
+float endgamePhaseWeight(int materialWithoutPawns) {
+  float multiplier = 1 / materialEndgameStart;
+  return 1 - std::min((float)1, (float)materialWithoutPawns * multiplier);
+}
+
+void init() {
+  
+}
 
 } // end of namespace eval
