@@ -27,7 +27,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 namespace Eval {
 
 // Pawn hash table
-PawnHashTable PT;
+extern PawnHashTable PT;
+
+// evaluation masks
+extern Bitboard whitePassedMasks[64];
+extern Bitboard blackPassedMasks[64];
+
+// init evaluation masks
+void init();
 
 // struct for holding opening 
 // and endgame scores
@@ -102,14 +109,27 @@ int evaluate(Position& pos) {
 
     // if current pawn structure is not in pawn hash table then store 
     // current pawn structure eval in hash table. Else, retrieve the score.
-    int pawnScore = PT.Read(pos.pawnHashKey);
-    if (score == NoHashEntry) { 
+    int tableEval = PT.Read(pos.pawnHashKey);
+    if (tableEval == NoHashEntry) { 
+        // reset table evaluation
+        tableEval = 0;
+
         // evaluate pawns
+        Bitboard whitePawns = pos.Pawns<White>();
+        Bitboard blackPawns = pos.Pawns<Black>();
+        Bitboard allPawns = whitePawns | blackPawns;
+        while (allPawns) {
+            Square sq = poplsb(allPawns);
+            Color color = (Color)(pos.board[sq] / 6);
+            uint8_t file = file_of(sq);
+            // doubled pawn penalty
+            int whiteDoubled = popCount(whitePawns & MASK_FILE[file]);
+            int blackDoubled = popCount(blackPawns & MASK_FILE[file]);
+            tableEval += (color == White) ? (-(whiteDoubled - 1) * 5) : ((blackDoubled - 1) * 5);
+        }
 
-        // store pawn score in PT
-
-        // set pawn score to 0
-        pawnScore = 0;
+        // store pawn score in PT relative to side
+        PT.Store(pos.pawnHashKey, tableEval);
     }
 
     // total material
@@ -138,6 +158,9 @@ int evaluate(Position& pos) {
     // get total midgame and endgame scores
     int MGScore = eval.MGScores[c] - eval.MGScores[~c];
     int EGScore = eval.EGScores[c] - eval.EGScores[~c];
+
+    // add pawn hash table evaluation to final evaluation
+    MGScore += (c == White) ? tableEval : -tableEval;
 
     // interpolate midgame and endgame scores (tappered eval)
     int MGPhase = phase;

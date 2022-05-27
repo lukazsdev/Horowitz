@@ -20,13 +20,13 @@
 
 #include "chess.h"
 
-// struct for a transposition table entry
+// struct for a pawn hash table entry
 struct Entry {
     uint64_t hashKey;
     uint64_t score;
 };
 
-// struct for a transposition table
+// struct for a pawn hash table
 class PawnHashTable {
 public:
     int hashTableEntries = 0;
