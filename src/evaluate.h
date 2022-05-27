@@ -50,6 +50,9 @@ static constexpr int bishopPairBonus = 10;
 // maximum material to consider position as an endgame
 static constexpr float materialEndgameStart = 1500;
 
+// passed pawn bonus for each rank (white's perspective)
+static constexpr int passedPawnBonus[8] = { 0, 10, 30, 50, 75, 100, 150, 200 };
+
 // lookup table for center manhattan distance
 static constexpr int CenterManhattanDistance[64] = { 
     6, 5, 4, 3, 3, 4, 5, 6,
@@ -122,10 +125,26 @@ int evaluate(Position& pos) {
             Square sq = poplsb(allPawns);
             Color color = (Color)(pos.board[sq] / 6);
             uint8_t file = file_of(sq);
-            // doubled pawn penalty
-            int whiteDoubled = popCount(whitePawns & MASK_FILE[file]);
-            int blackDoubled = popCount(blackPawns & MASK_FILE[file]);
-            tableEval += (color == White) ? (-(whiteDoubled - 1) * 5) : ((blackDoubled - 1) * 5);
+            uint8_t rank = rank_of(sq);
+
+            if (color == White) {
+                // doubled pawn penalty
+                int whiteDoubled = popCount(whitePawns & MASK_FILE[file]);
+                tableEval -= (whiteDoubled - 1) * 5;
+                // passed pawn bonus
+                if ((whitePassedMasks[sq] & blackPawns) == 0) {
+                    tableEval += passedPawnBonus[rank];
+                }
+            }
+            else {
+                // doubled pawn penalty
+                int blackDoubled = popCount(blackPawns & MASK_FILE[file]);
+                tableEval += (blackDoubled - 1) * 5;
+                // passed pawn bonus
+                if ((blackPassedMasks[sq] & whitePawns) == 0) {
+                    tableEval -= passedPawnBonus[7 - rank];
+                }
+            }
         }
 
         // store pawn score in PT relative to side
