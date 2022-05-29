@@ -1,17 +1,14 @@
 /*
   Horowitz, a UCI compatible chess engine. 
   Copyright (C) 2022 by OliveriQ.
-
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
-
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -19,60 +16,46 @@
 #include <vector>
 #include "search.h"
 
-void Search::scoreMoves(Moves& moveList) {
-    for (int index = 0; index < moveList.count; index++) {
-        Move move = moveList.moves[index];
+void Search::scoreMove(Move& move) {
+    move.score = 0;
 
-        int score = 0;
+    // if PV move scoring is allowed
+    if (scorePV == 1) {
+        // make sure we are dealing with PV move
+        if (pvTable[0][ply] == move) {
+            // disable score PV flag
+            scorePV = 0;
 
-        if (move == pvTable[0][ply]) {
-            score += mvvLvaOffset + pvMoveScore;
-        }
-        else if (pos.board[move.target()] != None) {
-            PieceType moved    = (PieceType)(pos.board[move.source()] % 6);
-            PieceType captured = (PieceType)(pos.board[move.target()] % 6);
-            score += mvvLvaOffset + MvvLva[captured][moved];
-        }
-        else if (move.target() == pos.enpassantSquare && move.piece() == Pawn) {
-            score += mvvLvaOffset + MvvLva[Pawn][Pawn];
-        }
-        else {
-            int moveScore = 0;
-            for (int i = 0; i < maxKillers; i++) {
-                if (move == killers[ply][i]) {
-                    moveScore = mvvLvaOffset - (i + 1) * killerMoveScore;
-                    break;
-                }
-            }
-
-            if (moveScore == 0) {
-                moveScore = history[pos.sideToMove][move.source()][move.target()];
-            }
-
-            score += moveScore;
-        }
-
-        moveList.moves[index].score = score;
-    }
-}
-
-void Search::orderMoves(Moves& moveList, int currIndex) {
-    int bestIndex = currIndex;
-    int bestScore = moveList.moves[bestIndex].score;
-
-    for (int index = bestIndex; index < moveList.count; index++) {
-        if (moveList.moves[index].score > bestScore) {
-            bestIndex = index;
-            bestScore = moveList.moves[index].score;
+            // give PV move highest score to search it first
+            move.score = 20000;
+            return;
         }
     }
 
-    Move tempMove = moveList.moves[currIndex];
-    moveList.moves[currIndex] = moveList.moves[bestIndex];
-    moveList.moves[bestIndex] = tempMove;
+    // if move is a capture
+    if (pos.board[move.target()] != None) {
+        int attacker = makePiece(pos.sideToMove, move.piece());
+        int victim   = pos.board[move.target()];
+        move.score += MVV_LVA[attacker][victim] + 10000;
+    }
+    // if move is enpassant capture
+    else if (move.target() == pos.enpassantSquare && move.piece() == Pawn) {
+        int attacker = makePiece(pos.sideToMove, Pawn);
+        int victim = makePiece(~pos.sideToMove, Pawn);
+        move.score += MVV_LVA[attacker][victim] + 10000;
+    }
+    // score first killer move
+    else if (killers[0][ply] == move) 
+        move.score += 9000;
+    // score second killer move
+    else if (killers[1][ply] == move) 
+        move.score += 8000;
+    // score history move
+    else 
+        move.score += history[makePiece(pos.sideToMove, move.piece())][move.target()];
 }
 
-void Search::enablePVScoring(Moves& moveList) {
+void Search::enablePVScoring(Moves moveList) {
     // disable following PV line
     followPV = 0;
 
@@ -89,13 +72,20 @@ void Search::enablePVScoring(Moves& moveList) {
     }
 }
 
+void Search::sortMoves(Moves &moveList) {
+    // asign score to each move
+    for (int i = 0; i < moveList.count; i++) {
+        scoreMove(moveList.moves[i]);
+    }
 
-void Search::ageHistoryTable() {
-    for (int sq1 = 0; sq1 < 64; sq1++) {
-		for (int sq2 = 0; sq2 < 64; sq2++) {
-			history[pos.sideToMove][sq1][sq2] /= 2;
-		}
-	}
+    // insertion sort
+    int i = moveList.count;
+    for (int cmove = 1; cmove < moveList.count; cmove++) {
+        Move temp = moveList.moves[cmove];
+        for (i = cmove-1; i>=0 && (moveList.moves[i].score < temp.score); i--) 
+            moveList.moves[i+1] = moveList.moves[i];
+        moveList.moves[i+1] = temp;
+    }
 }
 
 // add a hash key (position) to table

@@ -1,17 +1,14 @@
 /*
   Horowitz, a UCI compatible chess engine. 
   Copyright (C) 2022 by OliveriQ.
-
   This program is free software: you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
   the Free Software Foundation, either version 3 of the License, or
   (at your option) any later version.
-
   This program is distributed in the hope that it will be useful,
   but WITHOUT ANY WARRANTY; without even the implied warranty of
   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
   GNU General Public License for more details.
-
   You should have received a copy of the GNU General Public License
   along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
@@ -23,57 +20,39 @@
 #include "search.h"
 #include "evaluate.h"
 #include "timemanager.h"
-#include "see.h"
 #include "tt.h"
 
 // search constants and pruning parameters
 static constexpr int maxPly          = 64;
 static constexpr int windowSize      = 50;
+
+//static constexpr int staticNMPMargin = 120;
 static constexpr int fullDepthMoves  = 4;
 static constexpr int reductionLimit  = 3;
 static constexpr int staticNMPMargin = 120;
 static constexpr int deltaMargin     = 1000;
 
-static constexpr int pvMoveScore     = 60;
-static constexpr int killerMoveScore = 10;
-static constexpr int maxKillers      = 2;
-static constexpr int mvvLvaOffset    = 65279;
-static constexpr int maxHistoryScore = 65249;
-
-
 // margins for futility pruning and late move pruning
 static constexpr int futilityMargins[9] = {0, 100, 160, 220, 280, 340, 400, 460, 520};
 static constexpr int lateMovePruningMargins[4] = {0, 8, 12, 24};
 
-struct Reduction {
-    int moveLimit;
-    int reduction;
+// MVV LVA [attacker][victim]
+static constexpr int MVV_LVA[12][12] = {
+    {105, 205, 305, 405, 505, 605,  105, 205, 305, 405, 505, 605},
+    {104, 204, 304, 404, 504, 604,  104, 204, 304, 404, 504, 604},
+    {103, 203, 303, 403, 503, 603,  103, 203, 303, 403, 503, 603},
+    {102, 202, 302, 402, 502, 602,  102, 202, 302, 402, 502, 602},
+    {101, 201, 301, 401, 501, 601,  101, 201, 301, 401, 501, 601},
+    {100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600},
+
+    {105, 205, 305, 405, 505, 605,  105, 205, 305, 405, 505, 605},
+    {104, 204, 304, 404, 504, 604,  104, 204, 304, 404, 504, 604},
+    {103, 203, 303, 403, 503, 603,  103, 203, 303, 403, 503, 603},
+    {102, 202, 302, 402, 502, 602,  102, 202, 302, 402, 502, 602},
+    {101, 201, 301, 401, 501, 601,  101, 201, 301, 401, 501, 601},
+    {100, 200, 300, 400, 500, 600,  100, 200, 300, 400, 500, 600}
 };
 
-static constexpr Reduction LateMoveReductions[10] = {
-    {4, 2},
-    {8, 3},
-    {12, 4},
-    {16, 5},
-    {20, 6},
-    {24, 7},
-    {28, 8},
-    {32, 9},
-    {34, 10},
-    {100, 12}
-};
-
-// MVV LVA [victim][attacker]
-static constexpr int MvvLva[7][6] = {
-    {15, 14, 13, 12, 11, 10}, 
-    {25, 24, 23, 22, 21, 20}, 
-    {35, 34, 33, 32, 31, 30},
-    {45, 44, 43, 42, 41, 40}, 
-    {55, 54, 53, 52, 51, 50}, 
-
-    {0, 0, 0, 0, 0, 0}, 
-    {0, 0, 0, 0, 0, 0} 
-};
 
 // class for detecting repetitions
 class Repetition {
@@ -102,8 +81,8 @@ public:
     int  pvLength[maxPly];
     Move pvTable[maxPly][maxPly];
 
-    int  history[2][64][64];
-    Move killers[maxPly + 1][2];
+    int  history[12][maxPly];
+    Move killers[2][maxPly];
 
     int followPV, scorePV;
 
@@ -114,10 +93,9 @@ public:
     template<Color c> int negamax(int alpha, int beta, int depth, bool nmp=true);
 
     // move ordering/scoring functions
-    void scoreMoves(Moves& moveList);
-    void enablePVScoring(Moves& moveList);
-    void orderMoves(Moves& moveList, int currIndex);
-    void ageHistoryTable();
+    void scoreMove(Move& move);
+    void sortMoves(Moves &moveList);
+    void enablePVScoring(Moves moveList);
     
     // print the best move
     void printBestMove(Move bestMove);
@@ -127,6 +105,12 @@ public:
 // Quiescence search
 template<Color c> 
 int Search::quiescence(int alpha, int beta) {
+    // static evaluation
+    int evaluation = Eval::evaluate<c>(pos);
+
+    if (ply > maxPly - 1)
+        return evaluation;
+
     // every 2048 nodes, check if time is up
     if ((nodes & 2047) == 0 )
         timer.Check();
@@ -134,41 +118,32 @@ int Search::quiescence(int alpha, int beta) {
     // stop search if time is up
     if (timer.Stop)
         return 0;
-
-    // static evaluation
-    int bestScore = Eval::evaluate<c>(pos);
-
-    // stop if depth exceeds ply limit
-    if (ply > maxPly - 1)
-        return bestScore;
     
-    if (bestScore >= beta)
-        return bestScore;
+    if (evaluation >= beta)
+        return beta;
+
+    // delta pruning
+    if (evaluation < alpha - deltaMargin) 
+        return alpha;
     
-    if (bestScore > alpha)
-        alpha = bestScore;
+
+    if (evaluation > alpha)
+        alpha = evaluation;
 
     // legal moves list
     Moves moveList = pos.generateLegalMoves<c>();
 
-    // assign score to each move
-    scoreMoves(moveList);
+    // sort moves
+    sortMoves(moveList);
 
     // iterate over legal moves
     for (int i = 0; i < moveList.count; i++) {
-        // order moves
-        orderMoves(moveList, i);
-
         // initialize current move
         Move move = moveList.moves[i];
 
         // check if move isn't a capture
         if (pos.board[move.target()] == None) 
             continue; 
-
-        // SEE (static exchange evaluator)
-		if (See(pos, move) < 0) 
-            continue;
 
         // increment ply
         ply++;
@@ -194,23 +169,19 @@ int Search::quiescence(int alpha, int beta) {
         // decrement repetitions index
         repetitions.count--;
 
-        // update best score
-        if (score > bestScore) 
-            bestScore = score;
-
         // fail-hard beta cutoff
-        if (score >= beta) 
+        if (score >= beta) {
             return beta;
-        
+        }
 
         // found a better move
-        if (score > alpha) 
+        if (score > alpha) {
             // PV node (move)
             alpha = score;
-        
+        }
     }
 
-    return bestScore;
+    return alpha;
  
 }
 
@@ -242,7 +213,9 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
     int hashFlag = HashFlagAlpha;
     
 
-    // search/pruning conditions
+    // check if king is in check 
+    // check if current node is PV node 
+    // can futility prune
     bool inCheck = pos.isSquareAttacked<~c>(pos.KingSq<c>());
     bool isPVNode = beta - alpha > 1;
     bool canFutilityPrune = false;
@@ -254,6 +227,7 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
     // check if we have reached the depth limit
     // then search all possible captures 
     if (depth <= 0) {
+        //return Eval::evaluate<c>(pos);
         return quiescence<c>(alpha, beta);
     }
 
@@ -334,6 +308,7 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
             return beta;
     }
 
+
     // futility pruning
     if (depth <= 8 && !isPVNode && !inCheck && alpha < checkmate) {
         int staticScore = Eval::evaluate<c>(pos);
@@ -354,20 +329,14 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
         // enable PV move scoring
         enablePVScoring(moveList);
 
-    // assign score to each move
-    scoreMoves(moveList);
+    // sort moves
+    sortMoves(moveList);
 
     // number of moves searched in the move list
     int movesSearched = 0;
 
-    // best score
-    int bestScore = -infinity;
-
     // iterate over legal moves
     for (int i = 0; i < moveList.count; i++) {
-        // order moves
-        orderMoves(moveList, i);
-
         // initialize current move
         Move move = moveList.moves[i];
 
@@ -411,48 +380,31 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
             }
         }
 
-        // late move reductions
-        score = 0;
-
-        if (legalMoves == 1) {
-            // peform full-depth search
+       // full depth search
+        if (movesSearched == 0) 
+            // recursively call negamax normally
             score = -negamax<~c>(-beta, -alpha, depth - 1);
-        }
         else {
-            bool tactical = inCheck || isCapture ||
-                killers[ply][0] == move ||
-                killers[ply][1] == move ||
-                move.promoted();
+            // condition to consider LMR
+            if (movesSearched >= fullDepthMoves && depth >= reductionLimit &&
+            !inCheck && !isCapture && !move.promoted()) {
+                // search current move with reduced depth
+                score = -negamax<~c>(-alpha - 1, -alpha, depth - 2);
+            }
+            else 
+                // hack to ensure that full-depth search is done
+                score = alpha + 1;
             
-            int reduction = 0;
-
-            if (!isPVNode && legalMoves >= fullDepthMoves && depth >= reductionLimit && !tactical) {
-                for (int index = 0; index < 10; index++) {
-                    Reduction red = LateMoveReductions[index];
-                    if (red.moveLimit >= legalMoves) {
-                        reduction = red.reduction;
-                        break;
-                    }
-                }
-            }
-
-            int reducedDepth = std::max(depth - 1 - reduction, 1);
-            if (depth == 1) {
-                reducedDepth = depth - 1;
-            }
-
-            score = -negamax<~c>(-alpha - 1, -alpha, reducedDepth);
-
-            if (score > alpha && reduction > 0) {
-                score = -negamax<~c>(-beta, -alpha, reducedDepth);
-                if (score > alpha) {
+            // PV search
+            if (score > alpha) {
+                score = -negamax<~c>(-alpha - 1, -alpha, depth - 1);
+                // check for failure
+                if ((score > alpha) && score < beta) {
                     score = -negamax<~c>(-beta, -alpha, depth - 1);
                 }
             }
-            else if (score > alpha && score < beta) {
-                score = -negamax<~c>(-beta, -alpha, depth - 1);
-            }
         }
+
 
         // unmake move
         pos.unmakemove<c>(move);
@@ -466,54 +418,16 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
         // increment moves searched
         movesSearched++;
 
-        // update best score
-        if (score > bestScore)
-            bestScore = score;
-
-        // fail-hard beta cutoff
-        if (score >= beta) {
-            // switch hash flag to beta flag
-            hashFlag = HashFlagBeta;
-
-            // store killer moves
-            if (pos.board[move.target()] == None) {
-                if (!(move == killers[ply][0])) {
-                    killers[ply][1] = killers[ply][0];
-                    killers[ply][0] = move;
-                }
-            }
-
-            // update history table
-            if (pos.board[move.target()] == None) {
-                history[pos.sideToMove][move.source()][move.target()] += depth * depth;
-            }
-            if (history[pos.sideToMove][move.source()][move.target()] >= maxHistoryScore) {
-                ageHistoryTable();
-            }
-
-            break; 
-
-        } else {
-
-            // decrement history score
-            if (pos.board[move.target()] == None) {
-                if (history[pos.sideToMove][move.source()][move.target()] > 0) {
-                    history[pos.sideToMove][move.source()][move.target()] -= 1;
-                }
-            }
-        }
-
         // found a better move
         if (score > alpha) {
-            // switch hash flag to exact flag
+            // switch hash flag from storing score of fail-low node
+            // to the one storing score for PV node
             hashFlag = HashFlagExact;
 
-            // update history table
+            // only quiet moves 
             if (pos.board[move.target()] == None) {
-                history[pos.sideToMove][move.source()][move.target()] += depth * depth;
-            }
-            if (history[pos.sideToMove][move.source()][move.target()] >= maxHistoryScore) {
-                ageHistoryTable();
+                // store history moves
+                history[makePiece(pos.sideToMove, move.piece())][move.target()] += depth;
             }
 
             // PV node (move)
@@ -530,13 +444,19 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
             // adjust pv length
             pvLength[ply] = pvLength[ply + 1];
 
-        } else {
+            // fail-hard beta cutoff
+            if (score >= beta) {
+                // store hash entry with the score equal to beta
+                TT.Store(pos.hashKey, (uint8_t)depth, HashFlagBeta, beta, ply);
 
-            // decrement history score
-            if (pos.board[move.target()] == None) {
-                if (history[pos.sideToMove][move.source()][move.target()] > 0) {
-                    history[pos.sideToMove][move.source()][move.target()] -= 1;
+                // only quiet moves
+                if (pos.board[move.target()] == None) {
+                    // store killer moves
+                    killers[1][ply] = killers[0][ply];
+                    killers[0][ply] = move;
                 }
+
+                return beta;
             }
         }
     }
@@ -551,11 +471,11 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
             return 0;
     }
 
-    // store hash entry with the score equal to best score
-    TT.Store(pos.hashKey, (uint8_t)depth, hashFlag, bestScore, ply);
+    // store hash entry with the score equal to alpha
+    TT.Store(pos.hashKey, (uint8_t)depth, hashFlag, alpha, ply);
 
     // node (move) fails low
-    return bestScore;
+    return alpha;
 }
 
 // root search function (iterative deepening search)
@@ -584,8 +504,8 @@ void Search::search(int depth) {
 
     memset(pvLength, 0, sizeof(pvLength));
     memset(pvTable, 0, sizeof(pvTable));
-
-    ageHistoryTable();
+    memset(killers, 0, sizeof(killers));
+    memset(history, 0, sizeof(history));
 
     // initialize alpha beta bounds
     int alpha = -infinity;
@@ -637,28 +557,28 @@ void Search::search(int depth) {
         if (pvLength[0] > 0) {
             if (score > -checkmate && score < -(checkmate-100)) {
                 std::cout << "info score mate " << -(score + checkmate) / 2 - 1 << " depth " << currentDepth;
-                std::cout << " nodes " << nodes;
-                std::cout << " nps "   << (nodes / (ms.count() + 1)) * 1000;
-                std::cout << " time "  << ms.count();
-                std::cout << " pv ";
+                std::cout << " nodes " << nodes 
+                          << " nps " << signed((nodes / (ms.count() + 1)) * 1000)
+                          << " time " << ms.count() 
+                          << " pv ";
                 printBestMove(bestMove);
                 break;
             }
             else if (score > (checkmate-100) && score < checkmate) {
                 std::cout << "info score mate " << (checkmate - score) / 2 + 1 << " depth " << currentDepth;
-                std::cout << " nodes " << nodes;
-                std::cout << " nps "   << (nodes / (ms.count() + 1)) * 1000;
-                std::cout << " time "  << ms.count();
-                std::cout << " pv ";
+                std::cout << " nodes " << nodes 
+                          << " nps " << signed((nodes / (ms.count() + 1)) * 1000)
+                          << " time " << ms.count() 
+                          << " pv ";
                 printBestMove(bestMove);
                 break;
             }
             else {
                 std::cout << "info score cp " << score << " depth " << currentDepth;
-                std::cout << " nodes " << nodes;
-                std::cout << " nps "   << (nodes / (ms.count() + 1)) * 1000;
-                std::cout << " time "  << ms.count();
-                std::cout << " pv ";
+                std::cout << " nodes " << nodes 
+                          << " nps " << signed((nodes / (ms.count() + 1)) * 1000)
+                          << " time " << ms.count() 
+                          << " pv ";
             }
         }
 

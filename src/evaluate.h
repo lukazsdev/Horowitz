@@ -32,6 +32,7 @@ extern PawnHashTable PT;
 // evaluation masks
 extern Bitboard whitePassedMasks[64];
 extern Bitboard blackPassedMasks[64];
+extern Bitboard isolatedPawnMasks[64];
 
 // init evaluation masks
 void init();
@@ -50,6 +51,8 @@ static constexpr int bishopPairBonus = 10;
 // evaluation penalties
 static constexpr int doubledPawnPenaltyMG = 5;
 static constexpr int doubledPawnPenaltyEG = 10;
+static constexpr int isolatedPawnPenaltyMG = 19;
+static constexpr int isolatedPawnPenaltyEG = 5;
 
 // maximum material to consider position as an endgame
 static constexpr float materialEndgameStart = 1500;
@@ -119,6 +122,11 @@ int evaluate(Position& pos) {
                 int whiteDoubled = popCount(whitePawns & MASK_FILE[file]);
                 eval.MGScores[White] -= (whiteDoubled - 1) * doubledPawnPenaltyMG;
                 eval.EGScores[White] -= (whiteDoubled - 1) * doubledPawnPenaltyEG;
+                // isolated pawn penalty
+                if ((isolatedPawnMasks[sq] & whitePawns) == 0) {
+                    eval.MGScores[White] -= isolatedPawnPenaltyMG;
+                    eval.EGScores[White] -= isolatedPawnPenaltyEG;
+                }
                 // passed pawn bonus
                 if ((whitePassedMasks[sq] & blackPawns) == 0) {
                     eval.MGScores[White] += passedPawnBonusMG[rank];
@@ -130,6 +138,11 @@ int evaluate(Position& pos) {
                 int blackDoubled = popCount(blackPawns & MASK_FILE[file]);
                 eval.MGScores[Black] -= (blackDoubled - 1) * doubledPawnPenaltyMG;
                 eval.EGScores[Black] -= (blackDoubled - 1) * doubledPawnPenaltyEG;
+                // isolated pawn penalty
+                if ((isolatedPawnMasks[sq] & blackPawns) == 0) {
+                    eval.MGScores[Black] -= isolatedPawnPenaltyMG;
+                    eval.EGScores[Black] -= isolatedPawnPenaltyEG;
+                }
                 // passed pawn bonus
                 if ((blackPassedMasks[sq] & whitePawns) == 0) {
                     eval.MGScores[Black] += passedPawnBonusMG[7 - rank];

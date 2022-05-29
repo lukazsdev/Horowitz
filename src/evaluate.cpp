@@ -26,6 +26,7 @@ PawnHashTable PT;
 // evaluation masks
 Bitboard whitePassedMasks[64];
 Bitboard blackPassedMasks[64];
+Bitboard isolatedPawnMasks[64];
   
 // mop up evaluation functions
 float endgamePhaseWeight(int materialWithoutPawns) {
@@ -40,7 +41,8 @@ void init() {
     Bitboard fileMask = (file == FILE_A) ? MASK_FILE[FILE_A] | MASK_FILE[FILE_B] :
                         (file == FILE_H) ? MASK_FILE[FILE_H] | MASK_FILE[FILE_G] :
                         MASK_FILE[file - 1] | MASK_FILE[file] | MASK_FILE[file + 1];
-    
+
+    isolatedPawnMasks[sq] = fileMask ^ MASK_FILE[file];
 
     Bitboard whitePassedMask = 0ULL;
     for (int currRank = (int)rank + 1; currRank <= (int)RANK_8; currRank++) {
