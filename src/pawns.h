@@ -23,7 +23,7 @@
 // struct for a pawn hash table entry
 struct Entry {
     uint64_t hashKey;
-    uint64_t score;
+    int score;
 };
 
 // struct for a pawn hash table
