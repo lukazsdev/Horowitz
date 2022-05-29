@@ -41,6 +41,10 @@
 enum Color : uint8_t {
     White, Black
 };
+
+enum Phase : uint8_t {
+    MG, EG
+};
     
 // operator for swithing piece (e.g ~White = Black)
 constexpr Color operator~(Color C) { 

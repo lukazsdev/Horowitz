@@ -23,7 +23,8 @@
 // struct for a pawn hash table entry
 struct Entry {
     uint64_t hashKey;
-    int score;
+    int MGScores[2];
+    int EGScores[2];
 };
 
 // struct for a pawn hash table
@@ -37,6 +38,6 @@ public:
     void Clear();
 
 public:
-    void Store(uint64_t hashKey, int score);
-    int Read(uint64_t hashKey);
+    void Store(uint64_t hashKey, int mg_scores[2], int eg_scores[2]);
+    int Read(uint64_t hashKey, Color color, Phase phase);
 };

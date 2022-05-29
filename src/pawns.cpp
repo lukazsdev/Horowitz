@@ -27,7 +27,8 @@ void PawnHashTable::Clear() {
     {
         // reset TT inner fields
         hashEntry->hashKey = 0;
-        hashEntry->score   = 0;
+        memset(hashEntry->MGScores, 0, sizeof(hashEntry->MGScores));
+        memset(hashEntry->EGScores, 0, sizeof(hashEntry->EGScores));
     }
 }
 
@@ -63,21 +64,20 @@ void PawnHashTable::Init(int sizeInMB) {
     else Clear();
 }
 
-
-
-// store an entry in the transposition table
-void PawnHashTable::Store(uint64_t hashKey, int score) {
+void PawnHashTable::Store(uint64_t hashKey, int mg_scores[2], int eg_scores[2]) {
     // create a pawn entry instance pointer to particular hash entry storing
     // the scoring data for the current pawn structure if available
     Entry *hashEntry = &entries[hashKey % hashTableEntries];
 
     // store hash entry data in hash table
     hashEntry->hashKey = hashKey;
-    hashEntry->score = (uint64_t)score;
+    hashEntry->MGScores[0] = mg_scores[0];
+    hashEntry->MGScores[1] = mg_scores[1];
+    hashEntry->EGScores[0] = eg_scores[0];
+    hashEntry->EGScores[1] = eg_scores[1];
 }
 
-// read an entry from the transposition table
-int PawnHashTable::Read(uint64_t hashKey) {
+int PawnHashTable::Read(uint64_t hashKey, Color color, Phase phase) {
     // create a pawn entry instance pointer to particular hash entry storing
     // the scoring data for the current pawn structure if available
     Entry *hashEntry = &entries[hashKey % hashTableEntries];
@@ -85,7 +85,12 @@ int PawnHashTable::Read(uint64_t hashKey) {
     // make sure we're dealing with exact position we need
     if (hashEntry->hashKey == hashKey) {
         // return hash entry score since pawn structure matches
-        return hashEntry->score;
+        if (color == White) {
+            return (phase == MG) ? hashEntry->MGScores[White] : 
+                    hashEntry->EGScores[White];
+        }
+        else return (phase == MG) ? hashEntry->MGScores[Black] : 
+                    hashEntry->EGScores[Black];
     }
 
     // return no entry if hashes don't match

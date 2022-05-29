@@ -96,57 +96,71 @@ int evaluate(Position& pos) {
     int MGPhase = phase;
     if (MGPhase > 24) MGPhase = 24;
     int EGPhase = 24 - MGPhase;
+    
 
     // if current pawn structure is not in pawn hash table then store 
     // current pawn structure eval in hash table. Else, retrieve the score.
-    bool pawnHashHit = true;
-    int tableEval = PT.Read(pos.pawnHashKey);
-    if (tableEval == NoHashEntry) { 
-        pawnHashHit = false;
+    int hashMGScores[2], hashEGScores[2];
 
-        // evaluate pawns
-        Bitboard whitePawns = pos.Pawns<White>();
-        Bitboard blackPawns = pos.Pawns<Black>();
-        Bitboard allPawns = whitePawns | blackPawns;
-        while (allPawns) {
-            Square sq = poplsb(allPawns);
-            Color color = (Color)(pos.board[sq] / 6);
-            uint8_t file = file_of(sq);
-            uint8_t rank = rank_of(sq);
+    hashMGScores[White] = PT.Read(pos.pawnHashKey, White, MG);
+    hashMGScores[Black] = PT.Read(pos.pawnHashKey, Black, MG);
+    hashEGScores[White] = PT.Read(pos.pawnHashKey, White, EG);
+    hashEGScores[Black] = PT.Read(pos.pawnHashKey, Black, EG);
 
-            if (color == White) {
-                // doubled pawn penalty
-                int whiteDoubled = popCount(whitePawns & MASK_FILE[file]);
-                eval.MGScores[White] -= (whiteDoubled - 1) * doubledPawnPenaltyMG;
-                eval.EGScores[White] -= (whiteDoubled - 1) * doubledPawnPenaltyEG;
-                // passed pawn bonus
-                if ((whitePassedMasks[sq] & blackPawns) == 0) {
-                    eval.MGScores[White] += passedPawnBonusMG[rank];
-                    eval.EGScores[White] += passedPawnBonusEG[rank];
+    if (hashMGScores[White] == NoHashEntry ||
+        hashMGScores[Black] == NoHashEntry ||
+        hashEGScores[White] == NoHashEntry ||
+        hashEGScores[Black] == NoHashEntry) {
+
+            // reset hash scores
+            hashMGScores[White] = 0;
+            hashMGScores[Black] = 0;
+            hashEGScores[White] = 0;
+            hashEGScores[Black] = 0;
+
+            // evaluate pawns
+            Bitboard whitePawns = pos.Pawns<White>();
+            Bitboard blackPawns = pos.Pawns<Black>();
+            Bitboard allPawns = whitePawns | blackPawns;
+            while (allPawns) {
+                Square sq = poplsb(allPawns);
+                Color color = (Color)(pos.board[sq] / 6);
+                uint8_t file = file_of(sq);
+                uint8_t rank = rank_of(sq);
+
+                if (color == White) {
+                    // doubled pawn penalty
+                    int whiteDoubled = popCount(whitePawns & MASK_FILE[file]);
+                    hashMGScores[White] -= (whiteDoubled - 1) * doubledPawnPenaltyMG;
+                    hashEGScores[White] -= (whiteDoubled - 1) * doubledPawnPenaltyEG;
+                    // passed pawn bonus
+                    if ((whitePassedMasks[sq] & blackPawns) == 0) {
+                        hashMGScores[White] += passedPawnBonusMG[rank];
+                        hashEGScores[White] += passedPawnBonusEG[rank];
+                    }
+                }
+                else {
+                    // doubled pawn penalty
+                    int blackDoubled = popCount(blackPawns & MASK_FILE[file]);
+                    hashMGScores[Black] -= (blackDoubled - 1) * doubledPawnPenaltyMG;
+                    hashEGScores[Black] -= (blackDoubled - 1) * doubledPawnPenaltyEG;
+                    // passed pawn bonus
+                    if ((blackPassedMasks[sq] & whitePawns) == 0) {
+                        hashMGScores[Black] += passedPawnBonusMG[7 - rank];
+                        hashEGScores[Black] += passedPawnBonusEG[7 - rank];
+                    }
                 }
             }
-            else {
-                // doubled pawn penalty
-                int blackDoubled = popCount(blackPawns & MASK_FILE[file]);
-                eval.MGScores[Black] -= (blackDoubled - 1) * doubledPawnPenaltyMG;
-                eval.EGScores[Black] -= (blackDoubled - 1) * doubledPawnPenaltyEG;
-                // passed pawn bonus
-                if ((blackPassedMasks[sq] & whitePawns) == 0) {
-                    eval.MGScores[Black] += passedPawnBonusMG[7 - rank];
-                    eval.EGScores[Black] += passedPawnBonusEG[7 - rank];
-                }
-            }
+
+            // store pawn structure scores in pawn hash table
+            PT.Store(pos.pawnHashKey, hashMGScores, hashEGScores);
         }
-
-        // get total midgame and endgame scores and store tappered eval
-        int MGScore = eval.MGScores[c] - eval.MGScores[~c];
-        int EGScore = eval.EGScores[c] - eval.EGScores[~c];
-        tableEval = (MGScore * MGPhase + EGScore * EGPhase) / 24;
-
-        // store pawn score in PT relative to side
-        PT.Store(pos.pawnHashKey, tableEval);
-    }
-
+    
+    // add pawn scores to main eval
+    eval.MGScores[White] += hashMGScores[White];
+    eval.MGScores[Black] += hashMGScores[Black];
+    eval.EGScores[White] += hashEGScores[White];
+    eval.EGScores[Black] += hashEGScores[Black];
 
     // material scores for both sides
     int ourMaterial   = pos.mat_eg[c];
@@ -197,8 +211,7 @@ int evaluate(Position& pos) {
     int EGScore = eval.EGScores[c] - eval.EGScores[~c];
 
     // interpolate midgame and endgame scores (tappered eval)
-    int final = (MGScore * MGPhase + EGScore * EGPhase) / 24;
-    return final + ((pawnHashHit) ? tableEval : 0);
+    return (MGScore * MGPhase + EGScore * EGPhase) / 24;
 }
 
 } // end of namespace eval
