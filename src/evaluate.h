@@ -43,13 +43,12 @@ struct EvalInfo {
     int EGScores[2]{};
 };
 
-// evaluation bonuses
-static constexpr int tempoBonus = 5;
-static constexpr int bishopPairBonus = 10;
-
 // evaluation penalties
 static constexpr int doubledPawnPenaltyMG = 5;
-static constexpr int doubledPawnPenaltyEG = 10;
+static constexpr int doubledPawnPenaltyEG = 17;
+
+// king safety bonus
+static constexpr int kingShieldBonus = 5;
 
 // maximum material to consider position as an endgame
 static constexpr float materialEndgameStart = 1500;
@@ -97,77 +96,9 @@ int evaluate(Position& pos) {
     if (MGPhase > 24) MGPhase = 24;
     int EGPhase = 24 - MGPhase;
 
-    // if current pawn structure is not in pawn hash table then store 
-    // current pawn structure eval in hash table. Else, retrieve the score.
-    bool pawnHashHit = true;
-    int tableEval = PT.Read(pos.pawnHashKey);
-    if (tableEval == NoHashEntry) { 
-        pawnHashHit = false;
-
-        // evaluate pawns
-        Bitboard whitePawns = pos.Pawns<White>();
-        Bitboard blackPawns = pos.Pawns<Black>();
-        Bitboard allPawns = whitePawns | blackPawns;
-        while (allPawns) {
-            Square sq = poplsb(allPawns);
-            Color color = (Color)(pos.board[sq] / 6);
-            uint8_t file = file_of(sq);
-            uint8_t rank = rank_of(sq);
-
-            if (color == White) {
-                // doubled pawn penalty
-                int whiteDoubled = popCount(whitePawns & MASK_FILE[file]);
-                eval.MGScores[White] -= (whiteDoubled - 1) * doubledPawnPenaltyMG;
-                eval.EGScores[White] -= (whiteDoubled - 1) * doubledPawnPenaltyEG;
-                // passed pawn bonus
-                if ((whitePassedMasks[sq] & blackPawns) == 0) {
-                    eval.MGScores[White] += passedPawnBonusMG[rank];
-                    eval.EGScores[White] += passedPawnBonusEG[rank];
-                }
-            }
-            else {
-                // doubled pawn penalty
-                int blackDoubled = popCount(blackPawns & MASK_FILE[file]);
-                eval.MGScores[Black] -= (blackDoubled - 1) * doubledPawnPenaltyMG;
-                eval.EGScores[Black] -= (blackDoubled - 1) * doubledPawnPenaltyEG;
-                // passed pawn bonus
-                if ((blackPassedMasks[sq] & whitePawns) == 0) {
-                    eval.MGScores[Black] += passedPawnBonusMG[7 - rank];
-                    eval.EGScores[Black] += passedPawnBonusEG[7 - rank];
-                }
-            }
-        }
-
-        // get total midgame and endgame scores and store tappered eval
-        int MGScore = eval.MGScores[c] - eval.MGScores[~c];
-        int EGScore = eval.EGScores[c] - eval.EGScores[~c];
-        tableEval = (MGScore * MGPhase + EGScore * EGPhase) / 24;
-
-        // store pawn score in PT relative to side
-        PT.Store(pos.pawnHashKey, tableEval);
-    }
-
-
     // material scores for both sides
     int ourMaterial   = pos.mat_eg[c];
     int theirMaterial = pos.mat_eg[~c];
-
-    // add tempo bonus to side to move
-    eval.MGScores[c] += tempoBonus;
-
-    // add bishop pair bonus 
-    Bitboard usBishops    = pos.Bishops<c>();
-    Bitboard theirBishops = pos.Bishops<~c>();
-
-    if (popCount(usBishops) > 1) {
-        eval.MGScores[c] += bishopPairBonus;
-        eval.EGScores[c] += bishopPairBonus;
-    }
-
-    if (popCount(theirBishops) > 1) {
-        eval.MGScores[~c] += bishopPairBonus;
-        eval.EGScores[~c] += bishopPairBonus;
-    }
 
     // total material
     int totalMaterial = ourMaterial + theirMaterial;
@@ -197,8 +128,7 @@ int evaluate(Position& pos) {
     int EGScore = eval.EGScores[c] - eval.EGScores[~c];
 
     // interpolate midgame and endgame scores (tappered eval)
-    int final = (MGScore * MGPhase + EGScore * EGPhase) / 24;
-    return final + ((pawnHashHit) ? tableEval : 0);
+    return (MGScore * MGPhase + EGScore * EGPhase) / 24;
 }
 
 } // end of namespace eval

@@ -166,10 +166,6 @@ int Search::quiescence(int alpha, int beta) {
         if (pos.board[move.target()] == None) 
             continue; 
 
-        // SEE (static exchange evaluator)
-		if (See(pos, move) < 0) 
-            continue;
-
         // increment ply
         ply++;
 
