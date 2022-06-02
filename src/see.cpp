@@ -19,8 +19,7 @@
 
 #include "see.h"
 
-// Peform a static exchange evaluation on target square of the move given,
-// and return a score of the move from the perspective of the side to move
+// Static exhange evaluation function
 int See(Position& pos, Move move) {
     Square toSq       = move.target();
     Square frSq       = move.source();

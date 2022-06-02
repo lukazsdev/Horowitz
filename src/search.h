@@ -32,13 +32,12 @@ static constexpr int windowSize      = 50;
 static constexpr int fullDepthMoves  = 4;
 static constexpr int reductionLimit  = 3;
 static constexpr int staticNMPMargin = 120;
-static constexpr int deltaMargin     = 1000;
 
 static constexpr int pvMoveScore     = 60;
 static constexpr int killerMoveScore = 10;
 static constexpr int maxKillers      = 2;
-static constexpr int mvvLvaOffset    = 65279;
-static constexpr int maxHistoryScore = 65249;
+static constexpr int mvvLvaOffset    = 10000;
+static constexpr int maxHistoryScore = 10000;
 
 
 // margins for futility pruning and late move pruning

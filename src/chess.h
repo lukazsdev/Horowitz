@@ -1208,7 +1208,7 @@ inline Bitboard Position::LegalPawnMoves(Square sq){
     if (doubleCheck == 2) return 0ULL;
     Bitboard enemy = (c == White) ? occupancyBlack : occupancyWhite;
     // If we are pinned diagonally we can only do captures which are on the pinmaskD and on the checkmask
-    if (pinMaskD & (1ULL << sq)) return GetPawnAttacks<c>(sq) & pinMaskD & checkMask & enemy;
+    if (pinMaskD & (1ULL << sq)) return GetPawnAttacks<c>(sq) & pinMaskD & checkMask & (enemy | (1ULL << enpassantSquare));
     // Calculate pawn pushs
     Bitboard push = GetPawnPush<c>(sq) & ~occupancyAll;
     push |= (c==White) ? rank_of(sq) == 1 ? (push << 8) & ~occupancyAll : 0ULL : rank_of(sq) == 6 ? (push >> 8) & ~occupancyAll : 0ULL;
