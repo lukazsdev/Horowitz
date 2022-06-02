@@ -169,9 +169,20 @@ static constexpr int NoHashEntry = 100000;
 //static constexpr int PieceValueMG[6] = {126, 781, 825, 1276, 2538,  0};
 //static constexpr int PieceValueEG[6] = {208, 854, 915, 1380, 2682,  0};
 
+/*
+const int PawnValue   = S(  82, 144);
+const int KnightValue = S( 426, 475);
+const int BishopValue = S( 441, 510);
+const int RookValue   = S( 627, 803);
+const int QueenValue  = S(1292,1623);
+const int KingValue   = S(   0,   0);
+*/
+
 // material piece values for midgame and endgame
-static constexpr int PieceValueMG[6] = {82, 337, 365, 625, 1125,  0};
-static constexpr int PieceValueEG[6] = {94, 281, 297, 512,  936,  0};
+static constexpr int PieceValueMG[6] = {82, 426, 441, 627, 1292,  0};
+static constexpr int PieceValueEG[6] = {144, 475, 510, 803,  1623,  0};
+//static constexpr int PieceValueMG[6] = {82, 337, 365, 625, 1125,  0};
+//static constexpr int PieceValueEG[6] = {94, 281, 297, 512,  936,  0};
 static constexpr int PieceValue[7] = {100, 300, 300, 500, 900, infinity, 0};
 
 /**********************************\

@@ -19,6 +19,9 @@
 #include <vector>
 #include "search.h"
 
+int LMRTable[64][64];
+int LateMovePruningCounts[2][9];
+
 void Search::scoreMoves(Moves& moveList) {
     for (int index = 0; index < moveList.count; index++) {
         Move move = moveList.moves[index];
@@ -88,7 +91,6 @@ void Search::enablePVScoring(Moves& moveList) {
         }
     }
 }
-
 
 void Search::ageHistoryTable() {
     for (int sq1 = 0; sq1 < 64; sq1++) {
