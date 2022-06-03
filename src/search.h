@@ -44,6 +44,8 @@ static constexpr int maxHistoryScore = 10000;
 static constexpr int futilityMargins[9] = {0, 100, 160, 220, 280, 340, 400, 460, 520};
 static constexpr int lateMovePruningMargins[4] = {0, 8, 12, 24};
 
+extern int LMRTable[64][64];
+
 struct Reduction {
     int moveLimit;
     int reduction;
@@ -113,13 +115,16 @@ public:
     template<Color c> int negamax(int alpha, int beta, int depth, bool nmp=true);
 
     // move ordering/scoring functions
-    void scoreMoves(Moves& moveList);
-    void enablePVScoring(Moves& moveList);
-    void orderMoves(Moves& moveList, int currIndex);
+    void scoreMoves(Moves& moveList) const;
+    void orderMoves(Moves& moveList, int currIndex) const;
+    void enablePVScoring(Moves& moveList) ;
     void ageHistoryTable();
     
     // print the best move
     void printBestMove(Move bestMove);
+
+    // initialize LMR tables
+    void initLMRTables();
 };
 
 
@@ -357,7 +362,7 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
     scoreMoves(moveList);
 
     // number of moves searched in the move list
-    int movesSearched = 0;
+    int played = 0;
 
     // best score
     int bestScore = -infinity;
@@ -410,6 +415,78 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
             }
         }
 
+        /*
+
+        // full depth search
+        if (played == 0) 
+            // recursively call negamax normally
+            score = -negamax<~c>(-beta, -alpha, depth - 1);
+        else {
+            // condition to consider LMR
+            if (played >= fullDepthMoves && depth >= reductionLimit &&
+            !inCheck && !isCapture && !move.promoted()) {
+                // reduction
+                int R = LMRTable[depth][played];
+
+                // search current move with reduced depth
+                score = -negamax<~c>(-alpha - 1, -alpha, depth - R);
+            }
+            else 
+                // hack to ensure that full-depth search is done
+                score = alpha + 1;
+            
+            // PV search
+            if (score > alpha) {
+                score = -negamax<~c>(-alpha - 1, -alpha, depth - 1);
+
+                // check for failure
+                if ((score > alpha) && score < beta) {
+                    score = -negamax<~c>(-beta, -alpha, depth - 1);
+                }
+            }
+        }
+        */
+
+        
+        // if the move is tactical (not quiet)
+        bool tactical = inCheck || isCapture ||
+                killers[ply][0] == move ||
+                killers[ply][1] == move ||
+                move.promoted();
+        
+        // reduction
+        int R = 0;
+        
+        // quiet late move reductions
+        if (!tactical && depth > 2 && legalMoves > 1) {
+
+            // Use LMR Formula
+            R = LMRTable[depth][legalMoves];
+
+            // Increase reduction for non PV moves
+            R += !isPVNode ? 1 : 0;
+
+            // Don't drop directly into Quiesence
+            R = std::min(depth - 1, std::max(R, 1));
+        }
+
+        // No LMR conditions were met. Use standard reduction
+        else R = 1;
+
+        // If LMR conditions were triggered, then search with reduced depth
+        if (R != 1) score = -negamax<~c>(-alpha - 1, -alpha, depth - R);
+
+        // Do full search if LMR failed high OR failed completely
+        if (R == 1 && !(isPVNode && legalMoves == 1)) 
+            score = -negamax<~c>(-alpha - 1, -alpha, depth - 1);
+
+        // PV Search
+        if (isPVNode && ((score > alpha && score < beta) || legalMoves == 1))
+            score = -negamax<~c>(-beta, -alpha, depth - 1);
+        
+
+
+        /*
         // late move reductions
         score = 0;
 
@@ -452,6 +529,7 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
                 score = -negamax<~c>(-beta, -alpha, depth - 1);
             }
         }
+        */
 
         // unmake move
         pos.unmakemove<c>(move);
@@ -463,7 +541,7 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
         repetitions.count--;
 
         // increment moves searched
-        movesSearched++;
+        played++;
 
         // update best score
         if (score > bestScore)

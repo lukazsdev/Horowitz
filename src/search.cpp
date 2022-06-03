@@ -22,7 +22,7 @@
 int LMRTable[64][64];
 int LateMovePruningCounts[2][9];
 
-void Search::scoreMoves(Moves& moveList) {
+void Search::scoreMoves(Moves& moveList) const {
     for (int index = 0; index < moveList.count; index++) {
         Move move = moveList.moves[index];
 
@@ -59,7 +59,7 @@ void Search::scoreMoves(Moves& moveList) {
     }
 }
 
-void Search::orderMoves(Moves& moveList, int currIndex) {
+void Search::orderMoves(Moves& moveList, int currIndex) const {
     int bestIndex = currIndex;
     int bestScore = moveList.moves[bestIndex].score;
 
@@ -90,6 +90,13 @@ void Search::enablePVScoring(Moves& moveList) {
             followPV = 1;
         }
     }
+}
+
+void Search::initLMRTables() {
+    // Init Late Move Reductions Table
+    for (int depth = 1; depth < 64; depth++)
+        for (int played = 1; played < 64; played++)
+            LMRTable[depth][played] = 0.75 + log(depth) * log(played) / 2.25;
 }
 
 void Search::ageHistoryTable() {

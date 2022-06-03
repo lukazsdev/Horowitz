@@ -183,6 +183,7 @@ void UCIInterface::parseGoCommand() {
 
 void UCIInterface::bootEngine() {
     zobrist.initRandomKeys();
+    search.initLMRTables();
     search.TT.Init(64);
     Eval::PT.Init(20);
     Eval::init();
