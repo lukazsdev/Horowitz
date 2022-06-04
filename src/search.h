@@ -171,8 +171,8 @@ int Search::quiescence(int alpha, int beta) {
             continue; 
 
         // SEE (static exchange evaluator)
-		if (See(pos, move) < 0) 
-            continue;
+		//if (See(pos, move) < 0) 
+          //  continue;
 
         // increment ply
         ply++;
@@ -249,7 +249,6 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
     // search/pruning conditions
     bool inCheck = pos.isSquareAttacked<~c>(pos.KingSq<c>());
     bool isPVNode = beta - alpha > 1;
-    bool canFutilityPrune = false;
 
     // increment depth if king is in check
     if (inCheck)
@@ -338,15 +337,6 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
             return beta;
     }
 
-    // futility pruning
-    if (depth <= 8 && !isPVNode && !inCheck && alpha < checkmate) {
-        int staticScore = Eval::evaluate<c>(pos);
-        if (staticScore + futilityMargins[depth] <= alpha) {
-            canFutilityPrune = true;
-        }
-    }
-    
-
     // legal moves counter
     int legalMoves = 0;
 
@@ -403,78 +393,33 @@ int Search::negamax(int alpha, int beta, int depth, bool nmp) {
                 continue;
             }
         }
-
-        // futility pruning
-        if (canFutilityPrune && legalMoves > 1) {
-            bool tactical = (inCheck) || (isCapture) || (move.promoted() > 0);
-            if (!tactical) {
-                pos.unmakemove<c>(move);
-                repetitions.count--;
-                ply--;
-                continue;
-            }
-        }
-
-        /*
-
-        // full depth search
-        if (played == 0) 
-            // recursively call negamax normally
-            score = -negamax<~c>(-beta, -alpha, depth - 1);
-        else {
-            // condition to consider LMR
-            if (played >= fullDepthMoves && depth >= reductionLimit &&
-            !inCheck && !isCapture && !move.promoted()) {
-                // reduction
-                int R = LMRTable[depth][played];
-
-                // search current move with reduced depth
-                score = -negamax<~c>(-alpha - 1, -alpha, depth - R);
-            }
-            else 
-                // hack to ensure that full-depth search is done
-                score = alpha + 1;
-            
-            // PV search
-            if (score > alpha) {
-                score = -negamax<~c>(-alpha - 1, -alpha, depth - 1);
-
-                // check for failure
-                if ((score > alpha) && score < beta) {
-                    score = -negamax<~c>(-beta, -alpha, depth - 1);
-                }
-            }
-        }
-        */
-
-        
-        // if the move is tactical (not quiet)
-        bool tactical = inCheck || isCapture ||
-                killers[ply][0] == move ||
-                killers[ply][1] == move ||
-                move.promoted();
         
         // reduction
         int R = 0;
         
         // quiet late move reductions
-        if (!tactical && depth > 2 && legalMoves > 1) {
+        if (!inCheck && !isCapture && !move.promoted() && depth >= 3 && legalMoves > 1) {
 
             // Use LMR Formula
             R = LMRTable[depth][legalMoves];
 
             // Increase reduction for non PV moves
-            R += !isPVNode ? 1 : 0;
+            R += !isPVNode;
 
-            // Don't drop directly into Quiesence
-            R = std::min(depth - 1, std::max(R, 1));
+            // Reduce for killer moves
+            R -= (killers[ply][0] == move || killers[ply][1] == move);
         }
 
         // No LMR conditions were met. Use standard reduction
         else R = 1;
 
+        // Don't drop directly into quiescence search from a late-move
+		// reduction, unless we're already at a frontier node
+        int reducedDepth = std::max(depth - 1 - R, 1);
+        if (depth == 1) reducedDepth = depth - 1;
+
         // If LMR conditions were triggered, then search with reduced depth
-        if (R != 1) score = -negamax<~c>(-alpha - 1, -alpha, depth - R);
+        if (R != 1) score = -negamax<~c>(-alpha - 1, -alpha, reducedDepth);
 
         // Do full search if LMR failed high OR failed completely
         if (R == 1 && !(isPVNode && legalMoves == 1)) 

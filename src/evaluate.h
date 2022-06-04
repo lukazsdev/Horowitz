@@ -43,46 +43,13 @@ struct EvalInfo {
     int EGScores[2]{};
 };
 
-// evaluation bonuses
-static constexpr int tempoBonus = 5;
-static constexpr int bishopPairBonus = 10;
-
 // evaluation penalties
 static constexpr int doubledPawnPenaltyMG = 5;
 static constexpr int doubledPawnPenaltyEG = 10;
 
-// maximum material to consider position as an endgame
-static constexpr float materialEndgameStart = 1500;
-
 // passed pawn bonus for each rank (white's perspective)
-static constexpr int passedPawnBonusMG[8] = { 0, 9, 4, 1, 13, 48, 109, 0 };
-static constexpr int passedPawnBonusEG[8] = { 0, 1, 5, 25, 50, 103, 149, 0 };
-
-// lookup table for center manhattan distance
-static constexpr int CenterManhattanDistance[64] = { 
-    6, 5, 4, 3, 3, 4, 5, 6,
-    5, 4, 3, 2, 2, 3, 4, 5,
-    4, 3, 2, 1, 1, 2, 3, 4,
-    3, 2, 1, 0, 0, 1, 2, 3,
-    3, 2, 1, 0, 0, 1, 2, 3,
-    4, 3, 2, 1, 1, 2, 3, 4,
-    5, 4, 3, 2, 2, 3, 4, 5,
-    6, 5, 4, 3, 3, 4, 5, 6
-};
-
-// calculate endgame phase weight 
-float endgamePhaseWeight(int materialWithoutPawns);
-
-// mop up evaluation (used for late endgame positions)
-template<Color c>
-int mopUpEval(Square theirKingSq, int ourMaterial, int theirMaterial, float endgameWeight) {
-    int mopUpScore = 0;
-    if ((ourMaterial > theirMaterial + PieceValue[Pawn] * 2) && endgameWeight > 0) {
-        mopUpScore += CenterManhattanDistance[theirKingSq] * 10;
-        return (int)(mopUpScore * endgameWeight);
-    }
-    return 0;
-}
+static constexpr int passedPawnBonusMG[8] = {0, 10, 30, 50, 75, 100, 150, 200};
+static constexpr int passedPawnBonusEG[8] = {0, 10, 30, 50, 75, 100, 150, 200};
 
 // static evaluation function. Returns 
 // the score relative to the side to move 
@@ -96,7 +63,6 @@ int evaluate(Position& pos) {
     int MGPhase = phase;
     if (MGPhase > 24) MGPhase = 24;
     int EGPhase = 24 - MGPhase;
-    
 
     // if current pawn structure is not in pawn hash table then store 
     // current pawn structure eval in hash table. Else, retrieve the score.
@@ -161,44 +127,6 @@ int evaluate(Position& pos) {
     eval.MGScores[Black] += hashMGScores[Black];
     eval.EGScores[White] += hashEGScores[White];
     eval.EGScores[Black] += hashEGScores[Black];
-
-    // material scores for both sides
-    int ourMaterial   = pos.mat_eg[c];
-    int theirMaterial = pos.mat_eg[~c];
-
-    // add tempo bonus to side to move
-    eval.MGScores[c] += tempoBonus;
-
-    // add bishop pair bonus 
-    Bitboard usBishops    = pos.Bishops<c>();
-    Bitboard theirBishops = pos.Bishops<~c>();
-
-    if (popCount(usBishops) > 1) {
-        eval.MGScores[c] += bishopPairBonus;
-        eval.EGScores[c] += bishopPairBonus;
-    }
-
-    if (popCount(theirBishops) > 1) {
-        eval.MGScores[~c] += bishopPairBonus;
-        eval.EGScores[~c] += bishopPairBonus;
-    }
-
-    // total material
-    int totalMaterial = ourMaterial + theirMaterial;
-
-    // peform mop up evaluation if in endgame position
-    if (totalMaterial <= materialEndgameStart) {
-        // material without pawns for calculating endgame phase weight
-        int ourMaterialWithoutPawns   = ourMaterial   - popCount(pos.Pawns<c>()) * PieceValue[Pawn];
-        int theirMaterialWithoutPawns = theirMaterial - popCount(pos.Pawns<~c>()) * PieceValue[Pawn];
-        float ourEndgamePhaseWeight   = endgamePhaseWeight(ourMaterialWithoutPawns);
-        float theirEndgamePhaseWeight = endgamePhaseWeight(theirMaterialWithoutPawns);
-
-        // mop up eval
-        eval.EGScores[c]  += mopUpEval<c>(bsf(pos.Kings<~c>()), ourMaterial, theirMaterial, ourEndgamePhaseWeight);
-        eval.EGScores[~c] += mopUpEval<~c>(bsf(pos.Kings<c>()), theirMaterial, ourMaterial, theirEndgamePhaseWeight);
-    }
-    
 
     eval.MGScores[c] += pos.mat_mg[c] + pos.psqt_mg[c]; 
     eval.EGScores[c] += pos.mat_eg[c] + pos.psqt_eg[c]; 

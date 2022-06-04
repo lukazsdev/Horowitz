@@ -20,7 +20,6 @@
 #include "search.h"
 
 int LMRTable[64][64];
-int LateMovePruningCounts[2][9];
 
 void Search::scoreMoves(Moves& moveList) const {
     for (int index = 0; index < moveList.count; index++) {

@@ -26,12 +26,6 @@ PawnHashTable PT;
 // evaluation masks
 Bitboard whitePassedMasks[64];
 Bitboard blackPassedMasks[64];
-  
-// mop up evaluation functions
-float endgamePhaseWeight(int materialWithoutPawns) {
-  float multiplier = 1 / materialEndgameStart;
-  return 1 - std::min((float)1, (float)materialWithoutPawns * multiplier);
-}
 
 void init() {
   for (Square sq = Square(0); sq < Square(64); sq = Square(sq + 1)) {
