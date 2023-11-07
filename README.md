@@ -1,5 +1,5 @@
 ## Overview:
-Horowitz is a UCI-compatible chess engine written in C++ 17.
+Horowitz is a UCI-compatible chess engine written in C++ 17. The engine is also listed on the CCRL [here](https://www.computerchess.org.uk/ccrl/404/cgi/engine_details.cgi?print=Details&each_game=1&eng=Horowitz%202.2.0%2064-bit#Horowitz_2_2_0_64-bit).
 ## Installation:
 Only builds for windows are available in the Releases page. If you want to build the engine locally on a different operating system then navigate to the source directory and run `make`.
 ## Credits:
